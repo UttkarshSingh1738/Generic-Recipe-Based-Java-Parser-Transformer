@@ -1,0 +1,78 @@
+{
+    "recipes": [
+        {
+            "name": "UseVarForListDecl",
+            "description": "Convert local List<T> declarations to `var` when they have an initializer.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "VariableDeclarationExpr",
+                        "type": "java.util.List",
+                        "requireInitializer": true
+                    },
+                    "actions": [
+                        {
+                            "changeType": {
+                                "newType": "var"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ReplaceDateWithLocalDateTime",
+            "description": "Replace `Date` with `LocalDateTime` and `new Date()` with `LocalDateTime.now()`.",
+            "imports": {
+                "add": [
+                    "java.time.LocalDateTime"
+                ],
+                "remove": [
+                    "java.util.Date"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ObjectCreationExpr",
+                        "fqn": "java.util.Date"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "LocalDateTime",
+                                "method": "now"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "VariableDeclarationExpr",
+                        "type": "java.util.Date"
+                    },
+                    "actions": [
+                        {
+                            "changeType": {
+                                "newType": "java.time.LocalDateTime"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "Parameter",
+                        "type": "java.util.Date"
+                    },
+                    "actions": [
+                        {
+                            "changeType": {
+                                "newType": "java.time.LocalDateTime"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -71,6 +71,7 @@ public class GenericRecipeTransformer {
         public String fqnScope;
         public String annotation;
         public String matchExpr;
+        public Boolean requireInitializer;
     }
 
     public static void main(String[] args) throws Exception {
@@ -280,6 +281,15 @@ public class GenericRecipeTransformer {
             if (!typeMatches) {
                 System.out.println("    [type] ✗ no match");
                 return false;
+            }
+        }
+
+        if (m.requireInitializer != null && m.requireInitializer) {
+            if (node instanceof VariableDeclarationExpr vde) {
+                boolean allHaveInitializer = vde.getVariables()
+                    .stream()
+                    .allMatch(v -> v.getInitializer().isPresent());
+                if (!allHaveInitializer) return false;
             }
         }
 

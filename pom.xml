@@ -80,6 +80,12 @@
                 <mainClass>com.yourorganization.maven_sample.GuavaSymbolSolverInspector</mainClass>
             </properties>
         </profile>
+        <profile>
+            <id>gst</id>
+            <properties>
+                <mainClass>gst.Main</mainClass>
+            </properties>
+        </profile>
     </profiles>
 
     <!-- This blob of configuration tells Maven to make the jar executable. You can run it with:
