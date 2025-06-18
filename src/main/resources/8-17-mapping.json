@@ -1,0 +1,82 @@
+{
+    "annotations": [
+        {
+            "oldAnnotation": "Controller",
+            "newAnnotation": "RestController",
+            "oldImport": "org.springframework.stereotype.Controller",
+            "newImport": "org.springframework.web.bind.annotation.RestController"
+        },
+        {
+            "oldAnnotation": "Inject",
+            "newAnnotation": "Autowired",
+            "oldImport": "javax.inject.Inject",
+            "newImport": "org.springframework.beans.factory.annotation.Autowired"
+        },
+        {
+            "oldAnnotation": "MvcController",
+            "newAnnotation": null,
+            "oldImport": "org.springframework.stereotype.mvc.MvcController",
+            "newImport": null
+        },
+        {
+            "oldAnnotation": "InjectRestServiceClient",
+            "newAnnotation": [
+                "Qualifier",
+                "Autowired"
+            ],
+            "oldImport": "org.springframework.web.client.InjectRestServiceClient",
+            "newImport": [
+                "org.springframework.beans.factory.annotation.Qualifier",
+                "org.springframework.beans.factory.annotation.Autowired"
+            ]
+        }
+    ],
+    "imports": {
+        "javax.xml.XMLConstants": "jakarta.xml.XMLConstants",
+        "javax.xml.validation.Validator": "jakarta.xml.validation.Validator",
+        "javax.servlet.http.HttpServletRequest": "jakarta.servlet.http.HttpServletRequest",
+        "javax.annotation.PostConstruct": "jakarta.annotation.PostConstruct",
+        "javax.annotation.PreDestroy": "jakarta.annotation.PreDestroy",
+        "javax.validation.constraints.NotNull": "jakarta.validation.constraints.NotNull",
+        "javax.ws.rs.Path": "jakarta.ws.rs.Path",
+        "javax.ws.rs.GET": "jakarta.ws.rs.GET",
+        "javax.ws.rs.POST": "jakarta.ws.rs.POST",
+        "javax.ws.rs.Produces": "jakarta.ws.rs.Produces",
+        "javax.inject.Inject": "org.springframework.beans.factory.annotation.Autowired",
+        "org.springframework.stereotype.Controller": "org.springframework.web.bind.annotation.RestController",
+        "org.springframework.stereotype.mvc.MvcController": "",
+        "javax.ws.rs.Consumes": "jakarta.ws.rs.Consumes"
+    },
+    "static_class": [
+        {
+            "oldClassName": "CustomLogManager",
+            "newClassName": "LogManager",
+            "oldImport": "org.apache.logging.log4j.CustomLogManager",
+            "newImport": "org.apache.logging.log4j.LogManager"
+        },
+        {
+            "oldClassName": "DefaultHttpClient",
+            "newClassName": "HttpClient",
+            "oldImport": "org.apache.http.impl.client.DefaultHttpClient",
+            "newImport": "java.net.http.HttpClient"
+        },
+        {
+            "oldClassName": "SimpleDateFormat",
+            "newClassName": "DateTimeFormatter",
+            "oldImport": "java.text.SimpleDateFormat",
+            "newImport": "java.time.format.DateTimeFormatter"
+        },
+        {
+            "oldClassName": "Date",
+            "newClassName": "LocalDate",
+            "oldImport": "java.util.Date",
+            "newImport": "java.time.LocalDate"
+        },
+        {
+            "oldClassName": "Calendar",
+            "newClassName": "ZonedDateTime",
+            "oldImport": "java.util.Calendar",
+            "newImport": "java.time.ZonedDateTime"
+        }
+    ]
+}

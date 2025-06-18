@@ -1,0 +1,373 @@
+{
+    "AnnotationDeclaration": [],
+    "AnnotationMemberDeclaration": [],
+    "ArrayAccessExpr": [],
+    "ArrayCreationExpr": [],
+    "ArrayCreationLevel": [],
+    "ArrayInitializerExpr": [],
+    "ArrayType": [],
+    "AssertStmt": [],
+    "AssignExpr": [],
+    "BinaryExpr": [],
+    "BlockComment": [],
+    "BlockStmt": [],
+    "BooleanLiteralExpr": [],
+    "BreakStmt": [],
+    "CastExpr": [],
+    "CatchClause": [],
+    "CharLiteralExpr": [],
+    "ClassExpr": [],
+    "ClassOrInterfaceDeclaration": [],
+    "ClassOrInterfaceType": [
+        {
+            "match": {
+                "resolveFqnIs": "org.apache.logging.log4j.CustomLogManager"
+            },
+            "action": {
+                "changeType": "LogManager",
+                "removeImport": true,
+                "addImport": "org.apache.logging.log4j.LogManager"
+            }
+        },
+        {
+            "match": {
+                "resolveFqnIs": "org.apache.http.impl.client.DefaultHttpClient"
+            },
+            "action": {
+                "changeType": "HttpClient",
+                "addImport": "java.net.http.HttpClient"
+            }
+        },
+        {
+            "match": {
+                "resolveFqnIs": "java.text.SimpleDateFormat"
+            },
+            "action": {
+                "changeType": "DateTimeFormatter",
+                "removeImport": true,
+                "addImport": "java.time.format.DateTimeFormatter"
+            }
+        },
+        {
+            "match": {
+                "resolveFqnIs": "java.util.Date"
+            },
+            "action": {
+                "changeType": "LocalDate",
+                "removeImport": true,
+                "addImport": "java.time.LocalDate"
+            }
+        },
+        {
+            "match": {
+                "resolveFqnIs": "java.util.Calendar"
+            },
+            "action": {
+                "changeType": "ZonedDateTime",
+                "removeImport": true,
+                "addImport": "java.time.ZonedDateTime"
+            }
+        }
+    ],
+    "CompilationUnit": [],
+    "ConditionalExpr": [],
+    "ConstructorDeclaration": [],
+    "ContinueStmt": [],
+    "DoStmt": [],
+    "DoubleLiteralExpr": [],
+    "EmptyStmt": [],
+    "EnclosedExpr": [],
+    "EnumConstantDeclaration": [],
+    "EnumDeclaration": [],
+    "ExplicitConstructorInvocationStmt": [],
+    "ExpressionStmt": [],
+    "FieldAccessExpr": [],
+    "FieldDeclaration": [],
+    "ForeachStmt": [],
+    "ForStmt": [],
+    "IfStmt": [],
+    "ImportDeclaration": [
+        {
+            "match": {
+                "importIs": "org.springframework.stereotype.Controller"
+            },
+            "action": {
+                "replaceImport": "org.springframework.web.bind.annotation.RestController",
+                "addImport": "org.springframework.web.bind.annotation.RestController"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.inject.Inject"
+            },
+            "action": {
+                "replaceImport": "org.springframework.beans.factory.annotation.Autowired",
+                "addImport": "org.springframework.beans.factory.annotation.Autowired"
+            }
+        },
+        {
+            "match": {
+                "importIs": "org.springframework.stereotype.mvc.MvcController"
+            },
+            "action": {
+                "removeImport": true
+            }
+        },
+        {
+            "match": {
+                "importIs": "org.springframework.web.client.InjectRestServiceClient"
+            },
+            "action": {
+                "removeImport": true,
+                "addImport": [
+                    "org.springframework.beans.factory.annotation.Qualifier",
+                    "org.springframework.beans.factory.annotation.Autowired"
+                ]
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.xml.XMLConstants"
+            },
+            "action": {
+                "replaceImport": "jakarta.xml.XMLConstants",
+                "addImport": "jakarta.xml.XMLConstants"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.xml.validation.Validator"
+            },
+            "action": {
+                "replaceImport": "jakarta.xml.validation.Validator",
+                "addImport": "jakarta.xml.validation.Validator"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.servlet.http.HttpServletRequest"
+            },
+            "action": {
+                "replaceImport": "jakarta.servlet.http.HttpServletRequest",
+                "addImport": "jakarta.servlet.http.HttpServletRequest"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.annotation.PostConstruct"
+            },
+            "action": {
+                "replaceImport": "jakarta.annotation.PostConstruct",
+                "addImport": "jakarta.annotation.PostConstruct"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.annotation.PreDestroy"
+            },
+            "action": {
+                "replaceImport": "jakarta.annotation.PreDestroy",
+                "addImport": "jakarta.annotation.PreDestroy"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.validation.constraints.NotNull"
+            },
+            "action": {
+                "replaceImport": "jakarta.validation.constraints.NotNull",
+                "addImport": "jakarta.validation.constraints.NotNull"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.ws.rs.Path"
+            },
+            "action": {
+                "replaceImport": "jakarta.ws.rs.Path",
+                "addImport": "jakarta.ws.rs.Path"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.ws.rs.GET"
+            },
+            "action": {
+                "replaceImport": "jakarta.ws.rs.GET",
+                "addImport": "jakarta.ws.rs.GET"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.ws.rs.POST"
+            },
+            "action": {
+                "replaceImport": "jakarta.ws.rs.POST",
+                "addImport": "jakarta.ws.rs.POST"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.ws.rs.Produces"
+            },
+            "action": {
+                "replaceImport": "jakarta.ws.rs.Produces",
+                "addImport": "jakarta.ws.rs.Produces"
+            }
+        },
+        {
+            "match": {
+                "importIs": "javax.ws.rs.Consumes"
+            },
+            "action": {
+                "replaceImport": "jakarta.ws.rs.Consumes",
+                "addImport": "jakarta.ws.rs.Consumes"
+            }
+        }
+    ],
+    "InitializerDeclaration": [],
+    "InstanceOfExpr": [],
+    "IntegerLiteralExpr": [],
+    "IntersectionType": [],
+    "JavadocComment": [],
+    "LabeledStmt": [],
+    "LambdaExpr": [],
+    "LineComment": [],
+    "LocalClassDeclarationStmt": [],
+    "LongLiteralExpr": [],
+    "MarkerAnnotationExpr": [
+        {
+            "match": {
+                "nameIs": "Controller"
+            },
+            "action": {
+                "replaceName": "RestController",
+                "addImport": "org.springframework.web.bind.annotation.RestController"
+            }
+        },
+        {
+            "match": {
+                "nameIs": "Inject"
+            },
+            "action": {
+                "replaceName": "Autowired",
+                "addImport": "org.springframework.beans.factory.annotation.Autowired"
+            }
+        },
+        {
+            "match": {
+                "nameIs": "MvcController"
+            },
+            "action": {
+                "removeAnnotation": true
+            }
+        },
+        {
+            "match": {
+                "nameIs": "InjectRestServiceClient"
+            },
+            "action": {
+                "removeAnnotation": true,
+                "addAnnotations": [
+                    "Qualifier",
+                    "Autowired"
+                ],
+                "addImport": [
+                    "org.springframework.beans.factory.annotation.Qualifier",
+                    "org.springframework.beans.factory.annotation.Autowired"
+                ]
+            }
+        }
+    ],
+    "MemberValuePair": [],
+    "MethodCallExpr": [
+        {
+            "match": {
+                "nameIs": "getInstance",
+                "resolveScopeFqnIs": "java.util.Calendar"
+            },
+            "action": {
+                "replaceWithMethodCall": "ZonedDateTime.now",
+                "removeImport": true,
+                "addImport": "java.time.ZonedDateTime"
+            }
+        }
+    ],
+    "MethodDeclaration": [],
+    "MethodReferenceExpr": [],
+    "ModuleDeclaration": [],
+    "ModuleExportsStmt": [],
+    "ModuleOpensStmt": [],
+    "ModuleProvidesStmt": [],
+    "ModuleRequiresStmt": [],
+    "ModuleUsesStmt": [],
+    "Name": [],
+    "NameExpr": [],
+    "NodeList": [],
+    "NormalAnnotationExpr": [],
+    "NullLiteralExpr": [],
+    "ObjectCreationExpr": [
+        {
+            "match": {
+                "typeIs": "DefaultHttpClient"
+            },
+            "action": {
+                "replaceWithMethodCallTemplate": {
+                    "scope": "HttpClient",
+                    "method": "newHttpClient",
+                    "useOriginalArgs": false
+                },
+                "addImport": "java.net.http.HttpClient"
+            }
+        },
+        {
+            "match": {
+                "typeIs": "SimpleDateFormat"
+            },
+            "action": {
+                "replaceWithMethodCallTemplate": {
+                    "scope": "DateTimeFormatter",
+                    "method": "ofPattern",
+                    "useOriginalArgs": true
+                },
+                "addImport": "java.time.format.DateTimeFormatter"
+            }
+        },
+        {
+            "match": {
+                "typeIs": "Date"
+            },
+            "action": {
+                "replaceWithMethodCall": "LocalDate.now",
+                "addImport": "java.time.LocalDate"
+            }
+        }
+    ],
+    "PackageDeclaration": [],
+    "Parameter": [],
+    "PrimitiveType": [],
+    "ReceiverParameter": [],
+    "ReturnStmt": [],
+    "SimpleName": [],
+    "SingleMemberAnnotationExpr": [],
+    "StringLiteralExpr": [],
+    "SuperExpr": [],
+    "SwitchEntryStmt": [],
+    "SwitchStmt": [],
+    "SynchronizedStmt": [],
+    "ThisExpr": [],
+    "ThrowStmt": [],
+    "TryStmt": [],
+    "TypeExpr": [],
+    "TypeParameter": [],
+    "UnaryExpr": [],
+    "UnionType": [],
+    "UnknownType": [],
+    "UnparsableStmt": [],
+    "VariableDeclarationExpr": [],
+    "VariableDeclarator": [],
+    "VarType": [],
+    "VoidType": [],
+    "WhileStmt": [],
+    "WildcardType": []
+}

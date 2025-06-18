@@ -1,0 +1,98 @@
+{
+  "recipes": [
+
+    {
+      "name": "ReplaceDateWithLocalDate",
+      "description": "Replace all `new Date()` and `Date` declarations with `LocalDate.now()` and `LocalDate` respectively.",
+      "imports": {
+        "add": ["java.time.LocalDate"],
+        "remove": ["java.util.Date"]
+      },
+      "steps": [
+        {
+          "match": {
+            "nodeType": "ObjectCreationExpr",
+            "fqn":       "java.util.Date"
+          },
+          "actions": [
+            { "replaceWithMethodCall": { "scope":"LocalDate", "method":"now" } }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "VariableDeclarationExpr",
+            "type":     "java.util.Date"
+          },
+          "actions": [
+            { "changeType": { "newType":"LocalDate" } }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "Parameter",
+            "type":     "java.util.Date"
+          },
+          "actions": [
+            { "changeType": { "newType":"LocalDate" } }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "AnnotateStringParamsNonnull",
+      "description": "Adds @Nonnull to all String parameters (simple demonstration of addAnnotation).",
+      "imports": { "add": ["javax.annotation.Nonnull"] },
+      "steps": [
+        {
+          "match":   { "nodeType": "Parameter", "type": "java.lang.String" },
+          "actions": [
+            { "addAnnotation": { "annotation": "Nonnull" } }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "ReplaceHashMapWithConcurrentHashMap",
+      "description": "Promote thread-safe collections by switching HashMap to ConcurrentHashMap.",
+      "imports": {
+        "add":    ["java.util.concurrent.ConcurrentHashMap"],
+        "remove": ["java.util.HashMap"]
+      },
+      "steps": [
+        {
+          "match":   { "nodeType": "ObjectCreationExpr", "fqn": "java.util.HashMap" },
+          "actions": [ { "changeType": { "newType": "ConcurrentHashMap" } } ]
+        },
+        {
+          "match":   { "nodeType": "VariableDeclarationExpr", "type": "java.util.HashMap" },
+          "actions": [ { "changeType": { "newType": "ConcurrentHashMap" } } ]
+        },
+        {
+          "match":   { "nodeType": "Parameter", "type": "java.util.HashMap" },
+          "actions": [ { "changeType": { "newType": "ConcurrentHashMap" } } ]
+        }
+      ]
+    },
+
+    {
+      "name": "PrintlnToSlf4jInfo",
+      "description": "Turn System.out.println(..) into LOGGER.info(..)",
+      "steps": [
+        {
+          "match": {
+            "nodeType": "MethodCallExpr",
+            "methodName": "println",
+            "fqnScope": "java.io.PrintStream"
+          },
+          "actions": [
+            { "replaceWithMethodCall": { "scope": "LOGGER", "method": "info" } },
+            { "updateImport": { "add": ["org.slf4j.Logger"] } }
+          ]
+        }
+      ]
+    }
+    
+  ]
+}
