@@ -73,6 +73,30 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "FixAwaitUntilArgument",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "awaitUntil",
+                        "argumentType": "java.time.LocalDateTime",
+                        "expectedParamType": "java.util.Date"
+                    },
+                    "actions": [
+                        {
+                            "wrapArgument": {
+                                "template": "Date.from($ARG$.atZone(ZoneId.systemDefault()).toInstant())",
+                                "addImports": [
+                                    "java.util.Date",
+                                    "java.time.ZoneId"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

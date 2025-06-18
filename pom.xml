@@ -83,7 +83,7 @@
         <profile>
             <id>gst</id>
             <properties>
-                <mainClass>gst.Main</mainClass>
+                <mainClass>gst.engine.Pipeline</mainClass>
             </properties>
         </profile>
     </profiles>
