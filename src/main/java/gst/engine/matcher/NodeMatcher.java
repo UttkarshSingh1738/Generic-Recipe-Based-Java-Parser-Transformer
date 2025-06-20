@@ -1,25 +1,23 @@
 package gst.engine.matcher;
 
-import gst.api.Match;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
-import com.github.javaparser.ast.expr.BinaryExpr;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
-
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+
+import gst.api.Match;
 
 public class NodeMatcher {
 
@@ -56,21 +54,34 @@ public class NodeMatcher {
             if (!allInit) return false;
         }
 
-        // 3) fqn (requires symbol solver)
+        // 3) fqn (requires symbol solver) – now handles method calls too
         if (m.fqn != null) {
             String resolved = null;
             try {
-                if (node instanceof ObjectCreationExpr oce) {
-                    resolved = JavaParserFacade.get(typeSolver).getType(oce).describe();
+                if (node instanceof MethodCallExpr mc) {
+                    // resolve the method, then get its declaring type
+                    var rmd = mc.resolve();
+                    resolved = rmd.declaringType().getQualifiedName();
+                } else if (node instanceof ObjectCreationExpr oce) {
+                    resolved = JavaParserFacade
+                                .get(typeSolver)
+                                .getType(oce)
+                                .describe();
                 } else if (node instanceof VariableDeclarationExpr vde) {
-                    resolved = JavaParserFacade.get(typeSolver)
-                                    .getType(vde.getElementType()).describe();
+                    resolved = JavaParserFacade
+                                .get(typeSolver)
+                                .getType(vde.getElementType())
+                                .describe();
                 } else if (node instanceof Parameter p) {
-                    resolved = JavaParserFacade.get(typeSolver).getType(p.getType()).describe();
+                    resolved = JavaParserFacade
+                                .get(typeSolver)
+                                .getType(p.getType())
+                                .describe();
                 }
             } catch (Exception ignored) {}
             if (!m.fqn.equals(resolved)) return false;
         }
+
 
         // 4) simple/resolved `type`
         if (m.type != null && node instanceof VariableDeclarationExpr vde2) {
@@ -124,6 +135,17 @@ public class NodeMatcher {
         if (m.typePattern != null) {
             String text = node.toString();
             if (!Pattern.compile(m.typePattern).matcher(text).find()) return false;
+        }
+
+        // skip any VDE whose element type carries type arguments
+        if (Boolean.TRUE.equals(m.requireNoTypeArgs) && node instanceof VariableDeclarationExpr vde) {
+            var elem = vde.getElementType();
+            if (elem.isClassOrInterfaceType()) {
+                var cit = elem.asClassOrInterfaceType();
+                if (cit.getTypeArguments().isPresent() && !cit.getTypeArguments().get().isEmpty()) {
+                    return false;
+                }
+            }
         }
 
         // (note: argumentType/expectedParamType handled in a later validation pass)

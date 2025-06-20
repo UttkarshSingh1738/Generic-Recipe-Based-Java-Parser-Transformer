@@ -9,7 +9,8 @@
                     "match": {
                         "nodeType": "VariableDeclarationExpr",
                         "type": "java.util.List",
-                        "requireInitializer": true
+                        "requireInitializer": true,
+                        "requireNoTypeArgs": true
                     },
                     "actions": [
                         {
@@ -87,6 +88,82 @@
                                     "java.util.Date",
                                     "java.time.ZoneId"
                                 ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "UseCopyOfForUnmodifiableList",
+            "description": "Replace Collections.unmodifiableList(...) with List.copyOf(...)",
+            "rollbackOnError": false,
+            "imports": {
+                "add": [
+                    "java.util.List"
+                ],
+                "remove": [
+                    "java.util.Collections"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "unmodifiableList",
+                        "fqn": "java.util.Collections"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "List",
+                                "method": "copyOf"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "fqnScope": "java.util.Collections",
+                        "methodName": "unmodifiableList"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "List",
+                                "method": "copyOf"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "UseListOfForAsList",
+            "description": "Replace Arrays.asList(...) with List.of(...)",
+            "rollbackOnError": false,
+            "imports": {
+                "add": [
+                    "java.util.List"
+                ],
+                "remove": [
+                    "java.util.Arrays",
+                    "java.util.Arrays.asList"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "asList",
+                        "fqn": "java.util.Arrays"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "List",
+                                "method": "of"
                             }
                         }
                     ]

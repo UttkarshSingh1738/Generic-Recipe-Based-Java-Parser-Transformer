@@ -16,6 +16,7 @@ public class Match {
 
     // our new schema fields for semantic checks & require‐initializer
     public Boolean requireInitializer;
+    public Boolean requireNoTypeArgs;
     public String argumentType;
     public String expectedParamType;
 

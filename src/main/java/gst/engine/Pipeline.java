@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -117,30 +118,39 @@ public class Pipeline {
                 }
 
                 if (ctx.isFileChanged(srcFile)) {
-                    List<CompilationUnit> unitsList = List.of(cu);
-                    List<ValidationError> errors = Validator.run(unitsList, ctx, symbolSolver);
+                    List<ValidationError> errors = Validator.run(List.of(cu), ctx, symbolSolver);
 
                     if (!errors.isEmpty()) {
                         System.out.println("[VALIDATION] Errors found in file: " + rel);
                         errors.forEach(System.out::println);
 
-                        for (Recipe recipe : recipes) {
-                            if (recipe.rollbackOnError) {
-                                System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: " + recipe.name);
-                                ctx.getOriginalFile(srcFile).ifPresent(original -> {
-                                    // cu.setData(original.getData());
-                                    cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
-                                    cu.setImports(original.getImports());
-                                    cu.setTypes(original.getTypes());
-                                });
-                                ctx.markRolledBack(srcFile);
-                                ctx.recordRollbackError(srcFile, errors);
-                                fileChanged = false;
-                                break;
-                            }
+                        // 1) Which recipes actually ran on this file?
+                        Set<String> applied = ctx.getRecipesForFile(srcFile);
+
+                        // 2) Of those, which want rollback?
+                        Optional<Recipe> toRollback = recipes.stream()
+                            .filter(r -> r.rollbackOnError)
+                            .filter(r -> applied.contains(r.name))
+                            .findFirst();
+
+                        if (toRollback.isPresent()) {
+                        Recipe bad = toRollback.get();
+                        System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: "
+                                            + bad.name);
+                        ctx.getOriginalFile(srcFile).ifPresent(original -> {
+                            cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
+                            cu.setImports(original.getImports());
+                            cu.setTypes(original.getTypes());
+                        });
+                        ctx.markRolledBack(srcFile);
+                        ctx.recordRollbackError(srcFile, errors);
+                        fileChanged = false;
+                        } else {
+                        // No matching recipe wanted rollback — proceed with write
+                        System.out.println("[WARNING] Validation errors found, but no applied recipe had rollbackOnError=true; keeping changes.");
                         }
                     }
-                }
+                    }
 
                 if (fileChanged) {
                     Path outFile = outputRoot.resolve(rel);
@@ -159,15 +169,15 @@ public class Pipeline {
         System.out.println("\n[TRANSFORMED FILES]");
         ctx.getTransformedFiles().forEach(f -> {
             Set<String> recipeLOG = ctx.getRecipesForFile(f);
-            System.out.println("  ✔ " + f + "  [Recipes: " + String.join(", ", recipeLOG) + "]");
+            System.out.println("  ~ " + f + "  [Recipes: " + String.join(", ", recipeLOG) + "]");
         });
 
         System.out.println("\n[ROLLED BACK FILES]");
         ctx.getRolledBackFiles().forEach(f -> {
-            System.out.println("  ⟳ " + f);
+            System.out.println("  ~ " + f);
             List<ValidationError> errors = ctx.getRollbackErrors(f);
             for (ValidationError err : errors) {
-                System.out.println("     ↳ " + err);
+                System.out.println("     =>> " + err);
             }
         });
 
