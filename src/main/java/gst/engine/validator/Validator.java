@@ -1,11 +1,12 @@
 package gst.engine.validator;
 
-import com.github.javaparser.ast.CompilationUnit;
-import gst.engine.TxContext;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+
+import gst.engine.TxContext;
 
 public class Validator {
     private static final List<ValidationRule> RULES = List.of(

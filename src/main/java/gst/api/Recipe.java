@@ -1,7 +1,8 @@
 package gst.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Recipe {
@@ -9,4 +10,5 @@ public class Recipe {
     public String description;
     public ImportMods imports;
     public List<Step> steps;
+    public boolean rollbackOnError = false;
 }

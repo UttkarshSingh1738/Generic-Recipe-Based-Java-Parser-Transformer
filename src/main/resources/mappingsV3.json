@@ -3,6 +3,7 @@
         {
             "name": "UseVarForListDecl",
             "description": "Convert local List<T> declarations to `var` when they have an initializer.",
+            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -23,13 +24,12 @@
         {
             "name": "ReplaceDateWithLocalDateTime",
             "description": "Replace `Date` with `LocalDateTime` and `new Date()` with `LocalDateTime.now()`.",
+            "rollbackOnError": true,
             "imports": {
                 "add": [
                     "java.time.LocalDateTime"
                 ],
-                "remove": [
-                    "java.util.Date"
-                ]
+                "remove": []
             },
             "steps": [
                 {
@@ -71,12 +71,7 @@
                             }
                         }
                     ]
-                }
-            ]
-        },
-        {
-            "name": "FixAwaitUntilArgument",
-            "steps": [
+                },
                 {
                     "match": {
                         "nodeType": "MethodCallExpr",
