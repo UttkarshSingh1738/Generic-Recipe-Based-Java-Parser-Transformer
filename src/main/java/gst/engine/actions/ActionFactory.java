@@ -15,7 +15,10 @@ public class ActionFactory {
             case "changeType"             -> new ChangeTypeAction(stringParams);
             case "replaceWithMethodCall"  -> new ReplaceWithMethodCallAction(stringParams);
             case "wrapArgument"           -> new WrapArgumentAction(params);
-            // future: removeNode, addAnnotation, updateImport, etc.
+            case "switchToReturnExpression" -> new SwitchToReturnExpressionAction(stringParams);
+
+
+             // future: removeNode, addAnnotation, updateImport, etc.
             default -> throw new IllegalArgumentException("Unknown action: " + name);
         };
     }

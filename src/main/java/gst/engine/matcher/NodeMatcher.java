@@ -13,6 +13,7 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
@@ -33,6 +34,8 @@ public class NodeMatcher {
           case "NameExpr"                -> root.findAll(NameExpr.class).stream().map(n->(Node)n).collect(Collectors.toList());
           case "Parameter"               -> root.findAll(Parameter.class).stream().map(n->(Node)n).collect(Collectors.toList());
           case "ClassOrInterfaceType"    -> root.findAll(ClassOrInterfaceType.class).stream().map(n->(Node)n).collect(Collectors.toList());
+          case "SwitchStmt"              -> root.findAll(SwitchStmt.class).stream().map(n->(Node)n).collect(Collectors.toList());
+
           default -> List.of();
         };
     }

@@ -169,6 +169,23 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "UseSwitchReturnExpression",
+            "description": "Convert switch statements (with return or multi-stmt cases) into a single return switch-expression",
+            "rollbackOnError": true,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "SwitchStmt"
+                    },
+                    "actions": [
+                        {
+                            "switchToReturnExpression": {}
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

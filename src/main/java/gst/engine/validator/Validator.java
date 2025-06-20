@@ -11,9 +11,9 @@ import gst.engine.TxContext;
 public class Validator {
     private static final List<ValidationRule> RULES = List.of(
         new TypeCompatibilityRule(),
-        new OverrideRule()
+        new OverrideRule(),
+        new SwitchExpressionCompletenessRule()
         // , new MethodAvailabilityRule()
-        // , new OverrideRule()
     );
 
     /**
