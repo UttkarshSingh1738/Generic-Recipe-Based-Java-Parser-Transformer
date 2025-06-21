@@ -16,6 +16,7 @@ public class ActionFactory {
             case "replaceWithMethodCall"  -> new ReplaceWithMethodCallAction(stringParams);
             case "wrapArgument"           -> new WrapArgumentAction(params);
             case "switchToReturnExpression" -> new SwitchToReturnExpressionAction(stringParams);
+            case "collapseLiteralConcat" -> new CollapseLiteralConcatAction(stringParams);
 
 
              // future: removeNode, addAnnotation, updateImport, etc.

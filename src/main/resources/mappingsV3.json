@@ -3,14 +3,14 @@
         {
             "name": "UseVarForListDecl",
             "description": "Convert local List<T> declarations to `var` when they have an initializer.",
-            "rollbackOnError": false,
+            "rollbackOnError": true,
             "steps": [
                 {
                     "match": {
                         "nodeType": "VariableDeclarationExpr",
                         "type": "java.util.List",
                         "requireInitializer": true,
-                        "requireNoTypeArgs": true
+                        "requireNoTypeArgs": false
                     },
                     "actions": [
                         {
@@ -182,6 +182,28 @@
                     "actions": [
                         {
                             "switchToReturnExpression": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "UseTextBlock",
+            "description": "Collapse purely‐literal string concatenations with escaped newlines into a text block",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "BinaryExpr",
+                        "operator": "+",
+                        "literalOnly": true,
+                        "literalPattern": "\\\\n"
+                    },
+                    "actions": [
+                        {
+                            "collapseLiteralConcat": {
+                                "collapseStyle": "TEXT_BLOCK"
+                            }
                         }
                     ]
                 }

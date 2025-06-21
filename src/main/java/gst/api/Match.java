@@ -13,14 +13,15 @@ public class Match {
     public String fqnScope;
     public String annotation;
     public String matchExpr;
-
-    // our new schema fields for semantic checks & require‐initializer
+    public String operator;
+    public String literalPattern;
+    
+    public Boolean literalOnly;
     public Boolean requireInitializer;
     public Boolean requireNoTypeArgs;
     public String argumentType;
     public String expectedParamType;
 
-    // for future pattern/any‐of‐type matching
     public List<String> typeAny;
     public String typePattern;
 }

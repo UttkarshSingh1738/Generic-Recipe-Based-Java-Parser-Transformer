@@ -166,13 +166,13 @@ public class Pipeline {
         }
         System.out.println("\n=== Transformation Summary ===");
 
-        System.out.println("\n[TRANSFORMED FILES]");
+        System.out.println("\n[TRANSFORMED FILES] (" + ctx.getTransformedFiles().size() + ")");
         ctx.getTransformedFiles().forEach(f -> {
             Set<String> recipeLOG = ctx.getRecipesForFile(f);
             System.out.println("  ~ " + f + "  [Recipes: " + String.join(", ", recipeLOG) + "]");
         });
 
-        System.out.println("\n[ROLLED BACK FILES]");
+        System.out.println("\n[ROLLED BACK FILES] (" + ctx.getRolledBackFiles().size() + ")");
         ctx.getRolledBackFiles().forEach(f -> {
             System.out.println("  ~ " + f);
             List<ValidationError> errors = ctx.getRollbackErrors(f);

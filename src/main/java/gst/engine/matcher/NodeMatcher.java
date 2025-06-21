@@ -1,5 +1,6 @@
 package gst.engine.matcher;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -8,6 +9,7 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
@@ -19,6 +21,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 
 import gst.api.Match;
+import gst.engine.utils.ConcatUtils;
 
 public class NodeMatcher {
 
@@ -35,7 +38,7 @@ public class NodeMatcher {
           case "Parameter"               -> root.findAll(Parameter.class).stream().map(n->(Node)n).collect(Collectors.toList());
           case "ClassOrInterfaceType"    -> root.findAll(ClassOrInterfaceType.class).stream().map(n->(Node)n).collect(Collectors.toList());
           case "SwitchStmt"              -> root.findAll(SwitchStmt.class).stream().map(n->(Node)n).collect(Collectors.toList());
-
+          case "BinaryExpr"              -> root.findAll(BinaryExpr.class).stream().map(n->(Node)n).collect(Collectors.toList());
           default -> List.of();
         };
     }
@@ -150,6 +153,32 @@ public class NodeMatcher {
                 }
             }
         }
+
+        // NEW: for BinaryExpr operator matching
+        if (m.operator != null) {
+            if (node instanceof com.github.javaparser.ast.expr.BinaryExpr be) {
+                if (!be.getOperator().asString().equals(m.operator)) return false;
+            } else return false;
+        }
+
+        if (m.literalOnly != null && node instanceof BinaryExpr be) {
+            List<String> parts = new ArrayList<>();
+            if (m.literalOnly && !ConcatUtils.gatherLiterals(be, parts)) {
+                return false;
+            }
+        }
+        if (m.literalPattern != null && node instanceof BinaryExpr be2) {
+            List<String> parts = new ArrayList<>();
+            if (!ConcatUtils.gatherLiterals(be2, parts)) {
+                return false;
+            }
+            String joined = String.join("", parts);
+            if (!Pattern.compile(m.literalPattern).matcher(joined).find()) {
+                return false;
+            }
+        }
+
+
 
         // (note: argumentType/expectedParamType handled in a later validation pass)
 
