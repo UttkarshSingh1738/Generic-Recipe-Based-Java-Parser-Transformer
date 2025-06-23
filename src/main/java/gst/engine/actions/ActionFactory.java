@@ -20,7 +20,6 @@ public class ActionFactory {
             case "forToForEach"             -> new ForToForEachAction(stringParams);
 
 
-             // future: removeNode, addAnnotation, updateImport, etc.
             default -> throw new IllegalArgumentException("Unknown action: " + name);
         };
     }

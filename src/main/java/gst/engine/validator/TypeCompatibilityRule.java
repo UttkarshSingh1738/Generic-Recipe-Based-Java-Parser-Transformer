@@ -1,17 +1,16 @@
 package gst.engine.validator;
 
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.Node;
-import gst.engine.TxContext;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+
+import gst.engine.TxContext;
 
 public class TypeCompatibilityRule implements ValidationRule {
     @Override
@@ -32,7 +31,6 @@ public class TypeCompatibilityRule implements ValidationRule {
             try {
                 rmd = mc.resolve();
             } catch (Exception e) {
-                // skip calls we can't resolve
                 continue;
             }
 

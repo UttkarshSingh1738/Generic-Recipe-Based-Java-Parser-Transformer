@@ -124,10 +124,8 @@ public class Pipeline {
                         System.out.println("[VALIDATION] Errors found in file: " + rel);
                         errors.forEach(System.out::println);
 
-                        // 1) Which recipes actually ran on this file?
                         Set<String> applied = ctx.getRecipesForFile(srcFile);
 
-                        // 2) Of those, which want rollback?
                         Optional<Recipe> toRollback = recipes.stream()
                             .filter(r -> r.rollbackOnError)
                             .filter(r -> applied.contains(r.name))
@@ -146,7 +144,6 @@ public class Pipeline {
                         ctx.recordRollbackError(srcFile, errors);
                         fileChanged = false;
                         } else {
-                        // No matching recipe wanted rollback — proceed with write
                         System.out.println("[WARNING] Validation errors found, but no applied recipe had rollbackOnError=true; keeping changes.");
                         }
                     }

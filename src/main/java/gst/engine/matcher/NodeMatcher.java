@@ -26,7 +26,6 @@ import gst.engine.utils.ConcatUtils;
 
 public class NodeMatcher {
 
-    /** Find all candidate nodes of the given type in this CU. */
     public static List<Node> findCandidates(Node root, String nodeType) {
         return switch (nodeType) {
           case "ObjectCreationExpr"      -> root.findAll(ObjectCreationExpr.class).stream().map(n->(Node)n).collect(Collectors.toList());
@@ -45,24 +44,23 @@ public class NodeMatcher {
         };
     }
 
-    /** Core matching logic, returns true if node satisfies every non-null field in m. */
     public static boolean matches(
             Node node,
             Match m,
             CombinedTypeSolver typeSolver
     ) {
-        // 1) nodeType sanity
+        // nodeType sanity
         if (!node.getClass().getSimpleName().equals(m.nodeType)) {
             return false;
         }
 
-        // 2) requireInitializer (only for VariableDeclarationExpr)
+        // requireInitializer (only for VariableDeclarationExpr)
         if (Boolean.TRUE.equals(m.requireInitializer) && node instanceof VariableDeclarationExpr vde) {
             boolean allInit = vde.getVariables().stream().allMatch(v -> v.getInitializer().isPresent());
             if (!allInit) return false;
         }
 
-        // 3) fqn (requires symbol solver) – now handles method calls too
+        // fqn (requires symbol solver) – now handles method calls too
         if (m.fqn != null) {
             String resolved = null;
             try {
@@ -91,7 +89,7 @@ public class NodeMatcher {
         }
 
 
-        // 4) simple/resolved `type`
+        // simple/resolved `type`
         if (m.type != null && node instanceof VariableDeclarationExpr vde2) {
             String simple = vde2.getElementType().asString();
             String resolved = null;
@@ -115,13 +113,13 @@ public class NodeMatcher {
             if (!ok) return false;
         }
 
-        // 5) methodName
+        // methodName
         if (m.methodName != null) {
             if (!(node instanceof MethodCallExpr mc && mc.getNameAsString().equals(m.methodName)))
                 return false;
         }
 
-        // 6) fqnScope (for MethodCallExpr)
+        // fqnScope (for MethodCallExpr)
         if (m.fqnScope != null) {
             if (!(node instanceof MethodCallExpr mc && mc.getScope().isPresent()))
                 return false;
@@ -132,20 +130,19 @@ public class NodeMatcher {
             } catch (Exception ignore) { return false; }
         }
 
-        // 7) annotation
+        // annotation
         if (m.annotation != null) {
             if (node instanceof com.github.javaparser.ast.nodeTypes.NodeWithAnnotations<?> nwa) {
                 if (!nwa.isAnnotationPresent(m.annotation)) return false;
             } else return false;
         }
 
-        // 8) typePattern
+        // typePattern
         if (m.typePattern != null) {
             String text = node.toString();
             if (!Pattern.compile(m.typePattern).matcher(text).find()) return false;
         }
 
-        // skip any VDE whose element type carries type arguments
         if (Boolean.TRUE.equals(m.requireNoTypeArgs) && node instanceof VariableDeclarationExpr vde) {
             var elem = vde.getElementType();
             if (elem.isClassOrInterfaceType()) {
@@ -156,7 +153,6 @@ public class NodeMatcher {
             }
         }
 
-        // NEW: for BinaryExpr operator matching
         if (m.operator != null) {
             if (node instanceof com.github.javaparser.ast.expr.BinaryExpr be) {
                 if (!be.getOperator().asString().equals(m.operator)) return false;
@@ -212,8 +208,6 @@ public class NodeMatcher {
                     return false;
             }
         }
-
-        // (note: argumentType/expectedParamType handled in a later validation pass)
 
         return true;
     }

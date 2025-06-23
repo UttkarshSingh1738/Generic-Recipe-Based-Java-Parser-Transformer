@@ -32,11 +32,11 @@ public class ForToForEachAction implements Action {
         if (!(node instanceof ForStmt fs)) return;
         ctx.saveOriginalNode(fs, fs.clone());
 
-        // 1) Extract loop var name
+        // loop var name
         VariableDeclarationExpr init = (VariableDeclarationExpr) fs.getInitialization().get(0);
         String idxVar = init.getVariables().get(0).getNameAsString();
 
-        // 2) Extract collection expression from the compare
+        // collection expression from the compare
         Expression compare = fs.getCompare().orElseThrow();
         final Expression colExpr;
         if (compare instanceof BinaryExpr be && be.getRight() instanceof FieldAccessExpr fa
@@ -47,7 +47,7 @@ public class ForToForEachAction implements Action {
             colExpr = mc.getScope().get().clone();
         } else return;
 
-        // 3) Infer element type
+        // element type
         String elemTypeName;
         try {
             ResolvedType rt = solver.calculateType(colExpr);
@@ -66,12 +66,11 @@ public class ForToForEachAction implements Action {
             return;
         }
 
-        // 4) Choose loop‐var name
         final String elemVar = (colExpr.isNameExpr() && colExpr.asNameExpr().getNameAsString().endsWith("s") && colExpr.asNameExpr().getNameAsString().length() > 1)
             ? colExpr.asNameExpr().getNameAsString().substring(0, colExpr.asNameExpr().getNameAsString().length() - 1)
             : "item";
 
-        // 5) Build new body, replacing array[i] and list.get(i) with elemVar
+        // build new body, replacing array[i] and list.get(i) with elemVar
         Statement origBody = fs.getBody();
         BlockStmt body = origBody.isBlockStmt()
                         ? origBody.asBlockStmt().clone()
@@ -91,7 +90,7 @@ public class ForToForEachAction implements Action {
                 mc.replace(new NameExpr(elemVar));
         });
 
-        // 6) Build the ForEachStmt
+        // the ForEachStmt
         VariableDeclarator vd = new VariableDeclarator(
             StaticJavaParser.parseType(elemTypeName),
             elemVar

@@ -14,10 +14,12 @@
 
 package com.google.common.util.concurrent;
 
-import com.google.common.annotations.J2ktIncompatible;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
+
+import com.google.common.annotations.J2ktIncompatible;
 
 /** Forwarding wrapper around a {@code Condition}. */
 @J2ktIncompatible
@@ -45,7 +47,7 @@ abstract class ForwardingCondition implements Condition {
   }
 
   @Override
-  public boolean awaitUntil(Date deadline) throws InterruptedException {
+  public boolean awaitUntil(LocalDateTime deadline) throws InterruptedException {
     return delegate().awaitUntil(deadline);
   }
 

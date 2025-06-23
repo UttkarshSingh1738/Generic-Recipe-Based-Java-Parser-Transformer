@@ -36,7 +36,6 @@ public class OverrideRule implements ValidationRule {
             try {
                 rmd = md.resolve();
             } catch (Exception e) {
-                // can't resolve the method itself – skip or report separately
                 continue;
             }
 
@@ -45,10 +44,8 @@ public class OverrideRule implements ValidationRule {
 
             List<ResolvedReferenceType> ancestors;
             try {
-                // this may throw if some ancestor's symbol is missing
                 ancestors = declaringType.getAllAncestors();
             } catch (Exception e) {
-                // give up on override check for this type
                 ancestors = List.of();
             }
 
@@ -62,7 +59,6 @@ public class OverrideRule implements ValidationRule {
                 if (optDecl.isEmpty()) continue;
                 ResolvedReferenceTypeDeclaration ancestorTD = optDecl.get();
 
-                // No need to assign to List—just iterate the Set directly:
                 try {
                     for (ResolvedMethodDeclaration ancMd : ancestorTD.getDeclaredMethods()) {
                         if (sameSignature(rmd, ancMd)) {
@@ -71,7 +67,6 @@ public class OverrideRule implements ValidationRule {
                         }
                     }
                 } catch (Exception e) {
-                    // skip this ancestor if methods can’t be listed
                 }
     if (overrides) break;
 }

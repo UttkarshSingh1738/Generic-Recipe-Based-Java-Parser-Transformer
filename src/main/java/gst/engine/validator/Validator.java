@@ -13,12 +13,9 @@ public class Validator {
         new TypeCompatibilityRule(),
         new OverrideRule(),
         new SwitchExpressionCompletenessRule()
-        // , new MethodAvailabilityRule()
     );
 
-    /**
-     * Returns a list of all validation errors found after mutation.
-     */
+     // Returns a list of all validation errors found after mutation.
     public static List<ValidationError> run(
             List<CompilationUnit> units,
             TxContext context,

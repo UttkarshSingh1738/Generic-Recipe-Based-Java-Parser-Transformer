@@ -36,7 +36,6 @@ public class CollapseLiteralConcatAction implements Action {
     if ("TEXT_BLOCK".equals(collapseStyle)) {
       String joined = String.join("", parts)
                           .replace("\\n","\n")
-                          // … other unescapes
                           ;
       top.replace(new TextBlockLiteralExpr(joined));
     } else {
