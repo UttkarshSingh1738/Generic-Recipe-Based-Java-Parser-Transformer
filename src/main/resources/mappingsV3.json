@@ -208,6 +208,27 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "UseEnhancedFor",
+            "description": "Convert C-style index loops over arrays/lists into enhanced for loops",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ForStmt",
+                        "initVarPattern": "i",
+                        "conditionPattern": "i < \\w+\\.(?:length|size\\(\\))",
+                        "updatePattern": "(?:\\+\\+i|i\\+\\+|i\\s*\\+=\\s*1)",
+                        "accessPattern": "\\w+(?:\\[i\\]|\\.get\\(i\\))"
+                    },
+                    "actions": [
+                        {
+                            "forToForEach": {}
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

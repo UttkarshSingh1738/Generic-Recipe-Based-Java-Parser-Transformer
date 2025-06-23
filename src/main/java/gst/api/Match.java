@@ -15,6 +15,10 @@ public class Match {
     public String matchExpr;
     public String operator;
     public String literalPattern;
+    public String initVarPattern;      
+    public String conditionPattern;
+    public String updatePattern;
+    public String accessPattern;
     
     public Boolean literalOnly;
     public Boolean requireInitializer;

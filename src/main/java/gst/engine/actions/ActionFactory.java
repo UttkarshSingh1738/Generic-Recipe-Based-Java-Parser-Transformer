@@ -12,11 +12,12 @@ public class ActionFactory {
             }
         }
         return switch (name) {
-            case "changeType"             -> new ChangeTypeAction(stringParams);
-            case "replaceWithMethodCall"  -> new ReplaceWithMethodCallAction(stringParams);
-            case "wrapArgument"           -> new WrapArgumentAction(params);
+            case "changeType"               -> new ChangeTypeAction(stringParams);
+            case "replaceWithMethodCall"    -> new ReplaceWithMethodCallAction(stringParams);
+            case "wrapArgument"             -> new WrapArgumentAction(params);
             case "switchToReturnExpression" -> new SwitchToReturnExpressionAction(stringParams);
-            case "collapseLiteralConcat" -> new CollapseLiteralConcatAction(stringParams);
+            case "collapseLiteralConcat"    -> new CollapseLiteralConcatAction(stringParams);
+            case "forToForEach"             -> new ForToForEachAction(stringParams);
 
 
              // future: removeNode, addAnnotation, updateImport, etc.

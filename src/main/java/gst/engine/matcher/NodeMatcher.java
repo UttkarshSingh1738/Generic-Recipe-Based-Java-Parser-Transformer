@@ -15,6 +15,7 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
@@ -39,6 +40,7 @@ public class NodeMatcher {
           case "ClassOrInterfaceType"    -> root.findAll(ClassOrInterfaceType.class).stream().map(n->(Node)n).collect(Collectors.toList());
           case "SwitchStmt"              -> root.findAll(SwitchStmt.class).stream().map(n->(Node)n).collect(Collectors.toList());
           case "BinaryExpr"              -> root.findAll(BinaryExpr.class).stream().map(n->(Node)n).collect(Collectors.toList());
+          case "ForStmt"                 -> root.findAll(com.github.javaparser.ast.stmt.ForStmt.class).stream().map(n->(Node)n).collect(Collectors.toList());
           default -> List.of();
         };
     }
@@ -178,7 +180,38 @@ public class NodeMatcher {
             }
         }
 
+        if (node instanceof ForStmt fs) {
+            // initVarPattern
+            if (m.initVarPattern != null) {
+                var inits = fs.getInitialization();
+                if (inits.size() != 1 || !(inits.get(0) instanceof VariableDeclarationExpr vde)
+                || vde.getVariables().size() != 1) return false;
+                String varName = vde.getVariables().get(0).getNameAsString();
+                if (!Pattern.compile(m.initVarPattern).matcher(varName).find())
+                    return false;
+            }
 
+            // conditionPattern
+            if (m.conditionPattern != null) {
+                var cmp = fs.getCompare().orElse(null);
+                if (cmp == null || !Pattern.compile(m.conditionPattern).matcher(cmp.toString()).find())
+                    return false;
+            }
+
+            // updatePattern
+            if (m.updatePattern != null) {
+                boolean anyMatch = fs.getUpdate().stream()
+                    .anyMatch(u -> Pattern.compile(m.updatePattern).matcher(u.toString()).find());
+                if (!anyMatch) return false;
+            }
+
+            // accessPattern (scan the whole body text)
+            if (m.accessPattern != null) {
+                String bodyText = fs.getBody().toString();
+                if (!Pattern.compile(m.accessPattern).matcher(bodyText).find())
+                    return false;
+            }
+        }
 
         // (note: argumentType/expectedParamType handled in a later validation pass)
 
