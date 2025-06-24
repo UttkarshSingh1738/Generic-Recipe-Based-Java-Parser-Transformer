@@ -229,6 +229,60 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "UseRequireNonNullElse",
+            "description": "Replace Optional.ofNullable(x).orElse(y) with Objects.requireNonNullElse(x,y)",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "scopePattern": "Optional\\.ofNullable",
+                        "methodName": "orElse"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "Objects",
+                                "method": "requireNonNullElse",
+                                "unwrapScopeArg": "true"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "java.util.Objects"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "UseIntegerSumFor1Plus2",
+            "description": "Replace the literal 1 + 2 with Integer.sum(1, 2)",
+            "rollbackOnError": false,
+            "imports": {
+                "add": [
+                    "java.lang.Integer"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "BinaryExpr",
+                        "operator": "+",
+                        "typePattern":"1\\s*\\+\\s*2"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "Integer.sum(1, 2)"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

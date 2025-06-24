@@ -52,6 +52,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Optional;
+
 /**
  * Static utility methods related to {@code Stream} instances.
  *
@@ -68,6 +70,21 @@ public final class Streams {
         ? ((Collection<T>) iterable).stream()
         : StreamSupport.stream(iterable.spliterator(), false);
   }
+
+
+
+
+
+class TestExample {
+    String greeting(String name) {
+        return Optional.ofNullable(name)
+                       .orElse("world");
+    }
+}
+
+
+
+
 
   /**
    * Returns {@link Collection#stream}.

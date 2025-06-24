@@ -28,4 +28,13 @@ public class Match {
 
     public List<String> typeAny;
     public String typePattern;
+
+    public String parentNodeType;
+    public String namePattern;   
+    public String scopePattern;
+    public String hasModifier;
+    public String returnTypePattern;
+    public Integer paramCount;  
+    public String requiresImport;     
+    public String forbidsImport;
 }

@@ -209,6 +209,75 @@ public class NodeMatcher {
             }
         }
 
+        // 9) parentNodeType
+    if (m.parentNodeType != null) {
+        if (!node.getParentNode().map(p -> p.getClass().getSimpleName().equals(m.parentNodeType)).orElse(false))
+            return false;
+    }
+
+    // 10) namePattern (for declarations and names)
+    if (m.namePattern != null) {
+        String name = null;
+        if (node instanceof com.github.javaparser.ast.body.VariableDeclarator vd) {
+            name = vd.getNameAsString();
+        } else if (node instanceof com.github.javaparser.ast.body.MethodDeclaration md) {
+            name = md.getNameAsString();
+        } else if (node instanceof com.github.javaparser.ast.expr.NameExpr ne) {
+            name = ne.getNameAsString();
+        }
+        if (name == null || !Pattern.compile(m.namePattern).matcher(name).find())
+            return false;
+    }
+
+    // 11) scopePattern (for MethodCallExpr / FieldAccessExpr)
+    if (m.scopePattern != null) {
+        String scope = null;
+        if (node instanceof com.github.javaparser.ast.expr.MethodCallExpr mc && mc.getScope().isPresent()) {
+            scope = mc.getScope().get().toString();
+        } else if (node instanceof com.github.javaparser.ast.expr.FieldAccessExpr fa) {
+            scope = fa.getScope().toString();
+        }
+        if (scope == null || !Pattern.compile(m.scopePattern).matcher(scope).find())
+            return false;
+    }
+
+    // 12) hasModifier (for nodes with modifiers)
+    if (m.hasModifier != null) {
+        boolean has = false;
+        if (node instanceof com.github.javaparser.ast.nodeTypes.NodeWithModifiers<?> nw) {
+            has = nw.getModifiers().stream()
+                .anyMatch(mod -> mod.getKeyword().asString().equalsIgnoreCase(m.hasModifier));
+        }
+        if (!has) return false;
+    }
+
+    // 13) returnTypePattern (for MethodDeclaration)
+    if (m.returnTypePattern != null && node instanceof com.github.javaparser.ast.body.MethodDeclaration md) {
+        String rt = md.getType().toString();
+        if (!Pattern.compile(m.returnTypePattern).matcher(rt).find())
+            return false;
+    }
+
+    // 14) paramCount (for MethodDeclaration)
+    if (m.paramCount != null && node instanceof com.github.javaparser.ast.body.MethodDeclaration md) {
+        if (md.getParameters().size() != m.paramCount)
+            return false;
+    }
+
+    // 15) requiresImport / forbidsImport
+    if (node instanceof com.github.javaparser.ast.CompilationUnit cu) {
+        if (m.requiresImport != null) {
+            boolean found = cu.getImports().stream()
+                .anyMatch(i -> i.getNameAsString().equals(m.requiresImport));
+            if (!found) return false;
+        }
+        if (m.forbidsImport != null) {
+            boolean found = cu.getImports().stream()
+                .anyMatch(i -> i.getNameAsString().equals(m.forbidsImport));
+            if (found) return false;
+        }
+    }
+
         return true;
     }
 }

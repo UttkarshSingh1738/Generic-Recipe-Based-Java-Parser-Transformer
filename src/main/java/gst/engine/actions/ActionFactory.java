@@ -18,7 +18,13 @@ public class ActionFactory {
             case "switchToReturnExpression" -> new SwitchToReturnExpressionAction(stringParams);
             case "collapseLiteralConcat"    -> new CollapseLiteralConcatAction(stringParams);
             case "forToForEach"             -> new ForToForEachAction(stringParams);
-
+            case "insertBefore"             -> new InsertBeforeAction(stringParams);
+            case "insertAfter"              -> new InsertAfterAction(stringParams);
+            case "removeNode"               -> new RemoveNodeAction(stringParams);
+            case "replaceWithTemplate"      -> new ReplaceWithTemplateAction(stringParams);
+            case "addImport"                -> new AddImportAction(stringParams);
+            case "removeImport"             -> new RemoveImportAction(stringParams);
+            case "addAnnotation"            -> new AddAnnotationAction(stringParams);
 
             default -> throw new IllegalArgumentException("Unknown action: " + name);
         };
