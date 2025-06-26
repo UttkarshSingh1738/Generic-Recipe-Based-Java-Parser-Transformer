@@ -71,21 +71,6 @@ public final class Streams {
         : StreamSupport.stream(iterable.spliterator(), false);
   }
 
-
-
-
-
-class TestExample {
-    String greeting(String name) {
-        return Optional.ofNullable(name)
-                       .orElse("world");
-    }
-}
-
-
-
-
-
   /**
    * Returns {@link Collection#stream}.
    *

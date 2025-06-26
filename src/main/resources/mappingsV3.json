@@ -272,12 +272,57 @@
                     "match": {
                         "nodeType": "BinaryExpr",
                         "operator": "+",
-                        "typePattern":"1\\s*\\+\\s*2"
+                        "typePattern": "1\\s*\\+\\s*2"
                     },
                     "actions": [
                         {
                             "replaceWithTemplate": {
                                 "template": "Integer.sum(1, 2)"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "RemoveDebugPrints",
+            "description": "Delete any System.out.println(...) statements",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ExpressionStmt",
+                        "matchExpr": "System\\.out\\.println\\([^)]*\\)"
+                    },
+                    "actions": [
+                        {
+                            "removeNode": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "DeprecateUtils",
+            "description": "Mark all public *Util classes as @Deprecated",
+            "rollbackOnError": false,
+            "imports": {
+                "add": [
+                    "java.lang.Deprecated"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "hasModifier": "public",
+                        "namePattern": ".*Util$",
+                        "forbidsImport": "java.lang.Deprecated"
+                    },
+                    "actions": [
+                        {
+                            "addAnnotation": {
+                                "name": "Deprecated"
                             }
                         }
                     ]

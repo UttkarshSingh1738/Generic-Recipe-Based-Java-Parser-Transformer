@@ -37,4 +37,7 @@ public class Match {
     public Integer paramCount;  
     public String requiresImport;     
     public String forbidsImport;
+
+    public Integer beforeLine;
+    public Integer afterLine;
 }

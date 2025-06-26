@@ -526,7 +526,6 @@ public final class Ints extends IntsMethodsForWeb {
    * @since 23.1
    */
   public static void reverse(int[] array, int fromIndex, int toIndex) {
-    int sum = 1 + 2;
     checkNotNull(array);
     checkPositionIndexes(fromIndex, toIndex, array.length);
     for (int i = fromIndex, j = toIndex - 1; i < j; i++, j--) {
