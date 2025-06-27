@@ -202,18 +202,18 @@ public class NodeMatcher {
         }
 
         // argumentType + expectedParamType for MethodCallExpr
-        if (m.argumentType != null && m.expectedParamType != null && node instanceof MethodCallExpr mcArg) {
-            var rmd = mcArg.resolve();
-            boolean matched = false;
-            for (int i = 0; i < mcArg.getArguments().size() && i < rmd.getNumberOfParams(); i++) {
-                String argT = mcArg.getArgument(i).calculateResolvedType().describe();
-                String paramT = rmd.getParam(i).getType().describe();
-                if (argT.equals(m.argumentType) && paramT.equals(m.expectedParamType)) {
-                    matched = true; break;
-                }
-            }
-            if (!matched) return false;
-        }
+        // if (m.argumentType != null && m.expectedParamType != null && node instanceof MethodCallExpr mcArg) {
+        //     var rmd = mcArg.resolve();
+        //     boolean matched = false;
+        //     for (int i = 0; i < mcArg.getArguments().size() && i < rmd.getNumberOfParams(); i++) {
+        //         String argT = mcArg.getArgument(i).calculateResolvedType().describe();
+        //         String paramT = rmd.getParam(i).getType().describe();
+        //         if (argT.equals(m.argumentType) && paramT.equals(m.expectedParamType)) {
+        //             matched = true; break;
+        //         }
+        //     }
+        //     if (!matched) return false;
+        // }
 
         // fqnScope (for MethodCallExpr)
         if (m.fqnScope != null) {

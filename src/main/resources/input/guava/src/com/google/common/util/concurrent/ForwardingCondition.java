@@ -14,7 +14,6 @@
 
 package com.google.common.util.concurrent;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -47,7 +46,7 @@ abstract class ForwardingCondition implements Condition {
   }
 
   @Override
-  public boolean awaitUntil(LocalDateTime deadline) throws InterruptedException {
+  public boolean awaitUntil(Date deadline) throws InterruptedException {
     return delegate().awaitUntil(deadline);
   }
 
