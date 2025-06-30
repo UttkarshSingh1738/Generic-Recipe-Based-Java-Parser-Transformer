@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -178,13 +177,5 @@ public class Pipeline {
             }
         });
 
-    }
-
-    public static void main(String[] args) throws Exception {
-        Path mappingFile = Paths.get("src", "main", "resources", "mappingsV3.json");
-        Path inputRoot = Paths.get("src", "main", "resources", "input", "guava", "src");
-        Path outputRoot = Paths.get("output", "OutputGST");
-
-        run(mappingFile, inputRoot, outputRoot);
     }
 }

@@ -328,6 +328,103 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "TestCustomAction",
+            "description": "Should invoke MyCustomAction once on the TestExample class",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "namePattern": "TestExample"
+                    },
+                    "actions": [
+                        {
+                            "myCustom": {
+                                "foo": "bar"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "MigrateCustomHealthCheck",
+            "description": "Turn our legacy HealthIndication into Spring Boot HealthIndicator",
+            "rollbackOnError": false,
+            "imports": {
+                "add": [
+                    "org.springframework.boot.actuate.health.HealthIndicator",
+                    "org.springframework.boot.actuate.health.Health"
+                ],
+                "remove": [
+                    "org.springframework.stereotype.HealthIndication",
+                    "org.springframework.stereotype.HealthIndicationStatus"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "namePattern": ".*HealthCheck$"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "public class ${CLASS_NAME} implements HealthIndicator",
+                                "placeholders": {
+                                    "CLASS_NAME": "${name}"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "namePattern": "health",
+                        "returnTypePattern": "HealthIndicationStatus",
+                        "paramCount": 1
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "public Health health()",
+                                "preserveBody": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "scopePattern": "HealthIndicationStatus",
+                        "methodName": "healthy"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "Health.up().build()"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "scopePattern": "HealthIndicationStatus",
+                        "methodName": "unHealthy"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "Health.down().build()"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
