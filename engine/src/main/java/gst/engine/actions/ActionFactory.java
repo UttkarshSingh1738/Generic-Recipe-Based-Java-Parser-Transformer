@@ -38,6 +38,7 @@ public class ActionFactory {
             case "addImport":                   return new AddImportAction(stringParams);
             case "removeImport":                return new RemoveImportAction(stringParams);
             case "addAnnotation":               return new AddAnnotationAction(stringParams);
+            case "removeComment":               return new RemoveCommentAction(stringParams);
         }
 
         

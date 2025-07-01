@@ -351,7 +351,7 @@
         },
         {
             "name": "MigrateCustomHealthCheck",
-            "description": "Turn our legacy HealthIndication into Spring Boot HealthIndicator",
+            "description": "Spring Boot HealthIndicator",
             "rollbackOnError": false,
             "imports": {
                 "add": [
@@ -367,16 +367,17 @@
                 {
                     "match": {
                         "nodeType": "ClassOrInterfaceDeclaration",
-                        "namePattern": ".*HealthCheck$"
+                        "namePattern": "CustomHealthCheck"
                     },
                     "actions": [
                         {
-                            "replaceWithTemplate": {
-                                "template": "public class ${CLASS_NAME} implements HealthIndicator",
-                                "placeholders": {
-                                    "CLASS_NAME": "${name}"
-                                }
+                            "updateImplements": {
+                                "add": "HealthIndicator",
+                                "remove": "HealthIndication"
                             }
+                        },
+                        { 
+                            "removeComment": { "pattern": "TODO" }
                         }
                     ]
                 },
@@ -389,9 +390,18 @@
                     },
                     "actions": [
                         {
-                            "replaceWithTemplate": {
-                                "template": "public Health health()",
-                                "preserveBody": true
+                            "renameMethod": {
+                                "newName": "isHealthy"
+                            }
+                        },
+                        {
+                            "removeParameter": {
+                                "name": "name"
+                            }
+                        },
+                        {
+                            "changeMethodReturnType": {
+                                "newType": "Health"
                             }
                         }
                     ]
@@ -404,8 +414,14 @@
                     },
                     "actions": [
                         {
-                            "replaceWithTemplate": {
-                                "template": "Health.up().build()"
+                            "removeArgument": {
+                                "index": "0"
+                            }
+                        },
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "Health",
+                                "method": "up.build"
                             }
                         }
                     ]
@@ -418,8 +434,14 @@
                     },
                     "actions": [
                         {
-                            "replaceWithTemplate": {
-                                "template": "Health.down().build()"
+                            "removeArgument": {
+                                "index": "0"
+                            }
+                        },
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "Health",
+                                "method": "down.build"
                             }
                         }
                     ]

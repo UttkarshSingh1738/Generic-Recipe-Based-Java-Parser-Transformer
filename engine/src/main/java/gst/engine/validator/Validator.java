@@ -15,7 +15,6 @@ public class Validator {
         new SwitchExpressionCompletenessRule()
     );
 
-     // Returns a list of all validation errors found after mutation.
     public static List<ValidationError> run(
             List<CompilationUnit> units,
             TxContext context,

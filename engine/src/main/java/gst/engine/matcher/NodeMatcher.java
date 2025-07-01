@@ -11,6 +11,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
@@ -61,8 +62,9 @@ public class NodeMatcher {
                 root.findAll(ExpressionStmt.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "ClassOrInterfaceDeclaration" ->
                 root.findAll(ClassOrInterfaceDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
-            default ->
-                List.of();
+            case "MethodDeclaration" ->
+                root.findAll(MethodDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+            default -> List.of();
         };
     }
 

@@ -1,1 +1,6 @@
 com.example.actions.MyCustomActionProvider
+com.example.actions.UpdateImplementsActionProvider
+com.example.actions.ChangeMethodReturnTypeActionProvider
+com.example.actions.RenameMethodActionProvider
+com.example.actions.RemoveParameterActionProvider
+com.example.actions.RemoveArgumentActionProvider
