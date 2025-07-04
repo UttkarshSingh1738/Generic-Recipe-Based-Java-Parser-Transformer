@@ -148,15 +148,17 @@ public class Pipeline {
                     }
                     }
 
+                Path outFile = outputRoot.resolve(rel);
+                Files.createDirectories(outFile.getParent());
                 if (fileChanged) {
-                    Path outFile = outputRoot.resolve(rel);
-                    Files.createDirectories(outFile.getParent());
                     Files.writeString(outFile, cu.toString(), StandardCharsets.UTF_8);
                     System.out.println("[WRITE] Wrote transformed file: " + outFile);
                     ctx.markTransformed(srcFile);
-
                 } else {
-                    System.out.println("[SKIP] No changes written for: " + rel);
+                    // Write the original file content to the output directory
+                    String originalContent = Files.readString(srcFile, StandardCharsets.UTF_8);
+                    Files.writeString(outFile, originalContent, StandardCharsets.UTF_8);
+                    System.out.println("[COPY] Wrote unmodified file: " + outFile);
                 }
             }
         }

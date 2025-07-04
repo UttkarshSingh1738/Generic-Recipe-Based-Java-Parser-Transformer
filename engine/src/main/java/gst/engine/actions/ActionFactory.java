@@ -39,9 +39,11 @@ public class ActionFactory {
             case "removeImport":                return new RemoveImportAction(stringParams);
             case "addAnnotation":               return new AddAnnotationAction(stringParams);
             case "removeComment":               return new RemoveCommentAction(stringParams);
+            case "removeExceptionFromCatch":    return new RemoveExceptionFromCatchAction(stringParams);
+            case "renameMethodCall":            return new RenameMethodCallAction(stringParams);
+            case "removeModifier":              return new RemoveModifierAction(stringParams);
+            case "clearInitializer":            return new ClearInitializerAction(stringParams);
         }
-
-        
 
         for(ActionProvider p : CUSTOM_PROVIDERS) {
             if(p.getActionName().equalsIgnoreCase(name)) {

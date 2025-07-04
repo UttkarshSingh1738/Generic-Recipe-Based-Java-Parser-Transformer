@@ -2,15 +2,19 @@ package gst.engine.matcher;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -20,10 +24,13 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 
@@ -62,9 +69,16 @@ public class NodeMatcher {
                 root.findAll(ExpressionStmt.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "ClassOrInterfaceDeclaration" ->
                 root.findAll(ClassOrInterfaceDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+            case "CatchClause" ->
+                root.findAll(CatchClause.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+            case "FieldDeclaration" ->
+                root.findAll(FieldDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+            case "ConstructorDeclaration" ->
+                root.findAll(ConstructorDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "MethodDeclaration" ->
                 root.findAll(MethodDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
-            default -> List.of();
+            default ->
+                List.of();
         };
     }
 
@@ -147,23 +161,31 @@ public class NodeMatcher {
                 return false;
             }
         }
-        
+
         // typeAny for variables/parameters
         if (m.typeAny != null && node instanceof VariableDeclarationExpr vdeAny) {
             String simple = vdeAny.getElementType().asString();
             final String[] resolvedHolder = new String[1];
-            try { resolvedHolder[0] = vdeAny.getElementType().resolve().asReferenceType().getQualifiedName(); }
-            catch (Exception ignored) {}
-            boolean ok = m.typeAny.stream().anyMatch(t->t.equals(simple) || t.equals(resolvedHolder[0]) || simple.endsWith("."+t));
-            if (!ok) return false;
+            try {
+                resolvedHolder[0] = vdeAny.getElementType().resolve().asReferenceType().getQualifiedName();
+            } catch (Exception ignored) {
+            }
+            boolean ok = m.typeAny.stream().anyMatch(t -> t.equals(simple) || t.equals(resolvedHolder[0]) || simple.endsWith("." + t));
+            if (!ok) {
+                return false;
+            }
         }
         if (m.typeAny != null && node instanceof Parameter pAny) {
             String simple = pAny.getType().asString();
             final String[] resolvedHolder = new String[1];
-            try { resolvedHolder[0] = pAny.getType().resolve().asReferenceType().getQualifiedName(); }
-            catch (Exception ignored) {}
-            boolean ok = m.typeAny.stream().anyMatch(t->t.equals(simple) || t.equals(resolvedHolder[0]) || simple.endsWith("."+t));
-            if (!ok) return false;
+            try {
+                resolvedHolder[0] = pAny.getType().resolve().asReferenceType().getQualifiedName();
+            } catch (Exception ignored) {
+            }
+            boolean ok = m.typeAny.stream().anyMatch(t -> t.equals(simple) || t.equals(resolvedHolder[0]) || simple.endsWith("." + t));
+            if (!ok) {
+                return false;
+            }
         }
 
         // simple/resolved `type`
@@ -196,12 +218,21 @@ public class NodeMatcher {
             }
         }
 
-        // methodName
+        // methodName (for calls AND declarations)
         if (m.methodName != null) {
-            if (!(node instanceof MethodCallExpr mc && mc.getNameAsString().equals(m.methodName))) {
+            if (node instanceof MethodCallExpr mc) {
+                if (!mc.getNameAsString().equals(m.methodName)) {
+                    return false;
+                }
+            } else if (node instanceof MethodDeclaration md) {
+                if (!md.getNameAsString().equals(m.methodName)) {
+                    return false;
+                }
+            } else {
                 return false;
             }
         }
+
 
         // argumentType + expectedParamType for MethodCallExpr
         // if (m.argumentType != null && m.expectedParamType != null && node instanceof MethodCallExpr mcArg) {
@@ -216,7 +247,6 @@ public class NodeMatcher {
         //     }
         //     if (!matched) return false;
         // }
-
         // fqnScope (for MethodCallExpr)
         if (m.fqnScope != null) {
             if (!(node instanceof MethodCallExpr mc && mc.getScope().isPresent())) {
@@ -278,13 +308,19 @@ public class NodeMatcher {
         if (node instanceof BinaryExpr beLit) {
             if (Boolean.TRUE.equals(m.literalOnly)) {
                 List<String> parts = new ArrayList<>();
-                if (!ConcatUtils.gatherLiterals(beLit, parts)) return false;
+                if (!ConcatUtils.gatherLiterals(beLit, parts)) {
+                    return false;
+                }
             }
             if (m.literalPattern != null) {
                 List<String> parts = new ArrayList<>();
-                if (!ConcatUtils.gatherLiterals(beLit, parts)) return false;
+                if (!ConcatUtils.gatherLiterals(beLit, parts)) {
+                    return false;
+                }
                 String joined = String.join("", parts);
-                if (!Pattern.compile(m.literalPattern).matcher(joined).find()) return false;
+                if (!Pattern.compile(m.literalPattern).matcher(joined).find()) {
+                    return false;
+                }
             }
         }
 
@@ -393,15 +429,86 @@ public class NodeMatcher {
             }
         }
 
-        // 24) beforeLine / afterLine (if implemented)
+        // beforeLine / afterLine (if implemented)
         if (m.beforeLine != null || m.afterLine != null) {
             Optional<Range> r = node.getRange();
-            if (r.isEmpty()) return false;
+            if (r.isEmpty()) {
+                return false;
+            }
             int line = r.get().begin.line;
-            if (m.beforeLine != null && line >= m.beforeLine) return false;
-            if (m.afterLine != null && line <= m.afterLine) return false;
+            if (m.beforeLine != null && line >= m.beforeLine) {
+                return false;
+            }
+            if (m.afterLine != null && line <= m.afterLine) {
+                return false;
+            }
         }
-        
+
+        // overridesFqn: only MethodDeclarations overriding interface.method
+        if (m.overridesFqn != null && node instanceof MethodDeclaration md) {
+            ResolvedMethodDeclaration rmd;
+            try { rmd = md.resolve(); } catch (Exception e) { return false; }
+            boolean ok = rmd.declaringType().getAllAncestors().stream()
+                .map(anc -> {
+                    try { return anc.getTypeDeclaration().orElse(null); }
+                    catch (Exception e) { return null; }
+                })
+                .filter(Objects::nonNull)
+                .anyMatch(td -> td.getQualifiedName().equals(m.overridesFqn));
+            if (!ok) return false;
+        }
+
+        // declaringFqn: only MethodCallExprs whose target belongs to interface
+        if (m.declaringFqn != null && node instanceof MethodCallExpr mc) {
+            ResolvedMethodDeclaration rmd;
+            try { rmd = mc.resolve(); } catch(Exception e) { return false; }
+            String declType = rmd.declaringType().getQualifiedName();
+            if (!declType.equals(m.declaringFqn)) return false;
+        }
+
+        // declaringFqnPattern: match calls OR declarations whose declaring‐type name fits the regex
+        if (m.declaringFqnPattern != null) {
+            Pattern pat = Pattern.compile(m.declaringFqnPattern);
+            if (node instanceof MethodCallExpr mc) {
+                ResolvedMethodDeclaration rmd;
+                try { rmd = mc.resolve(); } catch (Exception e) { return false; }
+                String declType = rmd.declaringType().getQualifiedName();
+                if (!pat.matcher(declType).matches()) {
+                    return false;
+                }
+            } else if (node instanceof MethodDeclaration md) {
+                ResolvedMethodDeclaration rmd;
+                try { rmd = md.resolve(); } catch (Exception e) { return false; }
+                String declType = rmd.declaringType().getQualifiedName();
+                if (!pat.matcher(declType).matches()) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        // overridesFqnPattern: match only MethodDeclarations overriding an interface/class whose FQN fits the regex
+        if (m.overridesFqnPattern != null && node instanceof MethodDeclaration md) {
+            Pattern pat = Pattern.compile(m.overridesFqnPattern);
+            ResolvedMethodDeclaration rmd;
+            try { rmd = md.resolve(); } catch (Exception e) { return false; }
+            boolean found = rmd.declaringType()
+                .getAllAncestors().stream()
+                .flatMap( ancestorRef -> {
+                    try {
+                        return ancestorRef.getTypeDeclaration().stream();
+                    } catch (Exception e) {
+                        return Stream.<ResolvedReferenceTypeDeclaration>empty();
+                    }
+                })
+                .map(ResolvedReferenceTypeDeclaration::getQualifiedName)
+                .anyMatch(pat.asPredicate());
+            if (!found) {
+                return false;
+            }
+        }
+
         return true;
     }
 }

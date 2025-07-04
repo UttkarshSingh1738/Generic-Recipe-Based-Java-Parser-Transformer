@@ -4,3 +4,7 @@ com.example.actions.ChangeMethodReturnTypeActionProvider
 com.example.actions.RenameMethodActionProvider
 com.example.actions.RemoveParameterActionProvider
 com.example.actions.RemoveArgumentActionProvider
+com.example.actions.FactoryLocalVarReplacementActionProvider
+com.example.actions.FactoryFieldInjectionActionProvider
+com.example.actions.AutowireQualifierFieldActionProvider
+com.example.actions.ComponentizeServiceImplActionProvider

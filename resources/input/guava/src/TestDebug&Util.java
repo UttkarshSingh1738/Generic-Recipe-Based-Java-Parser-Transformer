@@ -22,7 +22,7 @@ public class CustomHealthCheck implements HealthIndication {    //HealthIndicato
             logger.info(restTemplateA);
             restTemplateB.exchange();
             logger.info(restTemplateB);
-            return HealthIndicationStatus.healthy(name, testing);    // TODO: Health.up().build();
+            return HealthIndicationStatus.healthy(name, testing, testing1);    // TODO: Health.up().build();
         } catch (Exception e) {
             logger.error("Connection failed");
             return HealthIndicationStatus.unHealthy(name);    //Health.down().build();

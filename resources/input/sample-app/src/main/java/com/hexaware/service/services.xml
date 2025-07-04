@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <bean id="DigitalPaymentProfileSvc"
+          class="com.hexaware.service.impl.DigitalPaymentProfileSvcImpl" />
+
+    <bean id="PaymentProfileSvc"
+          class="com.hexaware.service.impl.PaymentProfileSvcImpl">
+        <constructor-arg ref="PaymentQuickPayPaymentRespondSvc" />
+    </bean>
+
+    <bean id="PaymentQuickPayPaymentRespondSvc"
+          class="com.hexaware.service.impl.PaymentQuickPayPaymentRespondSvcImpl" />
+
+    <bean id="PMBPCCFOSvc" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="target">
+            <ref bean="PMBPCCFOSvc_base" />
+        </property>
+        <property name="interceptorNames">
+            <list>
+                <value>MPCCRJSvcTC</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="MPCCRJSvcTC" class="com.c.j.p.TransactionCon">
+        <constructor-arg index="0">
+            <list>
+                <value>.*add*.*</value>
+                <value>.*delete*.*</value>
+                <value>.*update*.*</value>
+            </list>
+        </constructor-arg>
+        <constructor-arg index="1" type="java.lang.String"
+                         value="g.p.baDb" />
+        <constructor-arg index="2">
+            <null />
+        </constructor-arg>
+    </bean>
+</beans>

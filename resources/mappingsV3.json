@@ -419,6 +419,11 @@
                             }
                         },
                         {
+                            "removeArgument": {
+                                "index": "1"
+                            }
+                        },
+                        {
                             "replaceWithMethodCall": {
                                 "scope": "Health",
                                 "method": "up.build"

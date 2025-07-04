@@ -1,0 +1,149 @@
+{
+    "recipes": [
+        {
+            "name": "UseSpringContext_GenericFactory",
+            "description": "Turn XxFactory.getService(...) fields into @Autowired/@Qualifier injection and all local getService calls into SpringContext.getBean(...)",
+            "rollbackOnError": false,
+            "imports": {
+                "add": [
+                    "org.springframework.beans.factory.annotation.Autowired",
+                    "org.springframework.beans.factory.annotation.Qualifier",
+                    "org.springframework.stereotype.Component",
+                    "com.hexaware.SpringContext"
+                ],
+                "remove": [
+                    "com.hexaware.factory.*"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "FieldDeclaration",
+                        "matchExpr": "getService\\(|\\bsvc\\b"
+                    },
+                    "actions": [
+                        {
+                            "removeModifier": {
+                                "modifier": "static"
+                            }
+                        },
+                        {
+                            "removeModifier": {
+                                "modifier": "final"
+                            }
+                        },
+                        {
+                            "autowireQualifierField": {}
+                        },
+                        {
+                            "clearInitializer": {}
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "VariableDeclarationExpr",
+                        "matchExpr": "getService\\("
+                    },
+                    "actions": [
+                        {
+                            "factoryLocalVarReplacement": {}
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "namePattern": ".*SvcImpl$"
+                    },
+                    "actions": [
+                        {
+                            "componentizeService": {}
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ConstructorDeclaration",
+                        "parentNodeType": "ClassOrInterfaceDeclaration",
+                        "matchExpr": ".*SvcImpl\\s*\\("
+                    },
+                    "actions": [
+                        {
+                            "removeNode": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "StripEjbAccessException",
+            "description": "Remove EjbAccessException from all catch clauses; if it’s the only exception, drop the clause entirely.",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "CatchClause"
+                    },
+                    "actions": [
+                        {
+                            "removeExceptionFromCatch": {
+                                "exception": "EjbAccessException"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "RenameGetUser_AllSvcs",
+            "description": "rename getUserName → getUser on every *Svc interface",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "methodName": "getUserName",
+                        "declaringFqnPattern": "com\\.hexaware\\.service\\..*Svc$"
+                    },
+                    "actions": [
+                        {
+                            "renameMethod": {
+                                "newName": "getUser"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "methodName": "getUserName",
+                        "overridesFqnPattern": "com\\.hexaware\\.service\\..*Svc$"
+                    },
+                    "actions": [
+                        {
+                            "renameMethod": {
+                                "newName": "getUser"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "getUserName",
+                        "declaringFqnPattern": "com\\.hexaware\\.service\\..*Svc$"
+                    },
+                    "actions": [
+                        {
+                            "renameMethodCall": {
+                                "oldName": "getUserName",
+                                "newName": "getUser"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -40,4 +40,9 @@ public class Match {
 
     public Integer beforeLine;
     public Integer afterLine;
+
+    public String overridesFqn;
+    public String declaringFqn;
+    public String declaringFqnPattern;
+    public String overridesFqnPattern;
 }
