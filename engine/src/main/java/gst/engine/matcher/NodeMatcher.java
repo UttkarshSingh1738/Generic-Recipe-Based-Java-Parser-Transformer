@@ -247,6 +247,7 @@ public class NodeMatcher {
         //     }
         //     if (!matched) return false;
         // }
+        
         // fqnScope (for MethodCallExpr)
         if (m.fqnScope != null) {
             if (!(node instanceof MethodCallExpr mc && mc.getScope().isPresent())) {

@@ -24,12 +24,10 @@ public class InsertAfterAction implements Action {
         ctx.saveOriginalNode(node, node.clone());
         Statement toInsert = StaticJavaParser.parseStatement(code);
 
-        // Find the target statement
         Optional<Statement> targetOpt = ASTUtils.findEnclosingStatement(node);
         if (targetOpt.isEmpty()) return;
         Statement target = targetOpt.get();
 
-        // Insert after the target in its parent block
         Optional<BlockStmt> blockOpt = target.findAncestor(BlockStmt.class);
         blockOpt.ifPresent(block -> {
             var stmts = block.getStatements();

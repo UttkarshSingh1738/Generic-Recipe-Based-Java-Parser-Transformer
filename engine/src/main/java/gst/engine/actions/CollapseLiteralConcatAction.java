@@ -32,7 +32,6 @@ public class CollapseLiteralConcatAction implements Action {
     List<String> parts = new ArrayList<>();
     if (!ConcatUtils.gatherLiterals(top, parts)) return;
 
-    // decide style
     if ("TEXT_BLOCK".equals(collapseStyle)) {
       String joined = String.join("", parts)
                           .replace("\\n","\n")

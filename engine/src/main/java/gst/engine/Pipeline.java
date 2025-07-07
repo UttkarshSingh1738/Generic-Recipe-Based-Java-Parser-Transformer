@@ -155,7 +155,6 @@ public class Pipeline {
                     System.out.println("[WRITE] Wrote transformed file: " + outFile);
                     ctx.markTransformed(srcFile);
                 } else {
-                    // Write the original file content to the output directory
                     String originalContent = Files.readString(srcFile, StandardCharsets.UTF_8);
                     Files.writeString(outFile, originalContent, StandardCharsets.UTF_8);
                     System.out.println("[COPY] Wrote unmodified file: " + outFile);

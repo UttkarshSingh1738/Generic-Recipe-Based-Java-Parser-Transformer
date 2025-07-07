@@ -29,7 +29,6 @@ public class SwitchToReturnExpressionAction implements Action {
         if (!(node instanceof SwitchStmt sw)) return;
         ctx.saveOriginalNode(sw, sw.clone());
 
-        // 1) Build the new SwitchExpr
         SwitchExpr sexpr = new SwitchExpr();
         sexpr.setSelector(sw.getSelector().clone());
         NodeList<SwitchEntry> newEntries = new NodeList<>();
@@ -38,7 +37,7 @@ public class SwitchToReturnExpressionAction implements Action {
             // clone labels
             NodeList<Expression> labels = new NodeList<>(oldEntry.getLabels());
 
-            // collect all statements *up to* the first break
+            // collect all statements till the first break
             var body = oldEntry.getStatements().stream()
                 .takeWhile(s -> !(s instanceof BreakStmt))
                 .collect(Collectors.toList());
@@ -63,7 +62,6 @@ public class SwitchToReturnExpressionAction implements Action {
 
         sexpr.setEntries(newEntries);
 
-        // 2) Replace the old switch *statement* with a *return* switch-expression
         ReturnStmt ret = new ReturnStmt(sexpr);
         sw.replace(ret);
 
