@@ -25,7 +25,7 @@
         {
             "name": "ReplaceDateWithLocalDateTime",
             "description": "Replace `Date` with `LocalDateTime` and `new Date()` with `LocalDateTime.now()`.",
-            "rollbackOnError": true,
+            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "java.time.LocalDateTime"

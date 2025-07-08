@@ -16,6 +16,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
@@ -33,12 +34,27 @@ import gst.engine.validator.Validator;
 public class Pipeline {
 
     public static void run(Path mappingFile, Path inputRoot, Path outputRoot) throws IOException {
+        run(mappingFile, inputRoot, outputRoot, List.of());
+    }
+
+    @SuppressWarnings("UseSpecificCatch")
+    public static void run(Path mappingFile, Path inputRoot, Path outputRoot, List<Path> jarPaths) throws IOException {
         List<Recipe> recipes = MappingLoader.load(mappingFile);
 
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
                 new ReflectionTypeSolver(),
                 new JavaParserTypeSolver(inputRoot.toFile())
         );
+
+        for (Path jar : jarPaths) {
+            try {
+                typeSolver.add(new JarTypeSolver(jar.toFile()));
+                System.out.println("[INFO] Added JAR to symbol solver: " + jar);
+            } catch (Exception e) {
+                System.err.println("[WARNING] Could not load JAR for symbol solving: " + jar + " – " + e.getMessage());
+            }
+        }
+
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
         ParserConfiguration cfg = new ParserConfiguration().setSymbolResolver(symbolSolver);
         StaticJavaParser.setConfiguration(cfg);
