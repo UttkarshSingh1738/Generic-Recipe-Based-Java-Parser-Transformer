@@ -45,4 +45,6 @@ public class Match {
     public String declaringFqn;
     public String declaringFqnPattern;
     public String overridesFqnPattern;
+
+    public String annotationValuePattern;
 }

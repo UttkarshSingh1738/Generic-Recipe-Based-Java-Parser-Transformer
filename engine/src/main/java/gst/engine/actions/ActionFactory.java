@@ -43,6 +43,14 @@ public class ActionFactory {
             case "renameMethodCall":            return new RenameMethodCallAction(stringParams);
             case "removeModifier":              return new RemoveModifierAction(stringParams);
             case "clearInitializer":            return new ClearInitializerAction(stringParams);
+            case "removeStatements":            return new RemoveStatementsAction(stringParams);
+            case "removeAnnotation":            return new RemoveAnnotationAction(stringParams);
+            case "updateAnnotationAttribute":   return new UpdateAnnotationAttributeAction(stringParams);
+            case "addModifier":                 return new AddModifierAction(stringParams);
+            case "setAccessLevel":              return new SetAccessLevelAction(stringParams);
+            case "renameVariable":              return new RenameVariableAction(stringParams);
+            case "renameClass":                 return new RenameClassAction(stringParams);
+            case "wrapWithTryCatch":            return new WrapWithTryCatchAction(stringParams);
         }
 
         for(ActionProvider p : CUSTOM_PROVIDERS) {

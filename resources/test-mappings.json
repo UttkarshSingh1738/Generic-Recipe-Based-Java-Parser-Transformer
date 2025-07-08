@@ -1,0 +1,118 @@
+{
+    "recipes": [
+        {
+            "name": "SampleTransform",
+            "description": "Remove @Deprecated, update @MyAnno value, rename class, method, variables, wrap println in try/catch, and remove err prints",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "annotation": "Deprecated"
+                    },
+                    "actions": [
+                        {
+                            "removeAnnotation": {
+                                "name": "Deprecated"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "annotation": "MyAnno"
+                    },
+                    "actions": [
+                        {
+                            "updateAnnotationAttribute": {
+                                "annotation": "MyAnno",
+                                "attribute": "val",
+                                "newValue": "new"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "namePattern": "^OldClass$"
+                    },
+                    "actions": [
+                        {
+                            "renameClass": {
+                                "oldName": "OldClass",
+                                "newName": "NewClass"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "methodName": "method"
+                    },
+                    "actions": [
+                        {
+                            "renameMethod": {
+                                "newName": "newMethod"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "VariableDeclarator",
+                        "namePattern": "^a$"
+                    },
+                    "actions": [
+                        {
+                            "renameVariable": {
+                                "newName": "x"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "VariableDeclarator",
+                        "namePattern": "^b$"
+                    },
+                    "actions": [
+                        {
+                            "renameVariable": {
+                                "newName": "y"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ExpressionStmt",
+                        "matchExpr": "System\\.out\\.println\\(x \\+ y\\)"
+                    },
+                    "actions": [
+                        {
+                            "wrapWithTryCatch": {
+                                "exceptionType": "Exception",
+                                "exceptionVar": "e"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "BlockStmt"
+                    },
+                    "actions": [
+                        {
+                            "removeStatements": {
+                                "matchExpr": "System\\.err\\.println"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

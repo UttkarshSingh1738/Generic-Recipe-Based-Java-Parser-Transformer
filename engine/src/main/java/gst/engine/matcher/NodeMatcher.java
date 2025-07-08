@@ -77,6 +77,12 @@ public class NodeMatcher {
                 root.findAll(ConstructorDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "MethodDeclaration" ->
                 root.findAll(MethodDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+            case "BlockStmt" ->
+                root.findAll(com.github.javaparser.ast.stmt.BlockStmt.class).stream()
+                        .map(n -> (Node) n).collect(Collectors.toList());
+            case "VariableDeclarator" ->
+                root.findAll(com.github.javaparser.ast.body.VariableDeclarator.class).stream()
+                        .map(n -> (Node) n).collect(Collectors.toList());
             default ->
                 List.of();
         };
@@ -288,6 +294,21 @@ public class NodeMatcher {
             } else {
                 return false;
             }
+        }
+
+        // annotationValuePattern
+        if (m.annotationValuePattern != null) {
+            boolean ok = false;
+            if (node instanceof com.github.javaparser.ast.nodeTypes.NodeWithAnnotations<?> nwa) {
+                for (AnnotationExpr ann : nwa.getAnnotations()) {
+                    String txt = ann.toString();
+                    if (Pattern.compile(m.annotationValuePattern).matcher(txt).find()) {
+                        ok = true;
+                        break;
+                    }
+                }
+            }
+            if (!ok) return false;
         }
 
         // typePattern
