@@ -52,6 +52,8 @@ public class ActionFactory {
             case "renameClass":                 return new RenameClassAction(stringParams);
             case "wrapWithTryCatch":            return new WrapWithTryCatchAction(stringParams);
             case "migrateAnnotation":           return new MigrateAnnotationAction(params);
+            case "replaceWithScope":            return new ReplaceWithScopeAction(stringParams);
+
         }
 
         for(ActionProvider p : CUSTOM_PROVIDERS) {
