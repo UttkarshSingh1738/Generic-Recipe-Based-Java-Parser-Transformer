@@ -21,7 +21,7 @@
                 {
                     "match": {
                         "nodeType": "ClassOrInterfaceDeclaration",
-                        "annotation": "MyAnno"
+                        "annotationValuePattern": "MyAnno\\s*\\(\\s*val\\s*=\\s*\"old\"\\s*\\)"
                     },
                     "actions": [
                         {

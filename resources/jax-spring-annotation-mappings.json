@@ -1,0 +1,40 @@
+{
+  "recipes": [
+    {
+      "name": "JaxRsClassToSpringController",
+      "rollbackOnError": false,
+      "steps": [
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "annotation": "Path"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "Path",
+                "to":   "RequestMapping",
+                "attributeMap": { "value": "value" }
+              }
+            },
+            {
+              "migrateAnnotation": {
+                "from": "Produces",
+                "to":   "RequestMapping",
+                "attributeMap": { "value": "produces" }
+              }
+            },
+
+            { "removeImport": { "name": "javax.ws.rs.Path"     } },
+            { "removeImport": { "name": "javax.ws.rs.Produces" } },
+
+            { "addAnnotation": { "name": "RestController" } },
+            { "addImport":     { "name": "org.springframework.web.bind.annotation.RestController" } },
+
+            { "addImport":     { "name": "org.springframework.web.bind.annotation.RequestMapping" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

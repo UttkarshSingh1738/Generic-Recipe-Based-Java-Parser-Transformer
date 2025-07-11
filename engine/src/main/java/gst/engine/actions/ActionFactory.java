@@ -37,7 +37,7 @@ public class ActionFactory {
             case "replaceWithTemplate":         return new ReplaceWithTemplateAction(stringParams);
             case "addImport":                   return new AddImportAction(stringParams);
             case "removeImport":                return new RemoveImportAction(stringParams);
-            case "addAnnotation":               return new AddAnnotationAction(stringParams);
+            case "addAnnotation":               return new AddAnnotationAction(params);
             case "removeComment":               return new RemoveCommentAction(stringParams);
             case "removeExceptionFromCatch":    return new RemoveExceptionFromCatchAction(stringParams);
             case "renameMethodCall":            return new RenameMethodCallAction(stringParams);
@@ -51,6 +51,7 @@ public class ActionFactory {
             case "renameVariable":              return new RenameVariableAction(stringParams);
             case "renameClass":                 return new RenameClassAction(stringParams);
             case "wrapWithTryCatch":            return new WrapWithTryCatchAction(stringParams);
+            case "migrateAnnotation":           return new MigrateAnnotationAction(params);
         }
 
         for(ActionProvider p : CUSTOM_PROVIDERS) {
