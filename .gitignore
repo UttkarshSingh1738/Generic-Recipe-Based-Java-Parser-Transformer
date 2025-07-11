@@ -4,3 +4,4 @@ target
 output
 *.log
 .DS_Store
+app.password
