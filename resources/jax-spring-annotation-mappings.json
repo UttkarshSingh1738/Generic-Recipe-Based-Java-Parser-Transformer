@@ -35,6 +35,198 @@
           ]
         }
       ]
+    },
+    {
+    "name": "JaxRsMethodsToSpringMappings",
+    "steps": [
+        {
+        "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "GET"
+        },
+        "actions": [
+            {
+            "migrateAnnotation": {
+                "from": "GET",
+                "to":   "GetMapping",
+                "attributeMap": {}
+            }
+            },
+            { "removeImport": { "name": "javax.ws.rs.GET" } },
+            { "addImport":    { "name": "org.springframework.web.bind.annotation.GetMapping" } }
+        ]
+        },
+
+        {
+        "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "POST"
+        },
+        "actions": [
+            {
+            "migrateAnnotation": {
+                "from": "POST",
+                "to":   "PostMapping",
+                "attributeMap": {}  
+            }
+            },
+            { "removeImport": { "name": "javax.ws.rs.POST" } },
+            { "addImport":    { "name": "org.springframework.web.bind.annotation.PostMapping" } }
+        ]
+        },
+
+        {
+        "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "PUT"
+        },
+        "actions": [
+            {
+            "migrateAnnotation": {
+                "from": "PUT",
+                "to":   "PutMapping",
+                "attributeMap": {}
+            }
+            },
+            { "removeImport": { "name": "javax.ws.rs.PUT" } },
+            { "addImport":    { "name": "org.springframework.web.bind.annotation.PutMapping" } }
+        ]
+        },
+
+        {
+        "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "DELETE"
+        },
+        "actions": [
+            {
+            "migrateAnnotation": {
+                "from": "DELETE",
+                "to":   "DeleteMapping",
+                "attributeMap": {}
+            }
+            },
+            { "removeImport": { "name": "javax.ws.rs.DELETE" } },
+            { "addImport":    { "name": "org.springframework.web.bind.annotation.DeleteMapping" } }
+        ]
+        }
+    ]
+    },
+    {
+    "name": "JaxRsConsumesToSpring",
+    "steps": [
+        {
+        "match": {
+            "nodeType":    "MethodDeclaration",
+            "annotation":  "Consumes"
+        },
+        "actions": [
+            {
+            "migrateAnnotation": {
+                "from": "Consumes",
+                "to":   "RequestMapping",
+                "attributeMap": { "value": "consumes" }
+            }
+            },
+            { "removeImport": { "name": "javax.ws.rs.Consumes" } },
+            { "addImport":    { "name": "org.springframework.web.bind.annotation.RequestMapping" } }
+        ]
+        }
+    ]
+    },
+    {
+    "name": "JaxRsPathToSpring",
+    "steps": [
+        {
+        "match": {
+            "nodeType":    "MethodDeclaration",
+            "annotation":  "Path"
+        },
+        "actions": [
+            {
+            "migrateAnnotation": {
+                "from": "Path",
+                "to":   "RequestMapping",
+                "attributeMap": { "value": "value" }
+            }
+            },
+            { "removeImport": { "name": "javax.ws.rs.Consumes" } },
+            { "addImport":    { "name": "org.springframework.web.bind.annotation.RequestMapping" } }
+        ]
+        }
+    ]
+    },
+    {
+    "name": "JaxRsPathParamToSpring",
+    "steps": [
+        {
+        "match": {
+            "nodeType":   "Parameter",
+            "annotation": "PathParam"
+        },
+        "actions": [
+            {
+            "migrateAnnotation": {
+                "from": "PathParam",
+                "to":   "PathVariable",
+                "attributeMap": { "value": "value" }
+            }
+            },
+            { "removeImport": { "name": "javax.ws.rs.PathParam" } },
+            { "addImport":    { "name": "org.springframework.web.bind.annotation.PathVariable" } }
+        ]
+        }
+    ]
+    },
+    {
+    "name": "ChangeResponseToResponseEntity",
+    "steps": [
+        {
+        "match": {
+            "nodeType":          "MethodDeclaration",
+            "returnTypePattern": "\\bResponse\\b"
+        },
+        "actions": [
+            {
+            "changeType": { "newType": "ResponseEntity" }
+            },
+            { "removeImport": { "name": "javax.ws.rs.core.Response" } },
+            { "addImport":    { "name": "org.springframework.http.ResponseEntity" } }
+        ]
+        }
+    ]
+    },
+    {
+      "name":"ContextToAutowiredHttpServletRequest",
+      "rollbackOnError":false,
+      "steps":[
+        {
+          "match":{
+            "nodeType":"FieldDeclaration",
+            "annotation":"Context",
+            "type":"UriInfo"
+          },
+          "actions":[
+            {
+              "migrateAnnotation":{
+                "from":"Context",
+                "to":"Autowired",
+                "attributeMap":{}
+              }
+            },
+            { "removeImport":{ "name":"javax.ws.rs.core.Context" } },
+            { "addImport":   { "name":"org.springframework.beans.factory.annotation.Autowired" } },
+            { "removeImport":{ "name":"javax.ws.rs.core.UriInfo" } },
+            { "addImport":   { "name":"jakarta.servlet.http.HttpServletRequest" } },
+
+            { "addModifier": { "modifier":"private" }},
+
+            { "changeType":{ "newType":"HttpServletRequest" } },
+
+            { "renameVariable":{ "oldName":"uriInfo", "newName":"request" } }
+          ]
+        }
+      ]
     }
   ]
 }

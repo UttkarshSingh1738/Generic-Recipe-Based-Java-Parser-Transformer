@@ -5,7 +5,10 @@ import java.util.Map;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.type.Type;
@@ -14,6 +17,7 @@ import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import gst.engine.TxContext;
 
 public class ChangeTypeAction implements Action {
+
     private final String newType;
 
     public ChangeTypeAction(Map<String, String> params) {
@@ -39,6 +43,16 @@ public class ChangeTypeAction implements Action {
             if (t.isClassOrInterfaceType()) {
                 oce.setType(t.asClassOrInterfaceType());
                 System.out.println("[ACTION] Changed object creation type to " + newType);
+            }
+        } else if (node instanceof MethodDeclaration md) {
+            md.setType(StaticJavaParser.parseType(newType));
+            System.out.println("[ACTION] Changed return type of method '"
+                    + md.getNameAsString() + "' to " + newType);
+        } else if (node instanceof FieldDeclaration fd) {
+            for (VariableDeclarator vd : fd.getVariables()) {
+                vd.setType(StaticJavaParser.parseType(newType));
+                System.out.println("[ACTION] Changed field '"
+                        + vd.getNameAsString() + "' type to " + newType);
             }
         }
     }
