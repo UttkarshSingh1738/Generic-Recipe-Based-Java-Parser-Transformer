@@ -1,0 +1,345 @@
+# matches.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Definitions of all “match” keys you can use in a recipe’s steps.match section.
+
+matches:
+  - key: nodeType
+    description: >
+      Only consider AST nodes whose class‐simple‐name matches this value.
+    appliesTo:
+      - ObjectCreationExpr
+      - VariableDeclarationExpr
+      - MethodCallExpr
+      - FieldAccessExpr
+      - AnnotationExpr
+      - ImportDeclaration
+      - NameExpr
+      - Parameter
+      - ClassOrInterfaceType
+      - SwitchStmt
+      - BinaryExpr
+      - ForStmt
+      - ExpressionStmt
+      - ClassOrInterfaceDeclaration
+      - CatchClause
+      - FieldDeclaration
+      - ConstructorDeclaration
+      - MethodDeclaration
+      - BlockStmt
+      - VariableDeclarator
+    example: |
+      { "match": { "nodeType": "MethodCallExpr" } }
+
+  - key: fqn
+    description: >
+      Require the fully‐qualified type or declaring type of the node to match exactly.
+      For MethodCallExpr resolves the declaring class of the method; for creations/parameters/variables resolves the type.
+    appliesTo:
+      - MethodCallExpr
+      - ObjectCreationExpr
+      - VariableDeclarationExpr
+      - Parameter
+    example: |
+      { "match": { "nodeType": "ObjectCreationExpr", "fqn": "java.util.Date" } }
+
+  - key: type
+    description: >
+      Require that a variable declaration or parameter is exactly this type
+      (by simple name or resolved FQN).
+    appliesTo:
+      - VariableDeclarationExpr
+      - Parameter
+    example: |
+      { "match": { "nodeType": "VariableDeclarationExpr", "type": "List" } }
+
+  - key: typeAny
+    description: >
+      Like `type`, but matches if the node’s type is any in the given list.
+    appliesTo:
+      - VariableDeclarationExpr
+      - Parameter
+    example: |
+      { "match": { "nodeType": "VariableDeclarationExpr",
+                   "typeAny": ["List","java.util.Collection"] } }
+
+  - key: methodName
+    description: >
+      Matches method calls or method declarations whose name equals this.
+    appliesTo:
+      - MethodCallExpr
+      - MethodDeclaration
+    example: |
+      { "match": { "nodeType": "MethodCallExpr", "methodName": "ofNullable" } }
+
+  - key: fqnScope
+    description: >
+      For MethodCallExpr only: require that the resolved type of the call’s scope expression
+      matches exactly.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      { "match": { "nodeType": "MethodCallExpr",
+                   "fqnScope": "java.util.Optional" } }
+
+  - key: annotation
+    description: >
+      Only match nodes that carry the given annotation (by simple name).
+    appliesTo:
+      - any NodeWithAnnotations (e.g. ClassOrInterfaceDeclaration, MethodDeclaration, FieldDeclaration, Parameter)
+    example: |
+      { "match": { "nodeType": "MethodDeclaration",
+                   "annotation": "Override" } }
+
+  - key: annotationValuePattern
+    description: >
+      Only match if one of the node’s annotations (including its arguments) as-written
+      matches the given regex.
+    appliesTo:
+      - any NodeWithAnnotations
+    example: |
+      { "match": { "nodeType": "AnnotationExpr",
+                   "annotationValuePattern": "value\\s*=\\s*\"/configurations\"" } }
+
+  - key: matchExpr
+    description: >
+      Apply a regex against the node’s full source-string (`node.toString()`).
+    appliesTo:
+      - any node
+    example: |
+      { "match": { "nodeType": "ExpressionStmt",
+                   "matchExpr": "System\\.out\\.println\\(" } }
+
+  - key: operator
+    description: >
+      For BinaryExpr only: require that its operator symbol (as‐string) equals this.
+    appliesTo:
+      - BinaryExpr
+    example: |
+      { "match": { "nodeType": "BinaryExpr", "operator": "+" } }
+
+  - key: initVarPattern
+    description: >
+      For classic `for` loops (ForStmt) only: regex against the loop variable name in the initialization clause.
+      Useful for matching `for (int i = …; …; …)`.
+    appliesTo:
+      - ForStmt
+    example: |
+      { "match": { "nodeType": "ForStmt", "initVarPattern": "^i$" } }
+
+  - key: conditionPattern
+    description: >
+      For `ForStmt` only: regex applied to the loop’s condition expression (e.g. `i < list.size()`).
+    appliesTo:
+      - ForStmt
+    example: |
+      { "match": { "nodeType": "ForStmt", "conditionPattern": "i < list\\.size\\(\\)" } }
+
+  - key: updatePattern
+    description: >
+      For `ForStmt` only: regex matched against any of the update expressions (e.g. `i++`, `++i`, `i += 2`).
+    appliesTo:
+      - ForStmt
+    example: |
+      { "match": { "nodeType": "ForStmt", "updatePattern": "\\+\\+" } }
+
+  - key: accessPattern
+    description: >
+      For `ForStmt` only: regex applied to the entire loop body’s source text.
+      Useful for ensuring that a particular method or field is accessed inside the loop.
+    appliesTo:
+      - ForStmt
+    example: |
+      { "match": { "nodeType": "ForStmt", "accessPattern": "list\\.get\\(i\\)" } }
+
+  - key: literalOnly
+    description: >
+      For BinaryExpr only: only match if every operand is a literal (or nested literal).
+    appliesTo:
+      - BinaryExpr
+    example: |
+      { "match": { "nodeType": "BinaryExpr", "literalOnly": true } }
+
+  - key: literalPattern
+    description: >
+      For BinaryExpr only: flatten all literal operands to a string and apply this regex.
+    appliesTo:
+      - BinaryExpr
+    example: |
+      { "match": { "nodeType": "BinaryExpr",
+                   "literalPattern": "\\\\n" } }
+
+  - key: requireInitializer
+    description: >
+      For VariableDeclarationExpr only: only match if every variable has an initializer.
+    appliesTo:
+      - VariableDeclarationExpr
+    example: |
+      { "match": { "nodeType": "VariableDeclarationExpr",
+                   "requireInitializer": true } }
+
+  - key: requireNoTypeArgs
+    description: >
+      For VariableDeclarationExpr only: only match if the declared type has no generic type arguments.
+    appliesTo:
+      - VariableDeclarationExpr
+    example: |
+      { "match": { "nodeType": "VariableDeclarationExpr",
+                   "requireNoTypeArgs": true } }
+
+  - key: argumentType
+    description: >
+      For MethodCallExpr only: the resolved type of one of its arguments must equal this.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      { "match": { "nodeType": "MethodCallExpr",
+                   "argumentType": "java.lang.String",
+                   "expectedParamType": "java.time.LocalDateTime" } }
+
+  - key: expectedParamType
+    description: >
+      Used with `argumentType`: the corresponding method parameter’s resolved type.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      { "match": { "nodeType": "MethodCallExpr",
+                   "argumentType": "java.lang.String",
+                   "expectedParamType": "java.time.LocalDateTime" } }
+
+  - key: typePattern
+    description: >
+      Apply a regex to the node’s source‐text (`node.toString()`), regardless of kind.
+    appliesTo:
+      - any node
+    example: |
+      { "match": { "nodeType": "ClassOrInterfaceDeclaration",
+                   "typePattern": "List<.*>" } }
+
+  - key: parentNodeType
+    description: >
+      Only match if the node’s immediate parent AST node has this simple name.
+    appliesTo:
+      - any node
+    example: |
+      { "match": { "nodeType": "VariableDeclarator",
+                   "parentNodeType": "FieldDeclaration" } }
+
+  - key: namePattern
+    description: >
+      For declarations or NameExpr: apply regex against the declared or referenced name.
+    appliesTo:
+      - VariableDeclarator
+      - MethodDeclaration
+      - NameExpr
+      - ClassOrInterfaceDeclaration
+    example: |
+      { "match": { "nodeType": "ClassOrInterfaceDeclaration",
+                   "namePattern": ".*Util$" } }
+
+  - key: scopePattern
+    description: >
+      For MethodCallExpr or FieldAccessExpr: apply regex against the scope’s source‐string.
+    appliesTo:
+      - MethodCallExpr
+      - FieldAccessExpr
+    example: |
+      { "match": { "nodeType": "MethodCallExpr",
+                   "scopePattern": "Collections\\.unmodifiableList" } }
+
+  - key: hasModifier
+    description: >
+      Only match nodes with a Java modifier matching this keyword (case‐insensitive),
+      e.g. “public”, “private”, “static”.
+    appliesTo:
+      - any NodeWithModifiers (FieldDeclaration, MethodDeclaration, ClassOrInterfaceDeclaration, etc.)
+    example: |
+      { "match": { "nodeType": "ClassOrInterfaceDeclaration",
+                   "hasModifier": "public" } }
+
+  - key: returnTypePattern
+    description: >
+      For MethodDeclaration only: apply regex against its return‐type source string.
+    appliesTo:
+      - MethodDeclaration
+    example: |
+      { "match": { "nodeType": "MethodDeclaration",
+                   "returnTypePattern": "Response(Entity)?$" } }
+
+  - key: paramCount
+    description: >
+      For MethodDeclaration only: require exactly this many parameters.
+    appliesTo:
+      - MethodDeclaration
+    example: |
+      { "match": { "nodeType": "MethodDeclaration", "paramCount": 1 } }
+
+  - key: requiresImport
+    description: >
+      Only match if the compilation unit has an import whose name equals this FQN.
+    appliesTo:
+      - any node (checks top‐level imports)
+    example: |
+      { "match": { "nodeType": "MethodCallExpr",
+                   "requiresImport": "java.util.List" } }
+
+  - key: forbidsImport
+    description: >
+      Only match if the compilation unit does _not_ have this import.
+    appliesTo:
+      - any node
+    example: |
+      { "match": { "nodeType": "ClassOrInterfaceDeclaration",
+                   "forbidsImport": "org.junit.Test" } }
+
+  - key: beforeLine
+    description: >
+      Only match nodes whose beginning line number (in the source file) is strictly less than this.
+    appliesTo:
+      - any node
+    example: |
+      { "match": { "nodeType": "ExpressionStmt", "beforeLine": 50 } }
+
+  - key: afterLine
+    description: >
+      Only match nodes whose beginning line number is strictly greater than this.
+    appliesTo:
+      - any node
+    example: |
+      { "match": { "nodeType": "ExpressionStmt", "afterLine": 100 } }
+
+  - key: overridesFqn
+    description: >
+      For MethodDeclaration only: only match if the method overrides a declaration in the given interface/class FQN.
+    appliesTo:
+      - MethodDeclaration
+    example: |
+      { "match": { "nodeType": "MethodDeclaration",
+                   "overridesFqn": "com.example.MyInterface" } }
+
+  - key: declaringFqn
+    description: >
+      For MethodCallExpr only: only match calls whose resolved declaring‐class FQN equals this.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      { "match": { "nodeType": "MethodCallExpr",
+                   "declaringFqn": "java.util.List" } }
+
+  - key: declaringFqnPattern
+    description: >
+      As `declaringFqn`, but with a regex against the declaring‐class FQN.
+    appliesTo:
+      - MethodCallExpr
+      - MethodDeclaration
+    example: |
+      { "match": { "nodeType": "MethodCallExpr",
+                   "declaringFqnPattern": "com\\.hexaware\\.factory\\..*" } }
+
+  - key: overridesFqnPattern
+    description: >
+      As `overridesFqn`, but matching the interface/class FQN with a regex.
+    appliesTo:
+      - MethodDeclaration
+    example: |
+      { "match": { "nodeType": "MethodDeclaration",
+                   "overridesFqnPattern": "net\\.restfulapi\\.app\\.service\\..*" } }
