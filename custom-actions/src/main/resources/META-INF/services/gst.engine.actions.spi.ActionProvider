@@ -1,9 +1,3 @@
-com.example.providers.MyCustomActionProvider
-com.example.providers.UpdateImplementsActionProvider
-com.example.providers.ChangeMethodReturnTypeActionProvider
-com.example.providers.RenameMethodActionProvider
-com.example.providers.RemoveParameterActionProvider
-com.example.providers.RemoveArgumentActionProvider
 com.example.providers.FactoryLocalVarReplacementActionProvider
 com.example.providers.FactoryFieldInjectionActionProvider
 com.example.providers.AutowireQualifierFieldActionProvider

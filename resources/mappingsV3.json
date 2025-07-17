@@ -330,26 +330,6 @@
             ]
         },
         {
-            "name": "TestCustomAction",
-            "description": "Should invoke MyCustomAction once on the TestExample class",
-            "rollbackOnError": false,
-            "steps": [
-                {
-                    "match": {
-                        "nodeType": "ClassOrInterfaceDeclaration",
-                        "namePattern": "TestExample"
-                    },
-                    "actions": [
-                        {
-                            "myCustom": {
-                                "foo": "bar"
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "name": "MigrateCustomHealthCheck",
             "description": "Spring Boot HealthIndicator",
             "rollbackOnError": false,

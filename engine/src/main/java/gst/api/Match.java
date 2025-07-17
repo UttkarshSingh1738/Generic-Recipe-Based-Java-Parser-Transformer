@@ -19,16 +19,13 @@ public class Match {
     public String conditionPattern;
     public String updatePattern;
     public String accessPattern;
-    
     public Boolean literalOnly;
     public Boolean requireInitializer;
     public Boolean requireNoTypeArgs;
     public String argumentType;
     public String expectedParamType;
-
     public List<String> typeAny;
     public String typePattern;
-
     public String parentNodeType;
     public String namePattern;   
     public String scopePattern;
@@ -37,14 +34,11 @@ public class Match {
     public Integer paramCount;  
     public String requiresImport;     
     public String forbidsImport;
-
     public Integer beforeLine;
     public Integer afterLine;
-
     public String overridesFqn;
     public String declaringFqn;
     public String declaringFqnPattern;
     public String overridesFqnPattern;
-
     public String annotationValuePattern;
 }

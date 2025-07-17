@@ -1,4 +1,4 @@
-package com.example.actions;
+package gst.engine.actions;
 
 import java.util.Map;
 
@@ -8,7 +8,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 
 import gst.engine.TxContext;
-import gst.engine.actions.Action;
 
 public class RemoveParameterAction implements Action {
     private final String paramName;

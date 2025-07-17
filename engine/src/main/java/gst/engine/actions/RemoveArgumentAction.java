@@ -1,4 +1,4 @@
-package com.example.actions;
+package gst.engine.actions;
 
 import java.util.Map;
 
@@ -8,7 +8,6 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 
 import gst.engine.TxContext;
-import gst.engine.actions.Action;
 
 public class RemoveArgumentAction implements Action {
     private final int index;

@@ -53,7 +53,11 @@ public class ActionFactory {
             case "wrapWithTryCatch":            return new WrapWithTryCatchAction(stringParams);
             case "migrateAnnotation":           return new MigrateAnnotationAction(params);
             case "replaceWithScope":            return new ReplaceWithScopeAction(stringParams);
-
+            case "updateImplements":            return new UpdateImplementsAction(stringParams);
+            case "renameMethod":                return new RenameMethodAction(stringParams);
+            case "removeParameter":             return new RemoveParameterAction(stringParams);
+            case "removeArgument":              return new RemoveArgumentAction(stringParams);
+            case "changeMethodReturnType":      return new ChangeMethodReturnTypeAction(stringParams);
         }
 
         for(ActionProvider p : CUSTOM_PROVIDERS) {

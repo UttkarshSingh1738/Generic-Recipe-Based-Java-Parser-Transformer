@@ -1,0 +1,721 @@
+# actions.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Definitions of all action keys you can use in a recipe’s steps.actions section.
+
+actions:
+  - key: changeType
+    class: ChangeTypeAction
+    description: >
+      Change the declared type of a variable, parameter, method return,
+      object creation, or field to a new type.
+    parameters:
+      - name: newType
+        type: String
+        description: Fully‑qualified or simple name of the target type.
+    appliesTo:
+      - VariableDeclarationExpr
+      - Parameter
+      - MethodDeclaration
+      - ObjectCreationExpr
+      - FieldDeclaration
+    example: |
+      {
+        "match": { "nodeType": "Parameter", "namePattern": "timeout" },
+        "actions": [
+          { "changeType": { "newType": "java.time.Duration" } }
+        ]
+      }
+
+  - key: replaceWithMethodCall
+    class: ReplaceWithMethodCallAction
+    description: >
+      Replace an object‑creation (`new X(...)`) or a method call (`x.old(...)`)
+      with a call to `scope.method(...)`.  You can carry over arguments or
+      unwrap a nested scope call into the new call.
+    parameters:
+      - name: scope
+        type: String
+        description: Class or variable name on which to call the new method.
+      - name: method
+        type: String
+        default: now
+        description: Name of the method to invoke.
+      - name: includeScopeArg
+        type: Boolean
+        default: false
+        description: Pass the original call’s scope as the first argument.
+      - name: unwrapScopeArg
+        type: Boolean
+        default: false
+        description: If true, assume the old call’s scope is itself a
+          single‑arg call and use its argument directly.
+    appliesTo:
+      - ObjectCreationExpr
+      - MethodCallExpr
+    example: |
+      {
+        "match": { "nodeType": "ObjectCreationExpr", "type": "java.util.Date" },
+        "actions": [
+          {
+            "replaceWithMethodCall": {
+              "scope": "LocalDateTime",
+              "method": "now"
+            }
+          }
+        ]
+      }
+
+  - key: wrapArgument
+    class: WrapArgumentAction
+    description: >
+      Wrap a method call’s first argument inside another expression template.
+      The template must include `#{}` where the original expression should go.
+    parameters:
+      - name: template
+        type: String
+        description: Java code snippet with `#{}` placeholder.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "scopePattern": "Optional\\.ofNullable",
+          "methodName": "orElse"
+        },
+        "actions": [
+          {
+            "wrapArgument": {
+              "template": "Objects.requireNonNullElse(#{}, defaultValue)"
+            }
+          }
+        ]
+      }
+
+  - key: switchToReturnExpression
+    class: SwitchToReturnExpressionAction
+    description: >
+      Convert a `switch(stmt)` with `case …: r = …; break;` into a
+      `return switch(expr) { case … -> …; … }` expression.
+    parameters: []
+    appliesTo:
+      - SwitchStmt
+    example: |
+      {
+        "match": { "nodeType": "SwitchStmt" },
+        "actions": [
+          { "switchToReturnExpression": {} }
+        ]
+      }
+
+  - key: collapseLiteralConcat
+    class: CollapseLiteralConcatAction
+    description: >
+      Flatten a tree of string concatenations containing `"\n"` into a
+      single `TextBlockLiteralExpr`.
+    parameters: []
+    appliesTo:
+      - BinaryExpr
+    example: |
+      {
+        "match": {
+          "nodeType": "BinaryExpr",
+          "literalOnly": true,
+          "literalPattern": "\\\\n"
+        },
+        "actions": [
+          { "collapseLiteralConcat": {} }
+        ]
+      }
+
+  - key: forToForEach
+    class: ForToForEachAction
+    description: >
+      Rewrite a classic `for (int i = 0; i < arr.length; i++) {…}` or
+      `for (int i = 0; i < list.size(); i++) {…}` into an enhanced
+      `for (Element e : arrOrList) {…}` loop.
+    parameters: []
+    appliesTo:
+      - ForStmt
+    example: |
+      {
+        "match": {
+          "nodeType": "ForStmt",
+          "initVarPattern": "i",
+          "conditionPattern": "i < .*\\.length",
+          "updatePattern": "\\+\\+"
+        },
+        "actions": [
+          { "forToForEach": {} }
+        ]
+      }
+
+  - key: insertBefore
+    class: InsertBeforeAction
+    description: >
+      Insert a statement immediately before the matched node, within the same block.
+    parameters:
+      - name: code
+        type: String
+        description: A single Java statement (must end with `;`).
+    appliesTo:
+      - any Statement node  
+    example: |
+      {
+        "match": { "nodeType": "ExpressionStmt", "matchExpr": "System\\.out\\.println" },
+        "actions": [
+          {
+            "insertBefore": {
+              "code": "logger.debug(\"About to print\");"
+            }
+          }
+        ]
+      }
+
+  - key: insertAfter
+    class: InsertAfterAction
+    description: >
+      Insert a statement immediately after the matched node, within the same block.
+    parameters:
+      - name: code
+        type: String
+        description: A single Java statement (must end with `;`).
+    appliesTo:
+      - any Statement node  
+    example: |
+      {
+        "match": { "nodeType": "ExpressionStmt", "matchExpr": "return .*;" },
+        "actions": [
+          {
+            "insertAfter": {
+              "code": "cleanup();"
+            }
+          }
+        ]
+      }
+
+  - key: removeNode
+    class: RemoveNodeAction
+    description: >
+      Delete the matched AST node entirely (including its subtree).
+    parameters: []
+    appliesTo:
+      - any Node
+    example: |
+      {
+        "match": {
+          "nodeType": "ExpressionStmt",
+          "matchExpr": "System\\.err\\.println\\("
+        },
+        "actions": [
+          { "removeNode": {} }
+        ]
+      }
+
+  - key: replaceWithTemplate
+    class: ReplaceWithTemplateAction
+    description: >
+      Replace the matched node by parsing a given Java snippet or template
+      into the AST.  Template must form a valid expression or statement.
+    parameters:
+      - name: template
+        type: String
+        description: Valid Java code fragment to substitute.
+    appliesTo:
+      - any Expression or Statement node
+    example: |
+      {
+        "match": { "nodeType": "BinaryExpr", "literalPattern": "1 \\+ 2" },
+        "actions": [
+          {
+            "replaceWithTemplate": {
+              "template": "Integer.sum(1, 2)"
+            }
+          }
+        ]
+      }
+
+  - key: addImport
+    class: AddImportAction
+    description: >
+      Add a single‐type import to the top of the compilation unit if not already present.
+    parameters:
+      - name: name
+        type: String
+        description: Fully qualified type to import.
+    appliesTo:
+      - any Node (acts at CU level)
+    example: |
+      {
+        "match": { "nodeType": "MethodCallExpr", "methodName": "ofNullable" },
+        "actions": [
+          { "addImport": { "name": "java.util.Optional" } }
+        ]
+      }
+
+  - key: removeImport
+    class: RemoveImportAction
+    description: >
+      Remove a single‐type import from the compilation unit if present.
+    parameters:
+      - name: name
+        type: String
+        description: Fully qualified type to remove.
+    appliesTo:
+      - any Node (acts at CU level)
+    example: |
+      {
+        "match": { "nodeType": "ImportDeclaration", "matchExpr": "java\\.util\\.Date" },
+        "actions": [
+          { "removeImport": { "name": "java.util.Date" } }
+        ]
+      }
+
+  - key: addAnnotation
+    class: AddAnnotationAction
+    description: >
+      Add an annotation (by name) to a node supporting annotations.
+      Attributes may be included inline, e.g. `RequestMapping("/path")`.
+    parameters:
+      - name: name
+        type: String
+        description: Annotation string to add, including any attributes.
+    appliesTo:
+      - ClassOrInterfaceDeclaration
+      - MethodDeclaration
+      - FieldDeclaration
+      - Parameter
+    example: |
+      {
+        "match": { "nodeType": "MethodDeclaration", "namePattern": "save.*" },
+        "actions": [
+          { "addAnnotation": { "name": "Transactional" } }
+        ]
+      }
+
+  - key: removeAnnotation
+    class: RemoveAnnotationAction
+    description: >
+      Remove a named annotation (by simple name) from a node supporting annotations.
+    parameters:
+      - name: name
+        type: String
+        description: Simple annotation name to remove.
+    appliesTo:
+      - any NodeWithAnnotations
+    example: |
+      {
+        "match": { "nodeType": "ClassOrInterfaceDeclaration", "annotation": "Deprecated" },
+        "actions": [
+          { "removeAnnotation": { "name": "Deprecated" } }
+        ]
+      }
+
+  - key: updateAnnotationAttribute
+    class: UpdateAnnotationAttributeAction
+    description: >
+      Modify the value of a named attribute in a normal annotation.
+      Leaves other attributes untouched.
+    parameters:
+      - name: annotation
+        type: String
+        description: The annotation’s simple name.
+      - name: attribute
+        type: String
+        description: Name of the attribute pair to update.
+      - name: newValue
+        type: String
+        description: New literal value (without quotes).
+    appliesTo:
+      - any NodeWithAnnotations
+    example: |
+      {
+        "match": { "nodeType": "ClassOrInterfaceDeclaration", "annotation": "RequestMapping" },
+        "actions": [
+          {
+            "updateAnnotationAttribute": {
+              "annotation": "RequestMapping",
+              "attribute": "value",
+              "newValue": "/new-path"
+            }
+          }
+        ]
+      }
+
+  - key: removeComment
+    class: RemoveCommentAction
+    description: >
+      Strip any comment attached to the matched node (line or block comment).
+    parameters: []
+    appliesTo:
+      - any Node
+    example: |
+      {
+        "match": { "matchExpr": "//TODO" },
+        "actions": [
+          { "removeComment": {} }
+        ]
+      }
+
+  - key: removeExceptionFromCatch
+    class: RemoveExceptionFromCatchAction
+    description: >
+      In a multi‑catch clause, remove one exception type.  If it was the only
+      type, collapse the catch or replace with `catch (Exception e)`.
+    parameters:
+      - name: exception
+        type: String
+        description: Simple name of the exception to remove.
+    appliesTo:
+      - CatchClause
+    example: |
+      {
+        "match": {
+          "nodeType": "CatchClause",
+          "matchExpr": "\\| EjbAccessException"
+        },
+        "actions": [
+          { "removeExceptionFromCatch": { "exception": "EjbAccessException" } }
+        ]
+      }
+
+  - key: renameMethodCall
+    class: RenameMethodCallAction
+    description: >
+      Change the name of a method invocation (only the callsite, not its declaration).
+    parameters:
+      - name: oldName
+        type: String
+      - name: newName
+        type: String
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      {
+        "match": { "nodeType": "MethodCallExpr", "methodName": "getUserName" },
+        "actions": [
+          {
+            "renameMethodCall": {
+              "oldName": "getUserName",
+              "newName": "getUser"
+            }
+          }
+        ]
+      }
+
+  - key: removeModifier
+    class: RemoveModifierAction
+    description: >
+      Drop a modifier keyword (e.g. `final`, `public`, `static`) from a node.
+    parameters:
+      - name: modifier
+        type: String
+        description: Keyword to remove (case‑insensitive).
+    appliesTo:
+      - any NodeWithModifiers
+    example: |
+      {
+        "match": { "nodeType": "FieldDeclaration", "hasModifier": "final" },
+        "actions": [
+          { "removeModifier": { "modifier": "final" } }
+        ]
+      }
+
+  - key: addModifier
+    class: AddModifierAction
+    description: >
+      Add a modifier keyword (`public`, `protected`, `private`, `static`, etc.).
+    parameters:
+      - name: modifier
+        type: String
+    appliesTo:
+      - any NodeWithModifiers
+    example: |
+      {
+        "match": { "nodeType": "MethodDeclaration", "namePattern": "init.*" },
+        "actions": [
+          { "addModifier": { "modifier": "private" } }
+        ]
+      }
+
+  - key: setAccessLevel
+    class: SetAccessLevelAction
+    description: >
+      Set exactly one access modifier (`public`/`protected`/`private`) on a
+      method, field, or class—removing others.
+    parameters:
+      - name: level
+        type: String
+        description: One of `public`, `protected`, or `private`.
+    appliesTo:
+      - MethodDeclaration
+      - FieldDeclaration
+      - ClassOrInterfaceDeclaration
+    example: |
+      {
+        "match": { "nodeType": "MethodDeclaration", "namePattern": "process.*" },
+        "actions": [
+          { "setAccessLevel": { "level": "protected" } }
+        ]
+      }
+
+  - key: renameVariable
+    class: RenameVariableAction
+    description: >
+      Rename a local variable (declaration + all `NameExpr` references) within
+      the same compilation unit.
+    parameters:
+      - name: newName
+        type: String
+    appliesTo:
+      - VariableDeclarator
+    example: |
+      {
+        "match": { "nodeType": "VariableDeclarator", "namePattern": "count" },
+        "actions": [
+          { "renameVariable": { "newName": "size" } }
+        ]
+      }
+
+  - key: renameClass
+    class: RenameClassAction
+    description: >
+      Rename a class or interface (declaration only); references must be
+      updated separately via a rename‑refactoring tool.
+    parameters:
+      - name: newName
+        type: String
+    appliesTo:
+      - ClassOrInterfaceDeclaration
+    example: |
+      {
+        "match": { "nodeType": "ClassOrInterfaceDeclaration", "namePattern": "FooUtil" },
+        "actions": [
+          { "renameClass": { "newName": "FooHelper" } }
+        ]
+      }
+
+  - key: clearInitializer
+    class: ClearInitializerAction
+    description: >
+      Remove the initializer of a variable declaration but keep the declaration.
+    parameters: []
+    appliesTo:
+      - VariableDeclarator
+    example: |
+      {
+        "match": { "nodeType": "VariableDeclarator", "matchExpr": "= .*" },
+        "actions": [
+          { "clearInitializer": {} }
+        ]
+      }
+
+  - key: removeStatements
+    class: RemoveStatementsAction
+    description: >
+      Remove all statements in a block (e.g. method or static initializer),
+      leaving an empty block.
+    parameters: []
+    appliesTo:
+      - BlockStmt
+    example: |
+      {
+        "match": { "nodeType": "BlockStmt", "parentNodeType": "MethodDeclaration" },
+        "actions": [
+          { "removeStatements": {} }
+        ]
+      }
+
+  - key: wrapWithTryCatch
+    class: WrapWithTryCatchAction
+    description: >
+      Surround a statement or block with a `try { … } catch(Exception e) { … }`.
+      The catch body may be provided via template.
+    parameters:
+      - name: exception
+        type: String
+        default: Exception
+        description: Exception type to catch.
+      - name: bodyTemplate
+        type: String
+        optional: true
+        description: Java code for catch body, `#{e}` may stand in for the exception variable.
+    appliesTo:
+      - Statement
+      - BlockStmt
+    example: |
+      {
+        "match": { "nodeType": "ExpressionStmt", "matchExpr": "processData\\(" },
+        "actions": [
+          {
+            "wrapWithTryCatch": {
+              "exception": "IOException",
+              "bodyTemplate": "logger.error(#{e});"
+            }
+          }
+        ]
+      }
+
+  - key: migrateAnnotation
+    class: MigrateAnnotationAction
+    description: >
+      Convert one annotation to another, possibly remapping attributes by name.
+    parameters:
+      - name: from
+        type: String
+        description: Source annotation simple name.
+      - name: to
+        type: String
+        description: Target annotation simple name.
+      - name: attrMap
+        type: Map<String,String>
+        description: Optional map of old→new attribute names.
+    appliesTo:
+      - any NodeWithAnnotations
+    example: |
+      {
+        "match": { "nodeType": "MethodDeclaration", "annotation": "GET" },
+        "actions": [
+          {
+            "migrateAnnotation": {
+              "from": "GET",
+              "to": "GetMapping",
+              "attrMap": { "value": "path" }
+            }
+          }
+        ]
+      }
+
+  - key: replaceWithScope
+    class: ReplaceWithScopeAction
+    description: >
+      In a chained method call `X.s1().s2().s3()`, drop the innermost
+      call and promote its scope, e.g. remove `.s2()` or `.s3()`.
+    parameters: []
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "methodName": "rel",
+          "scopePattern": "Link\\.fromUri"
+        },
+        "actions": [
+          { "replaceWithScope": {} }
+        ]
+      }
+
+  - key: updateImplements
+    class: UpdateImplementsAction
+    description: >
+      Add or remove interfaces in a class’s `implements` clause.
+      Removes any implemented type matching `remove` and then adds `add`
+      if not already present.
+    parameters:
+      - name: remove
+        description: Simple or fully‑qualified name of the interface to remove.
+      - name: add
+        description: Fully‑qualified name of the interface to add.
+    appliesTo:
+      - ClassOrInterfaceDeclaration
+    example: |
+      {
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration"
+        },
+        "actions": [
+          { "updateImplements": { "remove": "OldInterface", "add": "com.example.NewInterface" } }
+        ]
+      }
+
+  - key: changeMethodReturnType
+    class: ChangeMethodReturnTypeAction
+    description: >
+      Change the declared return type of a method.
+      Parses `newType` and sets it on the matched `MethodDeclaration`.
+    parameters:
+      - name: newType
+        description: The new return type (e.g. `java.time.Instant` or `List<String>`).
+    appliesTo:
+      - MethodDeclaration
+    example: |
+      {
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "methodName": "compute"
+        },
+        "actions": [
+          { "changeMethodReturnType": { "newType": "java.time.Instant" } }
+        ]
+      }
+
+  - key: renameMethod
+    class: RenameMethodAction
+    description: >
+      Rename a method declaration.
+      Changes the name of the matched `MethodDeclaration` to `newName`.
+    parameters:
+      - name: newName
+        description: The new method name.
+    appliesTo:
+      - MethodDeclaration
+    example: |
+      {
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "methodName": "getOldValue"
+        },
+        "actions": [
+          { "renameMethod": { "newName": "getNewValue" } }
+        ]
+      }
+
+  - key: removeParameter
+    class: RemoveParameterAction
+    description: >
+      Remove a parameter from a method declaration.
+      Finds the parameter named `name` on the matched `MethodDeclaration` and removes it.
+    parameters:
+      - name: name
+        description: The name of the method parameter to remove.
+    appliesTo:
+      - MethodDeclaration
+    example: |
+      {
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "methodName": "process",
+          "paramCount": 3
+        },
+        "actions": [
+          { "removeParameter": { "name": "obsoleteParam" } }
+        ]
+      }
+
+  - key: removeArgument
+    class: RemoveArgumentAction
+    description: >
+      Remove an argument from a method call.
+      Removes the argument at the zero‑based index `index` from the matched `MethodCallExpr`.
+    parameters:
+      - name: index
+        description: Zero‑based position of the argument to remove.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "methodName": "doSomething"
+        },
+        "actions": [
+          { "removeArgument": { "index": 1 } }
+        ]
+      }
+
+customProviders:
+  - FactoryLocalVarReplacementActionProvider
+  - FactoryFieldInjectionActionProvider
+  - AutowireQualifierFieldActionProvider
+  - ComponentizeServiceImplActionProvider
