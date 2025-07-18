@@ -279,7 +279,10 @@ actions:
     parameters:
       - name: name
         type: String
-        description: Annotation string to add, including any attributes.
+        description: Annotation name to add (without @).
+      - name: attributes
+        type: Map<String,String>
+        description: Optional map of attribute names to values.
     appliesTo:
       - ClassOrInterfaceDeclaration
       - MethodDeclaration
@@ -289,7 +292,8 @@ actions:
       {
         "match": { "nodeType": "MethodDeclaration", "namePattern": "save.*" },
         "actions": [
-          { "addAnnotation": { "name": "Transactional" } }
+          { "addAnnotation": { "name": "Transactional" } },
+          { "addAnnotation": { "name": "RequestMapping", "attributes": { "value": "/path", "method": "RequestMethod.POST" } } }
         ]
       }
 

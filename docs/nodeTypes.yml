@@ -4,7 +4,7 @@
 
 - nodeType: ObjectCreationExpr
   class: com.github.javaparser.ast.expr.ObjectCreationExpr
-  description: |
+  description: >
     A “new” expression, e.g. `new Foo(arg1, arg2)`.
   example: |
     // matches this:
@@ -12,7 +12,7 @@
 
 - nodeType: VariableDeclarationExpr
   class: com.github.javaparser.ast.expr.VariableDeclarationExpr
-  description: |
+  description: >
     A local or field-like variable declaration with optional initializer,
     e.g. `List<String> xs = new ArrayList<>()`.
   example: |
@@ -21,7 +21,7 @@
 
 - nodeType: MethodCallExpr
   class: com.github.javaparser.ast.expr.MethodCallExpr
-  description: |
+  description: >
     Any method invocation, with or without scope, e.g. `x.foo()` or `bar()`.
   example: |
     // matches either
@@ -30,7 +30,7 @@
 
 - nodeType: FieldAccessExpr
   class: com.github.javaparser.ast.expr.FieldAccessExpr
-  description: |
+  description: >
     A qualified field or enum constant access, e.g. `System.out` or `MyEnum.A`.
   example: |
     // matches this:
@@ -38,7 +38,7 @@
 
 - nodeType: AnnotationExpr
   class: com.github.javaparser.ast.expr.AnnotationExpr
-  description: |
+  description: >
     Any annotation instance on a type, method, field, parameter, etc.
   example: |
     // matches both
@@ -47,14 +47,14 @@
 
 - nodeType: ImportDeclaration
   class: com.github.javaparser.ast.ImportDeclaration
-  description: |
+  description: >
     An import statement.
   example: |
     import java.util.List;
 
 - nodeType: NameExpr
   class: com.github.javaparser.ast.expr.NameExpr
-  description: |
+  description: >
     A simple name reference (variable, type name in expression context).
   example: |
     // matches both
@@ -63,14 +63,14 @@
 
 - nodeType: Parameter
   class: com.github.javaparser.ast.body.Parameter
-  description: |
+  description: >
     A method or constructor parameter.
   example: |
     void foo(String name, int count) { … }
 
 - nodeType: ClassOrInterfaceType
   class: com.github.javaparser.ast.type.ClassOrInterfaceType
-  description: |
+  description: >
     A reference to a class or interface type in a declaration or cast,
     e.g. `List<String>`, `Map.Entry<K,V>`.
   example: |
@@ -78,7 +78,7 @@
 
 - nodeType: SwitchStmt
   class: com.github.javaparser.ast.stmt.SwitchStmt
-  description: |
+  description: >
     A traditional switch statement with `case ...: break;`.
   example: |
     switch(x) {
@@ -88,7 +88,7 @@
 
 - nodeType: BinaryExpr
   class: com.github.javaparser.ast.expr.BinaryExpr
-  description: |
+  description: >
     A binary operator expression, e.g. arithmetic or logical,
     `a + b`, `x && y`, or string concatenation.
   example: |
@@ -96,14 +96,14 @@
 
 - nodeType: ForStmt
   class: com.github.javaparser.ast.stmt.ForStmt
-  description: |
+  description: >
     A traditional `for(init; cond; update)` loop.
   example: |
     for (int i = 0; i < n; i++) { … }
 
 - nodeType: ExpressionStmt
   class: com.github.javaparser.ast.stmt.ExpressionStmt
-  description: |
+  description: >
     A statement consisting of a single expression, e.g.
     a method call or assignment.
   example: |
@@ -111,49 +111,49 @@
 
 - nodeType: ClassOrInterfaceDeclaration
   class: com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
-  description: |
+  description: >
     A `class` or `interface` declaration.
   example: |
     public class Foo { … }
 
 - nodeType: CatchClause
   class: com.github.javaparser.ast.stmt.CatchClause
-  description: |
+  description: >
     A `catch(...) { ... }` block in a `try` statement.
   example: |
     try { … } catch (IOException | SQLException e) { … }
 
 - nodeType: FieldDeclaration
   class: com.github.javaparser.ast.body.FieldDeclaration
-  description: |
+  description: >
     A member‐field declaration inside a class.
   example: |
     private int count = 0;
 
 - nodeType: ConstructorDeclaration
   class: com.github.javaparser.ast.body.ConstructorDeclaration
-  description: |
+  description: >
     A class constructor declaration.
   example: |
     public Foo(String name) { this.name = name; }
 
 - nodeType: MethodDeclaration
   class: com.github.javaparser.ast.body.MethodDeclaration
-  description: |
+  description: >
     A method declaration (with return type, name, parameters).
   example: |
     public String getName() { return name; }
 
 - nodeType: BlockStmt
   class: com.github.javaparser.ast.stmt.BlockStmt
-  description: |
+  description: >
     A `{ ... }` block of statements.
   example: |
     { int x = 1; doThing(x); }
 
 - nodeType: VariableDeclarator
   class: com.github.javaparser.ast.body.VariableDeclarator
-  description: |
+  description: >
     The individual “variable = initializer” inside a
     `VariableDeclarationExpr`.
   example: |
