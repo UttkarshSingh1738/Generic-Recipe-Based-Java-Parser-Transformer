@@ -11,7 +11,7 @@ actions:
     parameters:
       - name: newType
         type: String
-        description: Fully‑qualified or simple name of the target type.
+        description: Fully‐qualified or simple name of the target type.
     appliesTo:
       - VariableDeclarationExpr
       - Parameter
@@ -19,31 +19,43 @@ actions:
       - ObjectCreationExpr
       - FieldDeclaration
     example: |
+      Before:
+      
+      // Change JAX‑RS Response → Spring’s ResponseEntity
+      public Response getFoo() { … }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "Parameter", "namePattern": "timeout" },
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "methodName": "getFoo",
+          "returnTypePattern": "\\bResponse\\b"
+        },
         "actions": [
-          { "changeType": { "newType": "java.time.Duration" } }
+          { "changeType": { "newType": "ResponseEntity" } }
         ]
       }
+      
+      After:
+      
+      public ResponseEntity getFoo() { … }
+      
 
   - key: replaceWithMethodCall
     class: ReplaceWithMethodCallAction
     description: >
-      Replace an object‑creation (`new X(...)`) or a method call (`x.old(...)`)
-      with a call to `<scopeExpression>.<method>(...)`.  The `scopeExpression`
-      may be any valid Java expression (e.g. `LocalDateTime`, or
-      `request.getUri()`), and you can carry over arguments or unwrap a nested
-      scope call into the new call.
+      Replace an object‐creation (`new X(...)`) or a method call (`x.old(...)`)
+      with a call to `scope.method(...)`. You can carry over arguments or
+      unwrap a nested scope call into the new call.
     parameters:
       - name: scope
         type: String
-        description: >
-          A full Java expression to use as the new “scope” (receiver) of the call,
-          for example `"LocalDateTime"` or `"request.getUri()"`.
+        description: Class or variable name on which to call the new method.
       - name: method
         type: String
         default: now
-        description: Name of the method to invoke on that scope.
+        description: Name of the method to invoke.
       - name: includeScopeArg
         type: Boolean
         default: false
@@ -52,32 +64,46 @@ actions:
         type: Boolean
         default: false
         description: If true, assume the old call’s scope is itself a
-          single‑arg call and use its argument directly.
+          single‐arg call and use its argument directly.
     appliesTo:
       - ObjectCreationExpr
       - MethodCallExpr
     example: |
+      Before (UseRequireNonNullElse):
+      
+      Optional.ofNullable(name).orElse("world");
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "MethodCallExpr",
-          "scopePattern": "request",
-          "methodName": "getPath"
+          "scopePattern": "Optional\\.ofNullable",
+          "methodName": "orElse"
         },
         "actions": [
           {
             "replaceWithMethodCall": {
-              "scope": "request.getUri()",
-              "method": "getPath"
+              "scope": "Objects",
+              "method": "requireNonNullElse",
+              "unwrapScopeArg": "true"
             }
-          }
+          },
+          { "addImport": { "name": "java.util.Objects" } }
         ]
       }
+      
+      After:
+      
+      Objects.requireNonNullElse(name, "world");
+      
 
   - key: wrapArgument
     class: WrapArgumentAction
     description: >
-      Wrap a method call’s first argument inside another expression template.
-      The template must include `#{}` where the original expression should go.
+      Wrap a method call’s first argument inside another expression
+      template. The template must include `#{}` where the original
+      expression should go.
     parameters:
       - name: template
         type: String
@@ -85,6 +111,12 @@ actions:
     appliesTo:
       - MethodCallExpr
     example: |
+      Before:
+      
+      Optional.ofNullable(name).orElse("world");
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "MethodCallExpr",
@@ -94,37 +126,74 @@ actions:
         "actions": [
           {
             "wrapArgument": {
-              "template": "Objects.requireNonNullElse(#{}, defaultValue)"
+              "template": "Objects.requireNonNullElse(#{}, \"fallback\")"
             }
-          }
+          },
+          { "addImport": { "name": "java.util.Objects" } }
         ]
       }
+      
+      After:
+      
+      Objects.requireNonNullElse(name, "fallback");
+      
 
   - key: switchToReturnExpression
     class: SwitchToReturnExpressionAction
     description: >
-      Convert a `switch(stmt)` with `case …: r = …; break;` into a
-      `return switch(expr) { case … -> …; … }` expression.
+      Convert a `switch(stmt) { case …: r = …; break; … }`
+      followed by `return r;` into a `return switch(expr) { case … -> …; … }`.
     parameters: []
     appliesTo:
       - SwitchStmt
     example: |
+      Before:
+      
+      int result;
+      switch(code) {
+        case 1:
+          result = foo();
+          break;
+        default:
+          result = bar();
+      }
+      return result;
+      
+      Recipe:
+      
       {
         "match": { "nodeType": "SwitchStmt" },
         "actions": [
           { "switchToReturnExpression": {} }
         ]
       }
+      
+      After:
+      
+      return switch(code) {
+        case 1 -> foo();
+        default -> bar();
+      };
+      
 
   - key: collapseLiteralConcat
     class: CollapseLiteralConcatAction
     description: >
-      Flatten a tree of string concatenations containing `"\n"` into a
-      single `TextBlockLiteralExpr`.
+      Flatten a tree of string concatenations containing `"\n"`
+      into a single `TextBlockLiteralExpr` (Java 15+ text block).
     parameters: []
     appliesTo:
       - BinaryExpr
     example: |
+      Before:
+      
+      String html = "<ul>\n"
+                  + "  <li>foo</li>\n"
+                  + "  <li>bar</li>\n"
+                  + "</ul>";
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "BinaryExpr",
@@ -135,28 +204,53 @@ actions:
           { "collapseLiteralConcat": {} }
         ]
       }
+      
+      After:
+      
+      String html = """
+          <ul>
+            <li>foo</li>
+            <li>bar</li>
+          </ul>
+          """;
+      
 
   - key: forToForEach
     class: ForToForEachAction
     description: >
-      Rewrite a classic `for (int i = 0; i < arr.length; i++) {…}` or
-      `for (int i = 0; i < list.size(); i++) {…}` into an enhanced
+      Rewrite a classic `for (int i = 0; i < arr.length; i++) {…}`
+      or `for (int i = 0; i < list.size(); i++) {…}` into an enhanced
       `for (Element e : arrOrList) {…}` loop.
     parameters: []
     appliesTo:
       - ForStmt
     example: |
+      Before:
+      
+      for (int i = 0; i < items.size(); i++) {
+        System.out.println(items.get(i));
+      }
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "ForStmt",
           "initVarPattern": "i",
-          "conditionPattern": "i < .*\\.length",
-          "updatePattern": "\\+\\+"
+          "conditionPattern": "i < .+\\.size\\(\\)",
+          "updatePattern": "(?:\\+\\+i|i\\+\\+)"
         },
         "actions": [
           { "forToForEach": {} }
         ]
       }
+      
+      After:
+      
+      for (var item : items) {
+        System.out.println(item);
+      }
+      
 
   - key: insertBefore
     class: InsertBeforeAction
@@ -167,18 +261,46 @@ actions:
         type: String
         description: A single Java statement (must end with `;`).
     appliesTo:
-      - any Statement node  
+      - any Statement
     example: |
+      Before:
+      
+      public String greeting(String name) {
+        ...
+      }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "ExpressionStmt", "matchExpr": "System\\.out\\.println" },
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "namePattern": "greeting",
+          "paramCount": 1,
+          "returnTypePattern": "String",
+          "requiresImport": "java.util.Objects"
+        },
         "actions": [
           {
             "insertBefore": {
-              "code": "logger.debug(\"About to print\");"
+              "code": "System.out.println(\"[LOG] Entering greeting\");"
+            }
+          },
+          {
+            "insertAfter": {
+              "code": "System.out.println(\"[LOG] Exiting greeting\");"
             }
           }
         ]
       }
+      
+      After:
+      
+      public String greeting(String name) {
+          System.out.println("[LOG] Entering greeting");
+          ...
+          System.out.println("[LOG] Exiting greeting");
+      }
+      
 
   - key: insertAfter
     class: InsertAfterAction
@@ -189,18 +311,9 @@ actions:
         type: String
         description: A single Java statement (must end with `;`).
     appliesTo:
-      - any Statement node  
+      - any Statement
     example: |
-      {
-        "match": { "nodeType": "ExpressionStmt", "matchExpr": "return .*;" },
-        "actions": [
-          {
-            "insertAfter": {
-              "code": "cleanup();"
-            }
-          }
-        ]
-      }
+      (See `insertBefore` above—combined example.)
 
   - key: removeNode
     class: RemoveNodeAction
@@ -210,38 +323,59 @@ actions:
     appliesTo:
       - any Node
     example: |
+      Before (RemoveDebugPrints):
+      
+      System.out.println("debug!");
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "ExpressionStmt",
-          "matchExpr": "System\\.err\\.println\\("
+          "matchExpr": "System\\.out\\.println\\(\"debug!\"\\)"
         },
         "actions": [
           { "removeNode": {} }
         ]
       }
+      
+      After:
+      
+      // the debug print is gone
+      
 
   - key: replaceWithTemplate
     class: ReplaceWithTemplateAction
     description: >
       Replace the matched node by parsing a given Java snippet or template
-      into the AST.  Template must form a valid expression or statement.
+      into the AST. Template must form a valid expression or statement.
     parameters:
       - name: template
         type: String
         description: Valid Java code fragment to substitute.
     appliesTo:
-      - any Expression or Statement node
+      - any Expression or Statement
     example: |
+      Before (UseIntegerSumFor1Plus2):
+      
+      int sum = 1 + 2;
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "BinaryExpr", "literalPattern": "1 \\+ 2" },
+        "match": {
+          "nodeType": "BinaryExpr",
+          "literalPattern": "1\\s*\\+\\s*2"
+        },
         "actions": [
-          {
-            "replaceWithTemplate": {
-              "template": "Integer.sum(1, 2)"
-            }
-          }
+          { "replaceWithTemplate": { "template": "Integer.sum(1, 2)" } }
         ]
       }
+      
+      After:
+      
+      int sum = Integer.sum(1, 2);
+      
 
   - key: addImport
     class: AddImportAction
@@ -252,14 +386,16 @@ actions:
         type: String
         description: Fully qualified type to import.
     appliesTo:
-      - any Node (acts at CU level)
+      - any Node (operates at CU level)
     example: |
-      {
-        "match": { "nodeType": "MethodCallExpr", "methodName": "ofNullable" },
-        "actions": [
-          { "addImport": { "name": "java.util.Optional" } }
-        ]
-      }
+      In `UseRequireNonNullElse` above we added:
+      
+      { "addImport": { "name": "java.util.Objects" } }
+      
+      which yields at top of file:
+      
+      import java.util.Objects;
+      
 
   - key: removeImport
     class: RemoveImportAction
@@ -270,40 +406,72 @@ actions:
         type: String
         description: Fully qualified type to remove.
     appliesTo:
-      - any Node (acts at CU level)
+      - any Node (operates at CU level)
     example: |
+      Before:
+      
+      import java.lang.Deprecated;
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "ImportDeclaration", "matchExpr": "java\\.util\\.Date" },
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "annotation": "Deprecated"
+        },
         "actions": [
-          { "removeImport": { "name": "java.util.Date" } }
+          { "removeImport": { "name": "java.lang.Deprecated" } }
         ]
       }
+      
+      After:
+      
+      // import gone if no other use
+      
 
   - key: addAnnotation
     class: AddAnnotationAction
     description: >
-      Add an annotation (by name) to a node supporting annotations.
-      Attributes may be included inline, e.g. `RequestMapping("/path")`.
+      Add an annotation (by simple name) to a node supporting annotations.
+      You may include inline attributes, e.g. `RequestMapping("/path")`.
     parameters:
       - name: name
         type: String
-        description: Annotation name to add (without @).
+        description: Simple annotation name (no leading `@`).  
       - name: attributes
-        type: Map<String,String>
-        description: Optional map of attribute names to values.
+        type: Map[String,String]
+        description: Optional map of attribute names→values.
     appliesTo:
       - ClassOrInterfaceDeclaration
       - MethodDeclaration
       - FieldDeclaration
       - Parameter
     example: |
+      Before (DeprecateUtils):
+      
+      public class FooUtil { … }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "MethodDeclaration", "namePattern": "save.*" },
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "hasModifier": "public",
+          "namePattern": ".*Util$",
+          "forbidsImport": "java.lang.Deprecated"
+        },
         "actions": [
-          { "addAnnotation": { "name": "Transactional" } },
-          { "addAnnotation": { "name": "RequestMapping", "attributes": { "value": "/path", "method": "RequestMethod.POST" } } }
+          { "addImport": { "name": "java.lang.Deprecated" } },
+          { "addAnnotation": { "name": "Deprecated" } }
         ]
       }
+      
+      After:
+      
+      import java.lang.Deprecated;
+      @Deprecated
+      public class FooUtil { … }
+      
 
   - key: removeAnnotation
     class: RemoveAnnotationAction
@@ -316,12 +484,29 @@ actions:
     appliesTo:
       - any NodeWithAnnotations
     example: |
+      Before:
+      
+      @Path("/x")
+      @Produces("application/xml")
+      public class Config { … }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "ClassOrInterfaceDeclaration", "annotation": "Deprecated" },
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "annotation": "Path"
+        },
         "actions": [
-          { "removeAnnotation": { "name": "Deprecated" } }
+          { "removeAnnotation": { "name": "Path" } },
+          { "removeAnnotation": { "name": "Produces" } }
         ]
       }
+      
+      After:
+      
+      public class Config { … }
+      
 
   - key: updateAnnotationAttribute
     class: UpdateAnnotationAttributeAction
@@ -334,46 +519,74 @@ actions:
         description: The annotation’s simple name.
       - name: attribute
         type: String
-        description: Name of the attribute pair to update.
+        description: Name of the attribute to update.
       - name: newValue
         type: String
         description: New literal value (without quotes).
     appliesTo:
       - any NodeWithAnnotations
     example: |
+      Before:
+      
+      @RequestMapping("/old")
+      public class X { … }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "ClassOrInterfaceDeclaration", "annotation": "RequestMapping" },
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "annotation": "RequestMapping"
+        },
         "actions": [
           {
             "updateAnnotationAttribute": {
               "annotation": "RequestMapping",
               "attribute": "value",
-              "newValue": "/new-path"
+              "newValue": "/new"
             }
           }
         ]
       }
+      
+      After:
+      
+      @RequestMapping("/new")
+      public class X { … }
+      
 
   - key: removeComment
     class: RemoveCommentAction
     description: >
-      Strip any comment attached to the matched node (line or block comment).
+      Strip any comment (line or block) attached to the matched node.
     parameters: []
     appliesTo:
       - any Node
     example: |
+      Before:
+      
+      // TODO: fix this
+      int x = compute();
+      
+      Recipe:
+      
       {
-        "match": { "matchExpr": "//TODO" },
+        "match": { "matchExpr": "// TODO:" },
         "actions": [
           { "removeComment": {} }
         ]
       }
+      
+      After:
+      
+      int x = compute();
+      
 
   - key: removeExceptionFromCatch
     class: RemoveExceptionFromCatchAction
     description: >
-      In a multi‑catch clause, remove one exception type.  If it was the only
-      type, collapse the catch or replace with `catch (Exception e)`.
+      In a multi‑catch clause, remove one exception type. If it was the only
+      type, collapse the catch or replace with `catch(Exception e)`.
     parameters:
       - name: exception
         type: String
@@ -381,6 +594,14 @@ actions:
     appliesTo:
       - CatchClause
     example: |
+      Before:
+      
+      } catch (EjbAccessException | ArrayIndexOutOfBoundsException e) {
+        throw new RuntimeException(e);
+      }
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "CatchClause",
@@ -390,11 +611,18 @@ actions:
           { "removeExceptionFromCatch": { "exception": "EjbAccessException" } }
         ]
       }
+      
+      After:
+      
+      } catch (ArrayIndexOutOfBoundsException e) {
+        throw new RuntimeException(e);
+      }
+      
 
   - key: renameMethodCall
     class: RenameMethodCallAction
     description: >
-      Change the name of a method invocation (only the callsite, not its declaration).
+      Change the name of a method invocation (callsite only).
     parameters:
       - name: oldName
         type: String
@@ -403,17 +631,26 @@ actions:
     appliesTo:
       - MethodCallExpr
     example: |
+      Before:
+      
+      svc.getUserName();
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "MethodCallExpr", "methodName": "getUserName" },
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "methodName": "getUserName"
+        },
         "actions": [
-          {
-            "renameMethodCall": {
-              "oldName": "getUserName",
-              "newName": "getUser"
-            }
-          }
+          { "renameMethodCall": { "oldName": "getUserName", "newName": "getUser" } }
         ]
       }
+      
+      After:
+      
+      svc.getUser();
+      
 
   - key: removeModifier
     class: RemoveModifierAction
@@ -426,12 +663,26 @@ actions:
     appliesTo:
       - any NodeWithModifiers
     example: |
+      Before:
+      
+      private final int count;
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "FieldDeclaration", "hasModifier": "final" },
+        "match": {
+          "nodeType": "FieldDeclaration",
+          "hasModifier": "final"
+        },
         "actions": [
           { "removeModifier": { "modifier": "final" } }
         ]
       }
+      
+      After:
+      
+      private int count;
+      
 
   - key: addModifier
     class: AddModifierAction
@@ -443,12 +694,26 @@ actions:
     appliesTo:
       - any NodeWithModifiers
     example: |
+      Before:
+      
+      int helper() { … }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "MethodDeclaration", "namePattern": "init.*" },
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "namePattern": "helper"
+        },
         "actions": [
           { "addModifier": { "modifier": "private" } }
         ]
       }
+      
+      After:
+      
+      private int helper() { … }
+      
 
   - key: setAccessLevel
     class: SetAccessLevelAction
@@ -464,17 +729,31 @@ actions:
       - FieldDeclaration
       - ClassOrInterfaceDeclaration
     example: |
+      Before:
+      
+      public static class A { … }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "MethodDeclaration", "namePattern": "process.*" },
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "namePattern": "A"
+        },
         "actions": [
           { "setAccessLevel": { "level": "protected" } }
         ]
       }
+      
+      After:
+      
+      protected class A { … }
+      
 
   - key: renameVariable
     class: RenameVariableAction
     description: >
-      Rename a local variable (declaration + all `NameExpr` references) within
+      Rename a local variable (declaration + all NameExpr references) within
       the same compilation unit.
     parameters:
       - name: newName
@@ -482,30 +761,60 @@ actions:
     appliesTo:
       - VariableDeclarator
     example: |
+      Before:
+      
+      int count = list.size();
+      System.out.println(count);
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "VariableDeclarator", "namePattern": "count" },
+        "match": {
+          "nodeType": "VariableDeclarator",
+          "namePattern": "count"
+        },
         "actions": [
           { "renameVariable": { "newName": "size" } }
         ]
       }
+      
+      After:
+      
+      int size = list.size();
+      System.out.println(size);
+      
 
   - key: renameClass
     class: RenameClassAction
     description: >
       Rename a class or interface (declaration only); references must be
-      updated separately via a rename‑refactoring tool.
+      updated separately via a rename‐refactoring tool.
     parameters:
       - name: newName
         type: String
     appliesTo:
       - ClassOrInterfaceDeclaration
     example: |
+      Before:
+      
+      class FooUtil { … }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "ClassOrInterfaceDeclaration", "namePattern": "FooUtil" },
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "namePattern": "FooUtil"
+        },
         "actions": [
           { "renameClass": { "newName": "FooHelper" } }
         ]
       }
+      
+      After:
+      
+      class FooHelper { … }
+      
 
   - key: clearInitializer
     class: ClearInitializerAction
@@ -515,12 +824,26 @@ actions:
     appliesTo:
       - VariableDeclarator
     example: |
+      Before:
+      
+      int x = 5;
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "VariableDeclarator", "matchExpr": "= .*" },
+        "match": {
+          "nodeType": "VariableDeclarator",
+          "matchExpr": "= 5"
+        },
         "actions": [
           { "clearInitializer": {} }
         ]
       }
+      
+      After:
+      
+      int x;
+      
 
   - key: removeStatements
     class: RemoveStatementsAction
@@ -531,18 +854,37 @@ actions:
     appliesTo:
       - BlockStmt
     example: |
+      Before:
+      
+      void foo() {
+          doA();
+          doB();
+      }
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "BlockStmt", "parentNodeType": "MethodDeclaration" },
+        "match": {
+          "nodeType": "BlockStmt",
+          "parentNodeType": "MethodDeclaration",
+          "namePattern": "foo"
+        },
         "actions": [
           { "removeStatements": {} }
         ]
       }
+      
+      After:
+      
+      void foo() {
+      }
+      
 
   - key: wrapWithTryCatch
     class: WrapWithTryCatchAction
     description: >
       Surround a statement or block with a `try { … } catch(Exception e) { … }`.
-      The catch body may be provided via template.
+      The catch body may be provided via a template.
     parameters:
       - name: exception
         type: String
@@ -551,13 +893,22 @@ actions:
       - name: bodyTemplate
         type: String
         optional: true
-        description: Java code for catch body, `#{e}` may stand in for the exception variable.
+        description: Java code for catch body; `#{e}` may stand in for the exception.
     appliesTo:
       - Statement
       - BlockStmt
     example: |
+      Before:
+      
+      processData();
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "ExpressionStmt", "matchExpr": "processData\\(" },
+        "match": {
+          "nodeType": "ExpressionStmt",
+          "matchExpr": "processData\\("
+        },
         "actions": [
           {
             "wrapWithTryCatch": {
@@ -567,6 +918,15 @@ actions:
           }
         ]
       }
+      
+      After:
+      
+      try {
+        processData();
+      } catch (IOException e) {
+        logger.error(e);
+      }
+      
 
   - key: migrateAnnotation
     class: MigrateAnnotationAction
@@ -580,13 +940,23 @@ actions:
         type: String
         description: Target annotation simple name.
       - name: attrMap
-        type: Map<String,String>
+        type: Map[String,String]
         description: Optional map of old→new attribute names.
     appliesTo:
       - any NodeWithAnnotations
     example: |
+      Before:
+      
+      @GET
+      public String foo() {…}
+      
+      Recipe:
+      
       {
-        "match": { "nodeType": "MethodDeclaration", "annotation": "GET" },
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "annotation": "GET"
+        },
         "actions": [
           {
             "migrateAnnotation": {
@@ -597,6 +967,12 @@ actions:
           }
         ]
       }
+      
+      After:
+      
+      @GetMapping(path = "/…")
+      public String foo() {…}
+      
 
   - key: replaceWithScope
     class: ReplaceWithScopeAction
@@ -607,16 +983,27 @@ actions:
     appliesTo:
       - MethodCallExpr
     example: |
+      Before (Link chain):
+      
+      Link.fromUri(uri).rel("self").build();
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "MethodCallExpr",
-          "methodName": "rel",
-          "scopePattern": "Link\\.fromUri"
+          "scopePattern": "Link\\.fromUri",
+          "methodName": "rel"
         },
         "actions": [
           { "replaceWithScope": {} }
         ]
       }
+      
+      After:
+      
+      Link.fromUri(uri).build();
+      
 
   - key: updateImplements
     class: UpdateImplementsAction
@@ -626,20 +1013,41 @@ actions:
       if not already present.
     parameters:
       - name: remove
+        type: String
         description: Simple or fully‑qualified name of the interface to remove.
       - name: add
+        type: String
         description: Fully‑qualified name of the interface to add.
     appliesTo:
       - ClassOrInterfaceDeclaration
     example: |
+      Before:
+      
+      public class CustomHealthCheck implements HealthIndication { … }
+      
+      Recipe:
+      
       {
         "match": {
-          "nodeType": "ClassOrInterfaceDeclaration"
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "namePattern": "CustomHealthCheck"
         },
         "actions": [
-          { "updateImplements": { "remove": "OldInterface", "add": "com.example.NewInterface" } }
+          {
+            "updateImplements": {
+              "remove": "HealthIndication",
+              "add": "org.springframework.boot.actuate.health.HealthIndicator"
+            }
+          },
+          { "addImport": { "name": "org.springframework.boot.actuate.health.HealthIndicator" } }
         ]
       }
+      
+      After:
+      
+      import org.springframework.boot.actuate.health.HealthIndicator;
+      public class CustomHealthCheck implements HealthIndicator { … }
+      
 
   - key: changeMethodReturnType
     class: ChangeMethodReturnTypeAction
@@ -648,19 +1056,33 @@ actions:
       Parses `newType` and sets it on the matched `MethodDeclaration`.
     parameters:
       - name: newType
-        description: The new return type (e.g. `java.time.Instant` or `List<String>`).
+        type: String
+        description: The new return type.
     appliesTo:
       - MethodDeclaration
     example: |
+      Before:
+      
+      @GET
+      public Response getConfigurationById(...) { … }
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "MethodDeclaration",
-          "methodName": "compute"
+          "methodName": "getConfigurationById",
+          "returnTypePattern": "\\bResponse\\b"
         },
         "actions": [
-          { "changeMethodReturnType": { "newType": "java.time.Instant" } }
+          { "changeMethodReturnType": { "newType": "ResponseEntity" } }
         ]
       }
+      
+      After:
+      
+      public ResponseEntity getConfigurationById(...) { … }
+      
 
   - key: renameMethod
     class: RenameMethodAction
@@ -669,19 +1091,32 @@ actions:
       Changes the name of the matched `MethodDeclaration` to `newName`.
     parameters:
       - name: newName
+        type: String
         description: The new method name.
     appliesTo:
       - MethodDeclaration
     example: |
+      Before:
+      
+      public Response health(String name) { … }
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "MethodDeclaration",
-          "methodName": "getOldValue"
+          "methodName": "health"
         },
         "actions": [
-          { "renameMethod": { "newName": "getNewValue" } }
+          { "renameMethod": { "newName": "isHealthy" } }
         ]
       }
+      
+      After:
+      
+      @Override
+      public ResponseEntity isHealthy(String name) { … }
+      
 
   - key: removeParameter
     class: RemoveParameterAction
@@ -690,20 +1125,32 @@ actions:
       Finds the parameter named `name` on the matched `MethodDeclaration` and removes it.
     parameters:
       - name: name
+        type: String
         description: The name of the method parameter to remove.
     appliesTo:
       - MethodDeclaration
     example: |
+      Before:
+      
+      public ResponseEntity isHealthy(String name) { … }
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "MethodDeclaration",
-          "methodName": "process",
-          "paramCount": 3
+          "methodName": "isHealthy",
+          "paramCount": 1
         },
         "actions": [
-          { "removeParameter": { "name": "obsoleteParam" } }
+          { "removeParameter": { "name": "name" } }
         ]
       }
+      
+      After:
+      
+      public ResponseEntity isHealthy() { … }
+      
 
   - key: removeArgument
     class: RemoveArgumentAction
@@ -712,19 +1159,33 @@ actions:
       Removes the argument at the zero‑based index `index` from the matched `MethodCallExpr`.
     parameters:
       - name: index
+        type: Integer
         description: Zero‑based position of the argument to remove.
     appliesTo:
       - MethodCallExpr
     example: |
+      Before:
+      
+      JPAStoredProcedureFactory.getInstance(Constants.ams)
+        .getStoredProcedure(uri, id);
+      
+      Recipe:
+      
       {
         "match": {
           "nodeType": "MethodCallExpr",
-          "methodName": "doSomething"
+          "methodName": "getStoredProcedure"
         },
         "actions": [
-          { "removeArgument": { "index": 1 } }
+          { "removeArgument": { "index": 0 } }
         ]
       }
+      
+      After:
+      
+      JPAStoredProcedureFactory.getInstance(Constants.ams)
+        .getStoredProcedure(id);
+      
 
 customProviders:
   - FactoryLocalVarReplacementActionProvider

@@ -217,12 +217,16 @@ matches:
       - BinaryExpr
     example: |
       # Collapse only literal string concatenations with + into text blocks
+        String s = "Hello " + "World" + "\n";
+        String s = """
+        Hello World
+        """;
       {
         "match": {
           "nodeType": "BinaryExpr",
           "operator": "+",
           "literalOnly": true,
-          "literalPattern": "\\\\n"
+          "literalPattern": "\\n"
         },
         "actions": [
           { "collapseLiteralConcat": {} }
@@ -237,6 +241,12 @@ matches:
       - ForStmt
     example: |
       # Enhanced‑for conversion: match loops with init “int i = …”
+        for (int i = 0; i < list.size(); i++) {
+            System.out.println(list.get(i));
+        }
+        for (String item : list) {
+            System.out.println(item);
+        }
       {
         "match": {
           "nodeType": "ForStmt",
@@ -257,6 +267,12 @@ matches:
       - ForStmt
     example: |
       # Same as above, but only match loops with condition “i < list.size()”
+        for (int i = 0; i < list.size(); i++) {
+            System.out.println(list.get(i));
+        }
+        for (String item : list) {
+            System.out.println(item);
+        }
       { "match": { "nodeType": "ForStmt", "conditionPattern": "i < list\\.size\\(\\)" } }
 
   - key: updatePattern
@@ -266,6 +282,10 @@ matches:
       - ForStmt
     example: |
       # Same as above, but only match loops with update “i++”
+        for (int i = 0; i < n; i++) {
+            // ...
+        }
+        // (could be converted to enhanced-for if possible)
       { "match": { "nodeType": "ForStmt", "updatePattern": "\\+\\+" } }
 
   - key: accessPattern
@@ -276,6 +296,12 @@ matches:
       - ForStmt
     example: |
       # Same as above, but only match loops that access list.get(i)
+        for (int i = 0; i < list.size(); i++) {
+            String s = list.get(i);
+        }
+        for (String s : list) {
+            // ...
+        }
       { "match": { "nodeType": "ForStmt", "accessPattern": "list\\.get\\(i\\)" } }
 
   - key: literalOnly
@@ -284,13 +310,17 @@ matches:
     appliesTo:
       - BinaryExpr
     example: |
-      # Collapse only literal string concatenations with + into text blocks (only literal concatenations) 
+      # Collapse only literal string concatenations with + into text blocks (only literal concatenations)
+        String s = "A" + "B" + "\n";
+        String s = """
+        AB
+        """;
       {
         "match": {
           "nodeType": "BinaryExpr",
           "operator": "+",
           "literalOnly": true,
-          "literalPattern": "\\\\n"
+          "literalPattern": "\\n"
         },
         "actions": [
           { "collapseLiteralConcat": {} }
@@ -304,12 +334,16 @@ matches:
       - BinaryExpr
     example: |
       # Collapse only literal string concatenations with + into text blocks (only concatenations containing “\n”)
+        String s = "foo" + "bar" + "\n";
+        String s = """
+        foobar
+        """;
       {
         "match": {
           "nodeType": "BinaryExpr",
           "operator": "+",
           "literalOnly": true,
-          "literalPattern": "\\\\n"
+          "literalPattern": "\\n"
         },
         "actions": [
           { "collapseLiteralConcat": {} }
@@ -323,6 +357,8 @@ matches:
       - VariableDeclarationExpr
     example: |
       # Use var only when the list declaration has an initializer
+        java.util.List<String> names = new ArrayList<>();
+        var names = new ArrayList<>();
       {
         "match": {
           "nodeType": "VariableDeclarationExpr",
@@ -340,6 +376,9 @@ matches:
     appliesTo:
       - VariableDeclarationExpr
     example: |
+      # Only match declarations with no type arguments
+        int x = 5;
+        String s = "foo";
       { "match": { "nodeType": "VariableDeclarationExpr",
                    "requireNoTypeArgs": true } }
 
@@ -350,6 +389,8 @@ matches:
       - MethodCallExpr
     example: |
       # Wrapping old Date-based calls in a conversion:
+        awaitUntil(LocalDateTime.now());
+        awaitUntil(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
       {
         "match": {
           "nodeType": "MethodCallExpr",
@@ -373,7 +414,9 @@ matches:
     appliesTo:
       - MethodCallExpr
     example: |
-      # Same as above, but only match if the method parameter is of type java.time.LocalDateTime
+      # Only match if the method parameter is of type java.time.LocalDateTime
+        foo("bar");
+        foo(LocalDateTime.now());
       { "match": { "nodeType": "MethodCallExpr",
                    "argumentType": "java.lang.String",
                    "expectedParamType": "java.time.LocalDateTime" } }
@@ -384,6 +427,10 @@ matches:
     appliesTo:
       - any node
     example: |
+      # Only match classes with a type pattern
+        public class MyListHolder {
+            List<String> items;
+        }
       { "match": { "nodeType": "ClassOrInterfaceDeclaration",
                    "typePattern": "List<.*>" } }
 
@@ -394,6 +441,14 @@ matches:
       - any node
     example: |
       # Remove constructor bodies in Impl classes
+        public class SvcImpl {
+            public SvcImpl() {
+                // body
+            }
+        }
+        public class SvcImpl {
+            public SvcImpl() {}
+        }
       {
         "match": {
           "nodeType": "ConstructorDeclaration",
@@ -415,6 +470,9 @@ matches:
       - ClassOrInterfaceDeclaration
     example: |
       # Deprecate all classes ending with “Util”
+        public class StringUtil {}
+        @Deprecated
+        public class StringUtil {}
       {
         "match": {
           "nodeType": "ClassOrInterfaceDeclaration",
@@ -433,6 +491,8 @@ matches:
       - FieldAccessExpr
     example: |
       # Transform Link.fromUri(…) chains
+        Link.fromUri("foo").rel("bar");
+        "foo".rel("bar");
       {
         "match": {
           "nodeType": "MethodCallExpr",
@@ -452,6 +512,9 @@ matches:
       - any NodeWithModifiers (FieldDeclaration, MethodDeclaration, ClassOrInterfaceDeclaration, etc.)
     example: |
       # Only match public utility classes
+        public class StringUtil {}
+        @Deprecated
+        public class StringUtil {}
       {
         "match": {
           "nodeType": "ClassOrInterfaceDeclaration",
@@ -470,6 +533,8 @@ matches:
       - MethodDeclaration
     example: |
       # Change JAX‑RS Response returns to ResponseEntity
+        public Response foo() { return null; }
+        public ResponseEntity foo() { return null; }
       {
         "match": {
           "nodeType": "MethodDeclaration",
@@ -486,6 +551,8 @@ matches:
     appliesTo:
       - MethodDeclaration
     example: |
+      # Only match methods with exactly one parameter
+        public void foo(String s) {}
       { "match": { "nodeType": "MethodDeclaration", "paramCount": 1 } }
 
   - key: requiresImport
@@ -494,7 +561,9 @@ matches:
     appliesTo:
       - any node (checks top‐level imports)
     example: |
-      # Same as below, but only match if the compilation unit has an import for java.util.List
+      # Only match if the compilation unit has an import for java.util.List
+        import java.util.List;
+        List<String> names = new ArrayList<>();
       { "match": { "nodeType": "MethodCallExpr",
                    "requiresImport": "java.util.List" } }
 
@@ -505,6 +574,9 @@ matches:
       - any node
     example: |
       # Only add @Deprecated if it's not already imported
+        // no import for Deprecated
+        @Deprecated
+        public class StringUtil {}
       {
         "match": {
           "nodeType": "ClassOrInterfaceDeclaration",
@@ -523,6 +595,7 @@ matches:
     appliesTo:
       - any node
     example: |
+      # Only match nodes before line 50
       { "match": { "nodeType": "ExpressionStmt", "beforeLine": 50 } }
 
   - key: afterLine
@@ -531,6 +604,7 @@ matches:
     appliesTo:
       - any node
     example: |
+      # Only match nodes after line 100
       { "match": { "nodeType": "ExpressionStmt", "afterLine": 100 } }
 
   - key: overridesFqn
@@ -539,6 +613,9 @@ matches:
     appliesTo:
       - MethodDeclaration
     example: |
+      # Only match if the method overrides com.example.MyInterface
+        @Override
+        public void foo() {}
       { "match": { "nodeType": "MethodDeclaration",
                    "overridesFqn": "com.example.MyInterface" } }
 
@@ -548,6 +625,8 @@ matches:
     appliesTo:
       - MethodCallExpr
     example: |
+      # Only match calls whose declaring class is java.util.List
+        names.add("foo");
       { "match": { "nodeType": "MethodCallExpr",
                    "declaringFqn": "java.util.List" } }
 
@@ -559,6 +638,8 @@ matches:
       - MethodDeclaration
     example: |
       # Rename all getUserName() in interfaces under com.hexaware.service.*Svc
+        user.getUserName();
+        user.getUser();
       {
         "match": {
           "nodeType": "MethodCallExpr",
@@ -576,6 +657,8 @@ matches:
     appliesTo:
       - MethodDeclaration
     example: |
-      # Same as above, but matching all methods overriding any method in net.restfulapi.app.service.*
+      # Only match methods overriding any method in net.restfulapi.app.service.*
+        @Override
+        public void foo() {}
       { "match": { "nodeType": "MethodDeclaration",
                    "overridesFqnPattern": "net\\.restfulapi\\.app\\.service\\..*" } }
