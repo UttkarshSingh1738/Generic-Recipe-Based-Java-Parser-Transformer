@@ -30,16 +30,20 @@ actions:
     class: ReplaceWithMethodCallAction
     description: >
       Replace an object‑creation (`new X(...)`) or a method call (`x.old(...)`)
-      with a call to `scope.method(...)`.  You can carry over arguments or
-      unwrap a nested scope call into the new call.
+      with a call to `<scopeExpression>.<method>(...)`.  The `scopeExpression`
+      may be any valid Java expression (e.g. `LocalDateTime`, or
+      `request.getUri()`), and you can carry over arguments or unwrap a nested
+      scope call into the new call.
     parameters:
       - name: scope
         type: String
-        description: Class or variable name on which to call the new method.
+        description: >
+          A full Java expression to use as the new “scope” (receiver) of the call,
+          for example `"LocalDateTime"` or `"request.getUri()"`.
       - name: method
         type: String
         default: now
-        description: Name of the method to invoke.
+        description: Name of the method to invoke on that scope.
       - name: includeScopeArg
         type: Boolean
         default: false
@@ -54,12 +58,16 @@ actions:
       - MethodCallExpr
     example: |
       {
-        "match": { "nodeType": "ObjectCreationExpr", "type": "java.util.Date" },
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "scopePattern": "request",
+          "methodName": "getPath"
+        },
         "actions": [
           {
             "replaceWithMethodCall": {
-              "scope": "LocalDateTime",
-              "method": "now"
+              "scope": "request.getUri()",
+              "method": "getPath"
             }
           }
         ]

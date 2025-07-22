@@ -2,25 +2,25 @@ package gst.engine.actions;
 
 import java.util.Map;
 
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 
 import gst.engine.TxContext;
 
 public class ReplaceWithMethodCallAction implements Action {
-    private final String scope;
+    private final String scopeExpression;
     private final String method;
     private final boolean includeScopeArg;
     private Boolean unwrapScope;
 
     public ReplaceWithMethodCallAction(Map<String, String> params) {
-        this.scope = params.get("scope");
+        this.scopeExpression  = params.get("scope");
         this.method = params.getOrDefault("method", "now");
         this.includeScopeArg = Boolean.parseBoolean(params.getOrDefault("includeScopeArg", "false"));
         this.unwrapScope   = Boolean.valueOf(params.getOrDefault("unwrapScopeArg","false"));
@@ -31,9 +31,11 @@ public class ReplaceWithMethodCallAction implements Action {
         ctx.saveOriginalNode(node, node.clone());
 
         if (node instanceof ObjectCreationExpr oce) {
-            var replacement = new MethodCallExpr(new NameExpr(scope), method);
+            // parse scopeExpression as a full expression
+            Expression scope = StaticJavaParser.parseExpression(scopeExpression);
+            MethodCallExpr replacement = new MethodCallExpr(scope, method);
             oce.replace(replacement);
-            System.out.println("[ACTION] Replaced 'new' expression with method call: " + scope + "." + method + "()");
+            System.out.println("[ACTION] Replaced 'new' with: " + scopeExpression + "." + method + "()");
         } else if (node instanceof MethodCallExpr mc) {
             NodeList<Expression> args = new NodeList<>();
             // Optionally include original scope as first argument
@@ -45,9 +47,11 @@ public class ReplaceWithMethodCallAction implements Action {
             }
             args.addAll(mc.getArguments());
 
-            MethodCallExpr newCall = new MethodCallExpr(new NameExpr(scope), method, args);
+            Expression scope = StaticJavaParser.parseExpression(scopeExpression);
+            MethodCallExpr newCall = new MethodCallExpr(scope, method, args);
             mc.replace(newCall);
-            System.out.println("[ACTION] Replaced method call with: " + scope + "." + method + "(...)");
+            System.out.println("[ACTION] Replaced method call with: " 
+                + scopeExpression + "." + method + "(…)");
         }
     }
 

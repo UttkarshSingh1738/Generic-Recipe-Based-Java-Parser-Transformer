@@ -28,7 +28,13 @@ matches:
       - BlockStmt
       - VariableDeclarator
     example: |
-      { "match": { "nodeType": "MethodCallExpr" } }
+      # Match every method call so you can wrap it in a try/catch
+      {
+        "match": { "nodeType": "MethodCallExpr" },
+        "actions": [
+          { "wrapWithTryCatch": { "exception": "Exception" } }
+        ]
+      }
 
   - key: fqn
     description: >
@@ -40,7 +46,18 @@ matches:
       - VariableDeclarationExpr
       - Parameter
     example: |
-      { "match": { "nodeType": "ObjectCreationExpr", "fqn": "java.util.Date" } }
+      # Replace new java.util.Date() with LocalDateTime.now()
+        Date d = new java.util.Date();
+        Date d = LocalDateTime.now();
+      {
+        "match": {
+          "nodeType": "ObjectCreationExpr",
+          "fqn": "java.util.Date"
+        },
+        "actions": [
+          { "replaceWithMethodCall": { "scope": "LocalDateTime", "method": "now" } }
+        ]
+      }
 
   - key: type
     description: >
@@ -50,7 +67,18 @@ matches:
       - VariableDeclarationExpr
       - Parameter
     example: |
-      { "match": { "nodeType": "VariableDeclarationExpr", "type": "List" } }
+      # Convert any method parameter typed java.util.Date → java.time.LocalDateTime
+        public void setDate(java.util.Date date) {
+        public void setDate(java.time.LocalDateTime date) {
+      {
+        "match": {
+          "nodeType": "Parameter",
+          "type": "java.util.Date"
+        },
+        "actions": [
+          { "changeType": { "newType": "java.time.LocalDateTime" } }
+        ]
+      }
 
   - key: typeAny
     description: >
@@ -59,8 +87,20 @@ matches:
       - VariableDeclarationExpr
       - Parameter
     example: |
-      { "match": { "nodeType": "VariableDeclarationExpr",
-                   "typeAny": ["List","java.util.Collection"] } }
+      # Find any local var of type List or Set (either java.util.List or java.util.Set)
+        java.util.List<String> names = new ArrayList<>();
+        var names = new ArrayList<>();
+        java.util.Set<Integer> ids = new HashSet<>();
+        var ids = new HashSet<>();
+      {
+        "match": {
+          "nodeType": "VariableDeclarationExpr",
+          "typeAny": ["java.util.List", "java.util.Set"]
+        },
+        "actions": [
+          { "changeType": { "newType": "var" } }
+        ]
+      }
 
   - key: methodName
     description: >
@@ -69,7 +109,18 @@ matches:
       - MethodCallExpr
       - MethodDeclaration
     example: |
-      { "match": { "nodeType": "MethodCallExpr", "methodName": "ofNullable" } }
+      # Rename every call to getUserName() → getUser()
+        String name = user.getUserName();
+        String name = user.getUser();
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "methodName": "getUserName"
+        },
+        "actions": [
+          { "renameMethodCall": { "oldName": "getUserName", "newName": "getUser" } }
+        ]
+      }
 
   - key: fqnScope
     description: >
@@ -78,8 +129,19 @@ matches:
     appliesTo:
       - MethodCallExpr
     example: |
-      { "match": { "nodeType": "MethodCallExpr",
-                   "fqnScope": "java.util.Optional" } }
+      # Replace Collections.unmodifiableList(...) regardless of static import
+        List<String> unmod = Collections.unmodifiableList(names);
+        List<String> unmod = List.copyOf(names);
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "fqnScope": "java.util.Collections",
+          "methodName": "unmodifiableList"
+        },
+        "actions": [
+          { "replaceWithMethodCall": { "scope": "List", "method": "copyOf" } }
+        ]
+      }
 
   - key: annotation
     description: >
@@ -87,8 +149,19 @@ matches:
     appliesTo:
       - any NodeWithAnnotations (e.g. ClassOrInterfaceDeclaration, MethodDeclaration, FieldDeclaration, Parameter)
     example: |
-      { "match": { "nodeType": "MethodDeclaration",
-                   "annotation": "Override" } }
+      # Strip @Deprecated classes
+        @Deprecated
+        public class OldClass {}
+        public class OldClass {}
+      {
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "annotation": "Deprecated"
+        },
+        "actions": [
+          { "removeAnnotation": { "name": "Deprecated" } }
+        ]
+      }
 
   - key: annotationValuePattern
     description: >
@@ -97,8 +170,26 @@ matches:
     appliesTo:
       - any NodeWithAnnotations
     example: |
-      { "match": { "nodeType": "AnnotationExpr",
-                   "annotationValuePattern": "value\\s*=\\s*\"/configurations\"" } }
+      # Change @MyAnno(val="old") → val="new"
+        @MyAnno(val="old")
+        public class Example {}
+        @MyAnno(val="new")
+        public class Example {}
+      {
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "annotationValuePattern": "MyAnno\\s*\\(\\s*val\\s*=\\s*\"old\"\\s*\\)"
+        },
+        "actions": [
+          {
+            "updateAnnotationAttribute": {
+              "annotation": "MyAnno",
+              "attribute": "val",
+              "newValue": "new"
+            }
+          }
+        ]
+      }
 
   - key: matchExpr
     description: >
@@ -106,8 +197,18 @@ matches:
     appliesTo:
       - any node
     example: |
-      { "match": { "nodeType": "ExpressionStmt",
-                   "matchExpr": "System\\.out\\.println\\(" } }
+      # Delete all System.err.println(...) lines
+        System.err.println("Error!");
+        // (line removed)
+      {
+        "match": {
+          "nodeType": "ExpressionStmt",
+          "matchExpr": "System\\.err\\.println\\("
+        },
+        "actions": [
+          { "removeNode": {} }
+        ]
+      }
 
   - key: operator
     description: >
@@ -115,7 +216,18 @@ matches:
     appliesTo:
       - BinaryExpr
     example: |
-      { "match": { "nodeType": "BinaryExpr", "operator": "+" } }
+      # Collapse only literal string concatenations with + into text blocks
+      {
+        "match": {
+          "nodeType": "BinaryExpr",
+          "operator": "+",
+          "literalOnly": true,
+          "literalPattern": "\\\\n"
+        },
+        "actions": [
+          { "collapseLiteralConcat": {} }
+        ]
+      }
 
   - key: initVarPattern
     description: >
@@ -124,7 +236,19 @@ matches:
     appliesTo:
       - ForStmt
     example: |
-      { "match": { "nodeType": "ForStmt", "initVarPattern": "^i$" } }
+      # Enhanced‑for conversion: match loops with init “int i = …”
+      {
+        "match": {
+          "nodeType": "ForStmt",
+          "initVarPattern": "i",
+          "conditionPattern": "i < .+\\.(?:length|size\\(\\))",
+          "updatePattern": "(?:\\+\\+i|i\\+\\+)",
+          "accessPattern": "\\w+(?:\\[i\\]|\\.get\\(i\\))"
+        },
+        "actions": [
+          { "forToForEach": {} }
+        ]
+      }
 
   - key: conditionPattern
     description: >
@@ -132,6 +256,7 @@ matches:
     appliesTo:
       - ForStmt
     example: |
+      # Same as above, but only match loops with condition “i < list.size()”
       { "match": { "nodeType": "ForStmt", "conditionPattern": "i < list\\.size\\(\\)" } }
 
   - key: updatePattern
@@ -140,6 +265,7 @@ matches:
     appliesTo:
       - ForStmt
     example: |
+      # Same as above, but only match loops with update “i++”
       { "match": { "nodeType": "ForStmt", "updatePattern": "\\+\\+" } }
 
   - key: accessPattern
@@ -149,6 +275,7 @@ matches:
     appliesTo:
       - ForStmt
     example: |
+      # Same as above, but only match loops that access list.get(i)
       { "match": { "nodeType": "ForStmt", "accessPattern": "list\\.get\\(i\\)" } }
 
   - key: literalOnly
@@ -157,7 +284,18 @@ matches:
     appliesTo:
       - BinaryExpr
     example: |
-      { "match": { "nodeType": "BinaryExpr", "literalOnly": true } }
+      # Collapse only literal string concatenations with + into text blocks (only literal concatenations) 
+      {
+        "match": {
+          "nodeType": "BinaryExpr",
+          "operator": "+",
+          "literalOnly": true,
+          "literalPattern": "\\\\n"
+        },
+        "actions": [
+          { "collapseLiteralConcat": {} }
+        ]
+      }
 
   - key: literalPattern
     description: >
@@ -165,8 +303,18 @@ matches:
     appliesTo:
       - BinaryExpr
     example: |
-      { "match": { "nodeType": "BinaryExpr",
-                   "literalPattern": "\\\\n" } }
+      # Collapse only literal string concatenations with + into text blocks (only concatenations containing “\n”)
+      {
+        "match": {
+          "nodeType": "BinaryExpr",
+          "operator": "+",
+          "literalOnly": true,
+          "literalPattern": "\\\\n"
+        },
+        "actions": [
+          { "collapseLiteralConcat": {} }
+        ]
+      }
 
   - key: requireInitializer
     description: >
@@ -174,8 +322,17 @@ matches:
     appliesTo:
       - VariableDeclarationExpr
     example: |
-      { "match": { "nodeType": "VariableDeclarationExpr",
-                   "requireInitializer": true } }
+      # Use var only when the list declaration has an initializer
+      {
+        "match": {
+          "nodeType": "VariableDeclarationExpr",
+          "type": "java.util.List",
+          "requireInitializer": true
+        },
+        "actions": [
+          { "changeType": { "newType": "var" } }
+        ]
+      }
 
   - key: requireNoTypeArgs
     description: >
@@ -192,9 +349,23 @@ matches:
     appliesTo:
       - MethodCallExpr
     example: |
-      { "match": { "nodeType": "MethodCallExpr",
-                   "argumentType": "java.lang.String",
-                   "expectedParamType": "java.time.LocalDateTime" } }
+      # Wrapping old Date-based calls in a conversion:
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "methodName": "awaitUntil",
+          "argumentType": "java.time.LocalDateTime",
+          "expectedParamType": "java.util.Date"
+        },
+        "actions": [
+          {
+            "wrapArgument": {
+              "template": "Date.from(#{}.atZone(ZoneId.systemDefault()).toInstant())",
+              "addImports": ["java.util.Date","java.time.ZoneId"]
+            }
+          }
+        ]
+      }
 
   - key: expectedParamType
     description: >
@@ -202,6 +373,7 @@ matches:
     appliesTo:
       - MethodCallExpr
     example: |
+      # Same as above, but only match if the method parameter is of type java.time.LocalDateTime
       { "match": { "nodeType": "MethodCallExpr",
                    "argumentType": "java.lang.String",
                    "expectedParamType": "java.time.LocalDateTime" } }
@@ -221,8 +393,17 @@ matches:
     appliesTo:
       - any node
     example: |
-      { "match": { "nodeType": "VariableDeclarator",
-                   "parentNodeType": "FieldDeclaration" } }
+      # Remove constructor bodies in Impl classes
+      {
+        "match": {
+          "nodeType": "ConstructorDeclaration",
+          "parentNodeType": "ClassOrInterfaceDeclaration",
+          "matchExpr": "SvcImpl"
+        },
+        "actions": [
+          { "removeNode": {} }
+        ]
+      }
 
   - key: namePattern
     description: >
@@ -233,8 +414,16 @@ matches:
       - NameExpr
       - ClassOrInterfaceDeclaration
     example: |
-      { "match": { "nodeType": "ClassOrInterfaceDeclaration",
-                   "namePattern": ".*Util$" } }
+      # Deprecate all classes ending with “Util”
+      {
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "namePattern": ".*Util$"
+        },
+        "actions": [
+          { "addAnnotation": { "name": "Deprecated" } }
+        ]
+      }
 
   - key: scopePattern
     description: >
@@ -243,8 +432,17 @@ matches:
       - MethodCallExpr
       - FieldAccessExpr
     example: |
-      { "match": { "nodeType": "MethodCallExpr",
-                   "scopePattern": "Collections\\.unmodifiableList" } }
+      # Transform Link.fromUri(…) chains
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "scopePattern": "Link",
+          "methodName": "rel"
+        },
+        "actions": [
+          { "replaceWithScope": {} }
+        ]
+      }
 
   - key: hasModifier
     description: >
@@ -253,8 +451,17 @@ matches:
     appliesTo:
       - any NodeWithModifiers (FieldDeclaration, MethodDeclaration, ClassOrInterfaceDeclaration, etc.)
     example: |
-      { "match": { "nodeType": "ClassOrInterfaceDeclaration",
-                   "hasModifier": "public" } }
+      # Only match public utility classes
+      {
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "hasModifier": "public",
+          "namePattern": ".*Util$"
+        },
+        "actions": [
+          { "addAnnotation": { "name": "Deprecated" } }
+        ]
+      }
 
   - key: returnTypePattern
     description: >
@@ -262,8 +469,16 @@ matches:
     appliesTo:
       - MethodDeclaration
     example: |
-      { "match": { "nodeType": "MethodDeclaration",
-                   "returnTypePattern": "Response(Entity)?$" } }
+      # Change JAX‑RS Response returns to ResponseEntity
+      {
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "returnTypePattern": "\\bResponse\\b"
+        },
+        "actions": [
+          { "changeType": { "newType": "ResponseEntity" } }
+        ]
+      }
 
   - key: paramCount
     description: >
@@ -279,6 +494,7 @@ matches:
     appliesTo:
       - any node (checks top‐level imports)
     example: |
+      # Same as below, but only match if the compilation unit has an import for java.util.List
       { "match": { "nodeType": "MethodCallExpr",
                    "requiresImport": "java.util.List" } }
 
@@ -288,8 +504,18 @@ matches:
     appliesTo:
       - any node
     example: |
-      { "match": { "nodeType": "ClassOrInterfaceDeclaration",
-                   "forbidsImport": "org.junit.Test" } }
+      # Only add @Deprecated if it's not already imported
+      {
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "hasModifier": "public",
+          "namePattern": ".*Util$",
+          "forbidsImport": "java.lang.Deprecated"
+        },
+        "actions": [
+          { "addAnnotation": { "name": "Deprecated" } }
+        ]
+      }
 
   - key: beforeLine
     description: >
@@ -332,8 +558,17 @@ matches:
       - MethodCallExpr
       - MethodDeclaration
     example: |
-      { "match": { "nodeType": "MethodCallExpr",
-                   "declaringFqnPattern": "com\\.hexaware\\.factory\\..*" } }
+      # Rename all getUserName() in interfaces under com.hexaware.service.*Svc
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "methodName": "getUserName",
+          "declaringFqnPattern": "com\\.hexaware\\.service\\..*Svc$"
+        },
+        "actions": [
+          { "renameMethodCall": { "oldName": "getUserName", "newName": "getUser" } }
+        ]
+      }
 
   - key: overridesFqnPattern
     description: >
@@ -341,5 +576,6 @@ matches:
     appliesTo:
       - MethodDeclaration
     example: |
+      # Same as above, but matching all methods overriding any method in net.restfulapi.app.service.*
       { "match": { "nodeType": "MethodDeclaration",
                    "overridesFqnPattern": "net\\.restfulapi\\.app\\.service\\..*" } }
