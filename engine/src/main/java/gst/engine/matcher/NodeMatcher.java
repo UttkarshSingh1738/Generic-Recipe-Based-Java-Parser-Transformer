@@ -83,26 +83,36 @@ public class NodeMatcher {
             case "VariableDeclarator" ->
                 root.findAll(com.github.javaparser.ast.body.VariableDeclarator.class).stream()
                         .map(n -> (Node) n).collect(Collectors.toList());
-            default ->
-                List.of();
+            default -> {
+                System.err.println("[CANDIDATE-ERROR] Unknown nodeType: '" + nodeType + "'");
+                yield List.of();
+            }
         };
     }
 
-    public static boolean matches(
+    public static MatchResult matches(
             Node node,
             Match m,
             CombinedTypeSolver typeSolver
     ) {
+        List<String> failures = new ArrayList<>();
+
         // nodeType sanity
-        if (!node.getClass().getSimpleName().equals(m.nodeType)) {
-            return false;
+        String actualType = node.getClass().getSimpleName();
+        if (!actualType.equals(m.nodeType)) {
+            failures.add("nodeType mismatch: expected `" + m.nodeType +
+                         "` but got `" + actualType + "`");
         }
 
         // matchExpr: regex against the node’s source text
         if (m.matchExpr != null) {
-            String text = node.toString();
-            if (!Pattern.compile(m.matchExpr).matcher(text).find()) {
-                return false;
+            try {
+                if (!Pattern.compile(m.matchExpr).matcher(node.toString()).find()) {
+                    failures.add("matchExpr failed: `" + m.matchExpr + "`");
+                }
+            } catch (Exception e) {
+                failures.add("invalid matchExpr regex `" + m.matchExpr
+                             + "`: " + e.getMessage());
             }
         }
 
@@ -110,21 +120,18 @@ public class NodeMatcher {
         if (m.requiresImport != null || m.forbidsImport != null) {
             Optional<CompilationUnit> cuOpt = node.findCompilationUnit();
             if (cuOpt.isEmpty()) {
-                return false;
-            }
-            CompilationUnit cu = cuOpt.get();
-            if (m.requiresImport != null) {
-                boolean found = cu.getImports().stream()
-                        .anyMatch(i -> i.getNameAsString().equals(m.requiresImport));
-                if (!found) {
-                    return false;
+                failures.add("no CompilationUnit to check imports");
+            } else {
+                var cu = cuOpt.get();
+                if (m.requiresImport != null &&
+                    cu.getImports().stream()
+                      .noneMatch(i -> i.getNameAsString().equals(m.requiresImport))) {
+                    failures.add("requiresImport not found: " + m.requiresImport);
                 }
-            }
-            if (m.forbidsImport != null) {
-                boolean found = cu.getImports().stream()
-                        .anyMatch(i -> i.getNameAsString().equals(m.forbidsImport));
-                if (found) {
-                    return false;
+                if (m.forbidsImport != null &&
+                    cu.getImports().stream()
+                      .anyMatch(i -> i.getNameAsString().equals(m.forbidsImport))) {
+                    failures.add("forbidsImport present: " + m.forbidsImport);
                 }
             }
         }
@@ -133,7 +140,7 @@ public class NodeMatcher {
         if (Boolean.TRUE.equals(m.requireInitializer) && node instanceof VariableDeclarationExpr vde) {
             boolean allInit = vde.getVariables().stream().allMatch(v -> v.getInitializer().isPresent());
             if (!allInit) {
-                return false;
+                failures.add("requireInitializer failed: not all variables have initializers");
             }
         }
 
@@ -142,7 +149,6 @@ public class NodeMatcher {
             String resolved = null;
             try {
                 if (node instanceof MethodCallExpr mc) {
-                    // resolve the method, then get its declaring type
                     var rmd = mc.resolve();
                     resolved = rmd.declaringType().getQualifiedName();
                 } else if (node instanceof ObjectCreationExpr oce) {
@@ -150,10 +156,10 @@ public class NodeMatcher {
                             .get(typeSolver)
                             .getType(oce)
                             .describe();
-                } else if (node instanceof VariableDeclarationExpr vde) {
+                } else if (node instanceof VariableDeclarationExpr vde2) {
                     resolved = JavaParserFacade
                             .get(typeSolver)
-                            .getType(vde.getElementType())
+                            .getType(vde2.getElementType())
                             .describe();
                 } else if (node instanceof Parameter p) {
                     resolved = JavaParserFacade
@@ -161,10 +167,11 @@ public class NodeMatcher {
                             .getType(p.getType())
                             .describe();
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                failures.add("fqn resolution error: " + e.getMessage());
             }
             if (!m.fqn.equals(resolved)) {
-                return false;
+                failures.add("fqn mismatch: expected `" + m.fqn + "` but got `" + resolved + "`");
             }
         }
 
@@ -174,11 +181,12 @@ public class NodeMatcher {
             final String[] resolvedHolder = new String[1];
             try {
                 resolvedHolder[0] = vdeAny.getElementType().resolve().asReferenceType().getQualifiedName();
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                failures.add("typeAny resolution error: " + e.getMessage());
             }
             boolean ok = m.typeAny.stream().anyMatch(t -> t.equals(simple) || t.equals(resolvedHolder[0]) || simple.endsWith("." + t));
             if (!ok) {
-                return false;
+                failures.add("typeAny mismatch: got `" + simple + "` and `" + resolvedHolder[0] + "`");
             }
         }
         if (m.typeAny != null && node instanceof Parameter pAny) {
@@ -186,11 +194,12 @@ public class NodeMatcher {
             final String[] resolvedHolder = new String[1];
             try {
                 resolvedHolder[0] = pAny.getType().resolve().asReferenceType().getQualifiedName();
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                failures.add("typeAny resolution error: " + e.getMessage());
             }
             boolean ok = m.typeAny.stream().anyMatch(t -> t.equals(simple) || t.equals(resolvedHolder[0]) || simple.endsWith("." + t));
             if (!ok) {
-                return false;
+                failures.add("typeAny mismatch: got `" + simple + "` and `" + resolvedHolder[0] + "`");
             }
         }
 
@@ -200,13 +209,14 @@ public class NodeMatcher {
             String resolved = null;
             try {
                 resolved = vde2.getElementType().resolve().asReferenceType().getQualifiedName();
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                failures.add("type resolution error: " + e.getMessage());
             }
             boolean ok = simple.equals(m.type)
                     || (resolved != null && resolved.equals(m.type))
                     || simple.endsWith("." + m.type);
             if (!ok) {
-                return false;
+                failures.add("type mismatch: got `" + simple + "` and `" + resolved + "`");
             }
         }
         if (m.type != null && node instanceof Parameter p2) {
@@ -214,13 +224,14 @@ public class NodeMatcher {
             String resolved = null;
             try {
                 resolved = p2.getType().resolve().asReferenceType().getQualifiedName();
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                failures.add("type resolution error: " + e.getMessage());
             }
             boolean ok = simple.equals(m.type)
                     || (resolved != null && resolved.equals(m.type))
                     || simple.endsWith("." + m.type);
             if (!ok) {
-                return false;
+                failures.add("type mismatch: got `" + simple + "` and `" + resolved + "`");
             }
         }
 
@@ -228,60 +239,60 @@ public class NodeMatcher {
         if (m.methodName != null) {
             if (node instanceof MethodCallExpr mc) {
                 if (!mc.getNameAsString().equals(m.methodName)) {
-                    return false;
+                    failures.add("methodName mismatch: expected `" + m.methodName + "` but got `" + mc.getNameAsString() + "`");
                 }
             } else if (node instanceof MethodDeclaration md) {
                 if (!md.getNameAsString().equals(m.methodName)) {
-                    return false;
+                    failures.add("methodName mismatch: expected `" + m.methodName + "` but got `" + md.getNameAsString() + "`");
                 }
             } else {
-                return false;
+                failures.add("methodName not applicable to node type: " + node.getClass().getSimpleName());
             }
         }
-
 
         // argumentType + expectedParamType for MethodCallExpr
         if (m.argumentType != null && m.expectedParamType != null && node instanceof MethodCallExpr mcArg) {
-            ResolvedMethodDeclaration rmd;
+            ResolvedMethodDeclaration rmd = null;
             try {
                 rmd = mcArg.resolve();
             } catch (Exception e) {
-                return false;
+                failures.add("argumentType/expectedParamType: could not resolve method: " + e.getMessage());
             }
-
             boolean matched = false;
-            for (int i = 0; i < mcArg.getArguments().size() && i < rmd.getNumberOfParams(); i++) {
-                String argT, paramT;
-                try {
-                    argT   = mcArg.getArgument(i).calculateResolvedType().describe();
-                    paramT = rmd.getParam(i).getType().describe();
-                } catch (Exception e) {
-                    continue;
-                }
-                if (argT.equals(m.argumentType) && paramT.equals(m.expectedParamType)) {
-                    matched = true;
-                    break;
+            if (rmd != null) {
+                for (int i = 0; i < mcArg.getArguments().size() && i < rmd.getNumberOfParams(); i++) {
+                    String argT, paramT;
+                    try {
+                        argT   = mcArg.getArgument(i).calculateResolvedType().describe();
+                        paramT = rmd.getParam(i).getType().describe();
+                    } catch (Exception e) {
+                        continue;
+                    }
+                    if (argT.equals(m.argumentType) && paramT.equals(m.expectedParamType)) {
+                        matched = true;
+                        break;
+                    }
                 }
             }
             if (!matched) {
-                return false;
+                failures.add("argumentType/expectedParamType mismatch: did not find argument of type `" + m.argumentType + "` and parameter of type `" + m.expectedParamType + "`");
             }
         }
 
-        
         // fqnScope (for MethodCallExpr)
         if (m.fqnScope != null) {
             if (!(node instanceof MethodCallExpr mc && mc.getScope().isPresent())) {
-                return false;
-            }
-            try {
-                String sf = JavaParserFacade.get(typeSolver)
-                        .getType(mc.getScope().get()).describe();
-                if (!m.fqnScope.equals(sf)) {
-                    return false;
+                failures.add("fqnScope: not a MethodCallExpr with scope");
+            } else {
+                try {
+                    String sf = JavaParserFacade.get(typeSolver)
+                            .getType(mc.getScope().get()).describe();
+                    if (!m.fqnScope.equals(sf)) {
+                        failures.add("fqnScope mismatch: expected `" + m.fqnScope + "` but got `" + sf + "`");
+                    }
+                } catch (Exception e) {
+                    failures.add("fqnScope resolution error: " + e.getMessage());
                 }
-            } catch (Exception ignore) {
-                return false;
             }
         }
 
@@ -289,10 +300,10 @@ public class NodeMatcher {
         if (m.annotation != null) {
             if (node instanceof com.github.javaparser.ast.nodeTypes.NodeWithAnnotations<?> nwa) {
                 if (!nwa.isAnnotationPresent(m.annotation)) {
-                    return false;
+                    failures.add("annotation not present: " + m.annotation);
                 }
             } else {
-                return false;
+                failures.add("annotation: node is not NodeWithAnnotations");
             }
         }
 
@@ -308,24 +319,24 @@ public class NodeMatcher {
                     }
                 }
             }
-            if (!ok) return false;
+            if (!ok) failures.add("annotationValuePattern not matched: " + m.annotationValuePattern);
         }
 
         // typePattern
         if (m.typePattern != null) {
             String text = node.toString();
             if (!Pattern.compile(m.typePattern).matcher(text).find()) {
-                return false;
+                failures.add("typePattern not matched: " + m.typePattern);
             }
         }
 
         // requireNoTypeArgs
-        if (Boolean.TRUE.equals(m.requireNoTypeArgs) && node instanceof VariableDeclarationExpr vde) {
-            var elem = vde.getElementType();
+        if (Boolean.TRUE.equals(m.requireNoTypeArgs) && node instanceof VariableDeclarationExpr vde3) {
+            var elem = vde3.getElementType();
             if (elem.isClassOrInterfaceType()) {
                 var cit = elem.asClassOrInterfaceType();
                 if (cit.getTypeArguments().isPresent() && !cit.getTypeArguments().get().isEmpty()) {
-                    return false;
+                    failures.add("requireNoTypeArgs failed: type has generic arguments");
                 }
             }
         }
@@ -334,10 +345,10 @@ public class NodeMatcher {
         if (m.operator != null) {
             if (node instanceof com.github.javaparser.ast.expr.BinaryExpr be) {
                 if (!be.getOperator().asString().equals(m.operator)) {
-                    return false;
+                    failures.add("operator mismatch: expected `" + m.operator + "` but got `" + be.getOperator().asString() + "`");
                 }
             } else {
-                return false;
+                failures.add("operator: node is not BinaryExpr");
             }
         }
 
@@ -346,17 +357,18 @@ public class NodeMatcher {
             if (Boolean.TRUE.equals(m.literalOnly)) {
                 List<String> parts = new ArrayList<>();
                 if (!ConcatUtils.gatherLiterals(beLit, parts)) {
-                    return false;
+                    failures.add("literalOnly failed: not all operands are literals");
                 }
             }
             if (m.literalPattern != null) {
                 List<String> parts = new ArrayList<>();
                 if (!ConcatUtils.gatherLiterals(beLit, parts)) {
-                    return false;
-                }
-                String joined = String.join("", parts);
-                if (!Pattern.compile(m.literalPattern).matcher(joined).find()) {
-                    return false;
+                    failures.add("literalPattern failed: not all operands are literals");
+                } else {
+                    String joined = String.join("", parts);
+                    if (!Pattern.compile(m.literalPattern).matcher(joined).find()) {
+                        failures.add("literalPattern not matched: " + m.literalPattern);
+                    }
                 }
             }
         }
@@ -366,13 +378,14 @@ public class NodeMatcher {
             // initVarPattern
             if (m.initVarPattern != null) {
                 var inits = fs.getInitialization();
-                if (inits.size() != 1 || !(inits.get(0) instanceof VariableDeclarationExpr vde)
-                        || vde.getVariables().size() != 1) {
-                    return false;
-                }
-                String varName = vde.getVariables().get(0).getNameAsString();
-                if (!Pattern.compile(m.initVarPattern).matcher(varName).find()) {
-                    return false;
+                if (inits.size() != 1 || !(inits.get(0) instanceof VariableDeclarationExpr vde4)
+                        || vde4.getVariables().size() != 1) {
+                    failures.add("initVarPattern failed: could not find single loop variable");
+                } else {
+                    String varName = vde4.getVariables().get(0).getNameAsString();
+                    if (!Pattern.compile(m.initVarPattern).matcher(varName).find()) {
+                        failures.add("initVarPattern not matched: " + m.initVarPattern);
+                    }
                 }
             }
 
@@ -380,7 +393,7 @@ public class NodeMatcher {
             if (m.conditionPattern != null) {
                 var cmp = fs.getCompare().orElse(null);
                 if (cmp == null || !Pattern.compile(m.conditionPattern).matcher(cmp.toString()).find()) {
-                    return false;
+                    failures.add("conditionPattern not matched: " + m.conditionPattern);
                 }
             }
 
@@ -389,7 +402,7 @@ public class NodeMatcher {
                 boolean anyMatch = fs.getUpdate().stream()
                         .anyMatch(u -> Pattern.compile(m.updatePattern).matcher(u.toString()).find());
                 if (!anyMatch) {
-                    return false;
+                    failures.add("updatePattern not matched: " + m.updatePattern);
                 }
             }
 
@@ -397,7 +410,7 @@ public class NodeMatcher {
             if (m.accessPattern != null) {
                 String bodyText = fs.getBody().toString();
                 if (!Pattern.compile(m.accessPattern).matcher(bodyText).find()) {
-                    return false;
+                    failures.add("accessPattern not matched: " + m.accessPattern);
                 }
             }
         }
@@ -405,7 +418,7 @@ public class NodeMatcher {
         // parentNodeType
         if (m.parentNodeType != null) {
             if (!node.getParentNode().map(p -> p.getClass().getSimpleName().equals(m.parentNodeType)).orElse(false)) {
-                return false;
+                failures.add("parentNodeType mismatch: expected `" + m.parentNodeType + "`");
             }
         }
 
@@ -422,7 +435,7 @@ public class NodeMatcher {
                 name = cd.getNameAsString();
             }
             if (name == null || !Pattern.compile(m.namePattern).matcher(name).find()) {
-                return false;
+                failures.add("namePattern not matched: " + m.namePattern);
             }
         }
 
@@ -435,7 +448,7 @@ public class NodeMatcher {
                 scope = fa.getScope().toString();
             }
             if (scope == null || !Pattern.compile(m.scopePattern).matcher(scope).find()) {
-                return false;
+                failures.add("scopePattern not matched: " + m.scopePattern);
             }
         }
 
@@ -447,22 +460,22 @@ public class NodeMatcher {
                         .anyMatch(mod -> mod.getKeyword().asString().equalsIgnoreCase(m.hasModifier));
             }
             if (!has) {
-                return false;
+                failures.add("hasModifier not present: " + m.hasModifier);
             }
         }
 
         // returnTypePattern (for MethodDeclaration)
-        if (m.returnTypePattern != null && node instanceof com.github.javaparser.ast.body.MethodDeclaration md) {
-            String rt = md.getType().toString();
+        if (m.returnTypePattern != null && node instanceof com.github.javaparser.ast.body.MethodDeclaration md2) {
+            String rt = md2.getType().toString();
             if (!Pattern.compile(m.returnTypePattern).matcher(rt).find()) {
-                return false;
+                failures.add("returnTypePattern not matched: " + m.returnTypePattern);
             }
         }
 
         // paramCount (for MethodDeclaration)
-        if (m.paramCount != null && node instanceof com.github.javaparser.ast.body.MethodDeclaration md) {
-            if (md.getParameters().size() != m.paramCount) {
-                return false;
+        if (m.paramCount != null && node instanceof com.github.javaparser.ast.body.MethodDeclaration md3) {
+            if (md3.getParameters().size() != m.paramCount) {
+                failures.add("paramCount mismatch: expected " + m.paramCount + " but got " + md3.getParameters().size());
             }
         }
 
@@ -470,82 +483,93 @@ public class NodeMatcher {
         if (m.beforeLine != null || m.afterLine != null) {
             Optional<Range> r = node.getRange();
             if (r.isEmpty()) {
-                return false;
-            }
-            int line = r.get().begin.line;
-            if (m.beforeLine != null && line >= m.beforeLine) {
-                return false;
-            }
-            if (m.afterLine != null && line <= m.afterLine) {
-                return false;
+                failures.add("no Range info for beforeLine/afterLine");
+            } else {
+                int line = r.get().begin.line;
+                if (m.beforeLine != null && line >= m.beforeLine) {
+                    failures.add("beforeLine failed: node starts at line " + line + ", expected before " + m.beforeLine);
+                }
+                if (m.afterLine != null && line <= m.afterLine) {
+                    failures.add("afterLine failed: node starts at line " + line + ", expected after " + m.afterLine);
+                }
             }
         }
 
         // overridesFqn: only MethodDeclarations overriding interface.method
-        if (m.overridesFqn != null && node instanceof MethodDeclaration md) {
-            ResolvedMethodDeclaration rmd;
-            try { rmd = md.resolve(); } catch (Exception e) { return false; }
-            boolean ok = rmd.declaringType().getAllAncestors().stream()
-                .map(anc -> {
-                    try { return anc.getTypeDeclaration().orElse(null); }
-                    catch (Exception e) { return null; }
-                })
-                .filter(Objects::nonNull)
-                .anyMatch(td -> td.getQualifiedName().equals(m.overridesFqn));
-            if (!ok) return false;
+        if (m.overridesFqn != null && node instanceof MethodDeclaration md4) {
+            ResolvedMethodDeclaration rmd = null;
+            try { rmd = md4.resolve(); } catch (Exception e) { failures.add("overridesFqn: could not resolve method: " + e.getMessage()); }
+            boolean ok = false;
+            if (rmd != null) {
+                ok = rmd.declaringType().getAllAncestors().stream()
+                    .map(anc -> {
+                        try { return anc.getTypeDeclaration().orElse(null); }
+                        catch (Exception e) { return null; }
+                    })
+                    .filter(Objects::nonNull)
+                    .anyMatch(td -> td.getQualifiedName().equals(m.overridesFqn));
+            }
+            if (!ok) failures.add("overridesFqn not matched: " + m.overridesFqn);
         }
 
         // declaringFqn: only MethodCallExprs whose target belongs to interface
-        if (m.declaringFqn != null && node instanceof MethodCallExpr mc) {
-            ResolvedMethodDeclaration rmd;
-            try { rmd = mc.resolve(); } catch(Exception e) { return false; }
-            String declType = rmd.declaringType().getQualifiedName();
-            if (!declType.equals(m.declaringFqn)) return false;
+        if (m.declaringFqn != null && node instanceof MethodCallExpr mc2) {
+            ResolvedMethodDeclaration rmd = null;
+            try { rmd = mc2.resolve(); } catch(Exception e) { failures.add("declaringFqn: could not resolve method: " + e.getMessage()); }
+            String declType = rmd != null ? rmd.declaringType().getQualifiedName() : null;
+            if (declType == null || !declType.equals(m.declaringFqn)) failures.add("declaringFqn not matched: expected `" + m.declaringFqn + "` but got `" + declType + "`");
         }
 
         // declaringFqnPattern: match calls OR declarations whose declaring‐type name fits the regex
         if (m.declaringFqnPattern != null) {
             Pattern pat = Pattern.compile(m.declaringFqnPattern);
-            if (node instanceof MethodCallExpr mc) {
-                ResolvedMethodDeclaration rmd;
-                try { rmd = mc.resolve(); } catch (Exception e) { return false; }
-                String declType = rmd.declaringType().getQualifiedName();
-                if (!pat.matcher(declType).matches()) {
-                    return false;
+            if (node instanceof MethodCallExpr mc3) {
+                ResolvedMethodDeclaration rmd = null;
+                try { rmd = mc3.resolve(); } catch (Exception e) { failures.add("declaringFqnPattern: could not resolve method: " + e.getMessage()); }
+                String declType = rmd != null ? rmd.declaringType().getQualifiedName() : null;
+                if (declType == null || !pat.matcher(declType).matches()) {
+                    failures.add("declaringFqnPattern not matched: " + m.declaringFqnPattern);
                 }
-            } else if (node instanceof MethodDeclaration md) {
-                ResolvedMethodDeclaration rmd;
-                try { rmd = md.resolve(); } catch (Exception e) { return false; }
-                String declType = rmd.declaringType().getQualifiedName();
-                if (!pat.matcher(declType).matches()) {
-                    return false;
+            } else if (node instanceof MethodDeclaration md5) {
+                ResolvedMethodDeclaration rmd = null;
+                try { rmd = md5.resolve(); } catch (Exception e) { failures.add("declaringFqnPattern: could not resolve method: " + e.getMessage()); }
+                String declType = rmd != null ? rmd.declaringType().getQualifiedName() : null;
+                if (declType == null || !pat.matcher(declType).matches()) {
+                    failures.add("declaringFqnPattern not matched: " + m.declaringFqnPattern);
                 }
             } else {
-                return false;
+                failures.add("declaringFqnPattern: not applicable to node type: " + node.getClass().getSimpleName());
             }
         }
 
         // overridesFqnPattern: match only MethodDeclarations overriding an interface/class whose FQN fits the regex
-        if (m.overridesFqnPattern != null && node instanceof MethodDeclaration md) {
+        if (m.overridesFqnPattern != null && node instanceof MethodDeclaration md6) {
             Pattern pat = Pattern.compile(m.overridesFqnPattern);
-            ResolvedMethodDeclaration rmd;
-            try { rmd = md.resolve(); } catch (Exception e) { return false; }
-            boolean found = rmd.declaringType()
-                .getAllAncestors().stream()
-                .flatMap( ancestorRef -> {
-                    try {
-                        return ancestorRef.getTypeDeclaration().stream();
-                    } catch (Exception e) {
-                        return Stream.<ResolvedReferenceTypeDeclaration>empty();
-                    }
-                })
-                .map(ResolvedReferenceTypeDeclaration::getQualifiedName)
-                .anyMatch(pat.asPredicate());
+            ResolvedMethodDeclaration rmd = null;
+            try { rmd = md6.resolve(); } catch (Exception e) { failures.add("overridesFqnPattern: could not resolve method: " + e.getMessage()); }
+            boolean found = false;
+            if (rmd != null) {
+                found = rmd.declaringType()
+                    .getAllAncestors().stream()
+                    .flatMap( ancestorRef -> {
+                        try {
+                            return ancestorRef.getTypeDeclaration().stream();
+                        } catch (Exception e) {
+                            return Stream.<ResolvedReferenceTypeDeclaration>empty();
+                        }
+                    })
+                    .map(ResolvedReferenceTypeDeclaration::getQualifiedName)
+                    .anyMatch(pat.asPredicate());
+            }
             if (!found) {
-                return false;
+                failures.add("overridesFqnPattern not matched: " + m.overridesFqnPattern);
             }
         }
 
-        return true;
+        if (failures.isEmpty()) {
+            return MatchResult.success();
+        } else {
+            return new MatchResult(false, failures);
+        }
     }
 }

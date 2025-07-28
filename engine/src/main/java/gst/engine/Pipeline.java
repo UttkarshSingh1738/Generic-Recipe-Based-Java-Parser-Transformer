@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
+import gst.api.ActionSpec;
 import gst.api.ImportMods;
 import gst.api.MappingLoader;
 import gst.api.Match;
@@ -27,6 +29,7 @@ import gst.api.Recipe;
 import gst.api.Step;
 import gst.engine.actions.Action;
 import gst.engine.actions.ActionFactory;
+import gst.engine.matcher.MatchResult;
 import gst.engine.matcher.NodeMatcher;
 import gst.engine.validator.ValidationError;
 import gst.engine.validator.Validator;
@@ -68,6 +71,7 @@ public class Pipeline {
 
             for (Path srcFile : javaFiles) {
                 String rel = inputRoot.relativize(srcFile).toString();
+                System.out.println("[PROCESS] Processing file: " + rel);
                 CompilationUnit cu;
                 try {
                     cu = StaticJavaParser.parse(srcFile);
@@ -88,21 +92,33 @@ public class Pipeline {
                         List<Node> candidates = NodeMatcher.findCandidates(cu, m.nodeType);
 
                         for (Node node : candidates) {
-                            if (NodeMatcher.matches(node, m, typeSolver)) {
-                                System.out.println("[MATCH] " + m.nodeType + " at " + node.getRange().orElse(null));
-                                for (var actionMap : step.actions) {
-                                    actionMap.forEach((actionName, params) -> {
-                                        ctx.saveOriginalNode(node, node.clone());
-                                        Action act = ActionFactory.create(actionName, params);
-                                        System.out.println("[ACTION] " + actionName + " on node at " + node.getRange().orElse(null));
-                                        act.apply(node, cu, ctx, symbolSolver);
-                                        ctx.registerRecipeChange(recipe.name, node);
-                                    });
+                            MatchResult result = NodeMatcher.matches(node, step.match, typeSolver);
+                            if (result.matched()) {
+                                System.out.println("[MATCH] "
+                                        + step.match.nodeType + " at "
+                                        + node.getRange().orElse(null));
+
+                                for (ActionSpec spec : step.actions) {
+                                    String actionName = spec.getKey();
+                                    Map<String, Object> params = spec.getParams();
+
+                                    ctx.saveOriginalNode(node, node.clone());
+                                    Action act = ActionFactory.create(actionName, params);
+                                    System.out.println("[ACTION] " + actionName
+                                            + " on node at " + node.getRange().orElse(null));
+                                    act.apply(node, cu, ctx, symbolSolver);
+                                    ctx.registerRecipeChange(recipe.name, node);
                                 }
+
                                 matchedRecipe = true;
                                 fileChanged = true;
+                            } else {
+                                System.out.println("[MATCH-FAILED] "
+                                    + step.match.nodeType + " at " + node.getRange().orElse(null)
+                                    + " → " + result.getFailureReasons());
                             }
                         }
+
                     }
 
                     if (matchedRecipe && recipe.imports != null) {
@@ -142,27 +158,27 @@ public class Pipeline {
                         Set<String> applied = ctx.getRecipesForFile(srcFile);
 
                         Optional<Recipe> toRollback = recipes.stream()
-                            .filter(r -> r.rollbackOnError)
-                            .filter(r -> applied.contains(r.name))
-                            .findFirst();
+                                .filter(r -> r.rollbackOnError)
+                                .filter(r -> applied.contains(r.name))
+                                .findFirst();
 
                         if (toRollback.isPresent()) {
-                        Recipe bad = toRollback.get();
-                        System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: "
-                                            + bad.name);
-                        ctx.getOriginalFile(srcFile).ifPresent(original -> {
-                            cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
-                            cu.setImports(original.getImports());
-                            cu.setTypes(original.getTypes());
-                        });
-                        ctx.markRolledBack(srcFile);
-                        ctx.recordRollbackError(srcFile, errors);
-                        fileChanged = false;
+                            Recipe bad = toRollback.get();
+                            System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: "
+                                    + bad.name);
+                            ctx.getOriginalFile(srcFile).ifPresent(original -> {
+                                cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
+                                cu.setImports(original.getImports());
+                                cu.setTypes(original.getTypes());
+                            });
+                            ctx.markRolledBack(srcFile);
+                            ctx.recordRollbackError(srcFile, errors);
+                            fileChanged = false;
                         } else {
-                        System.out.println("[WARNING] Validation errors found, but no applied recipe had rollbackOnError=true; keeping changes.");
+                            System.out.println("[WARNING] Validation errors found, but no applied recipe had rollbackOnError=true; keeping changes.");
                         }
                     }
-                    }
+                }
 
                 Path outFile = outputRoot.resolve(rel);
                 Files.createDirectories(outFile.getParent());
