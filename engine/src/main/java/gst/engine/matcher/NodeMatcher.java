@@ -29,6 +29,7 @@ import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
@@ -501,13 +502,22 @@ public class NodeMatcher {
             try { rmd = md4.resolve(); } catch (Exception e) { failures.add("overridesFqn: could not resolve method: " + e.getMessage()); }
             boolean ok = false;
             if (rmd != null) {
-                ok = rmd.declaringType().getAllAncestors().stream()
-                    .map(anc -> {
-                        try { return anc.getTypeDeclaration().orElse(null); }
-                        catch (Exception e) { return null; }
-                    })
-                    .filter(Objects::nonNull)
-                    .anyMatch(td -> td.getQualifiedName().equals(m.overridesFqn));
+                try {
+                    ok = rmd.declaringType().getAllAncestors().stream()
+                        .map(anc -> {
+                            try { return anc.getTypeDeclaration().orElse(null); }
+                            catch (UnsolvedSymbolException use) {
+                                failures.add("overridesFqn: could not resolve ancestor: " + use.getName());
+                                return null;
+                            } catch (Exception e) { return null; }
+                        })
+                        .filter(Objects::nonNull)
+                        .anyMatch(td -> td.getQualifiedName().equals(m.overridesFqn));
+                } catch (UnsolvedSymbolException use) {
+                    failures.add("overridesFqn: could not resolve ancestor: " + use.getName());
+                } catch (Exception e) {
+                    failures.add("overridesFqn: error during ancestor lookup: " + e.getMessage());
+                }
             }
             if (!ok) failures.add("overridesFqn not matched: " + m.overridesFqn);
         }
@@ -516,7 +526,16 @@ public class NodeMatcher {
         if (m.declaringFqn != null && node instanceof MethodCallExpr mc2) {
             ResolvedMethodDeclaration rmd = null;
             try { rmd = mc2.resolve(); } catch(Exception e) { failures.add("declaringFqn: could not resolve method: " + e.getMessage()); }
-            String declType = rmd != null ? rmd.declaringType().getQualifiedName() : null;
+            String declType = null;
+            if (rmd != null) {
+                try {
+                    declType = rmd.declaringType().getQualifiedName();
+                } catch (UnsolvedSymbolException use) {
+                    failures.add("declaringFqn: could not resolve declaring type: " + use.getName());
+                } catch (Exception e) {
+                    failures.add("declaringFqn: error during declaring type lookup: " + e.getMessage());
+                }
+            }
             if (declType == null || !declType.equals(m.declaringFqn)) failures.add("declaringFqn not matched: expected `" + m.declaringFqn + "` but got `" + declType + "`");
         }
 
@@ -526,14 +545,32 @@ public class NodeMatcher {
             if (node instanceof MethodCallExpr mc3) {
                 ResolvedMethodDeclaration rmd = null;
                 try { rmd = mc3.resolve(); } catch (Exception e) { failures.add("declaringFqnPattern: could not resolve method: " + e.getMessage()); }
-                String declType = rmd != null ? rmd.declaringType().getQualifiedName() : null;
+                String declType = null;
+                if (rmd != null) {
+                    try {
+                        declType = rmd.declaringType().getQualifiedName();
+                    } catch (UnsolvedSymbolException use) {
+                        failures.add("declaringFqnPattern: could not resolve declaring type: " + use.getName());
+                    } catch (Exception e) {
+                        failures.add("declaringFqnPattern: error during declaring type lookup: " + e.getMessage());
+                    }
+                }
                 if (declType == null || !pat.matcher(declType).matches()) {
                     failures.add("declaringFqnPattern not matched: " + m.declaringFqnPattern);
                 }
             } else if (node instanceof MethodDeclaration md5) {
                 ResolvedMethodDeclaration rmd = null;
                 try { rmd = md5.resolve(); } catch (Exception e) { failures.add("declaringFqnPattern: could not resolve method: " + e.getMessage()); }
-                String declType = rmd != null ? rmd.declaringType().getQualifiedName() : null;
+                String declType = null;
+                if (rmd != null) {
+                    try {
+                        declType = rmd.declaringType().getQualifiedName();
+                    } catch (UnsolvedSymbolException use) {
+                        failures.add("declaringFqnPattern: could not resolve declaring type: " + use.getName());
+                    } catch (Exception e) {
+                        failures.add("declaringFqnPattern: error during declaring type lookup: " + e.getMessage());
+                    }
+                }
                 if (declType == null || !pat.matcher(declType).matches()) {
                     failures.add("declaringFqnPattern not matched: " + m.declaringFqnPattern);
                 }
@@ -549,17 +586,26 @@ public class NodeMatcher {
             try { rmd = md6.resolve(); } catch (Exception e) { failures.add("overridesFqnPattern: could not resolve method: " + e.getMessage()); }
             boolean found = false;
             if (rmd != null) {
-                found = rmd.declaringType()
-                    .getAllAncestors().stream()
-                    .flatMap( ancestorRef -> {
-                        try {
-                            return ancestorRef.getTypeDeclaration().stream();
-                        } catch (Exception e) {
-                            return Stream.<ResolvedReferenceTypeDeclaration>empty();
-                        }
-                    })
-                    .map(ResolvedReferenceTypeDeclaration::getQualifiedName)
-                    .anyMatch(pat.asPredicate());
+                try {
+                    found = rmd.declaringType()
+                        .getAllAncestors().stream()
+                        .flatMap( ancestorRef -> {
+                            try {
+                                return ancestorRef.getTypeDeclaration().stream();
+                            } catch (UnsolvedSymbolException use) {
+                                failures.add("overridesFqnPattern: could not resolve ancestor: " + use.getName());
+                                return Stream.<ResolvedReferenceTypeDeclaration>empty();
+                            } catch (Exception e) {
+                                return Stream.<ResolvedReferenceTypeDeclaration>empty();
+                            }
+                        })
+                        .map(ResolvedReferenceTypeDeclaration::getQualifiedName)
+                        .anyMatch(pat.asPredicate());
+                } catch (UnsolvedSymbolException use) {
+                    failures.add("overridesFqnPattern: could not resolve ancestor: " + use.getName());
+                } catch (Exception e) {
+                    failures.add("overridesFqnPattern: error during ancestor lookup: " + e.getMessage());
+                }
             }
             if (!found) {
                 failures.add("overridesFqnPattern not matched: " + m.overridesFqnPattern);
