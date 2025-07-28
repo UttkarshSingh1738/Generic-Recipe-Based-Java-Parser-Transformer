@@ -28,15 +28,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.1.0</version>
-        <configuration>
-          <mainClass>gst.Main</mainClass>
-          <commandlineArgs>resources/mappingsV3.json resources/input/guava/src output/OutputGST</commandlineArgs>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
   <profiles>
