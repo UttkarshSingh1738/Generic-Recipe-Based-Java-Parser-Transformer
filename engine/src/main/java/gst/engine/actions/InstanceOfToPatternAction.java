@@ -60,7 +60,10 @@ public class InstanceOfToPatternAction implements Action {
             var vd = vde.getVariables().get(0);
             if (vd.getInitializer().filter(i -> i instanceof CastExpr).isEmpty()) return false;
             CastExpr ce = (CastExpr) vd.getInitializer().get();
-            return ce.getExpression().equals(testedExpr) && ce.getType().equals(testedType);
+            if (!ce.getExpression().equals(testedExpr)) return false;
+            if (!(ce.getType().isClassOrInterfaceType() && testedType.isClassOrInterfaceType())) return false;
+            return ce.getType().asClassOrInterfaceType().getNameAsString()
+                    .equals(testedType.asClassOrInterfaceType().getNameAsString());
         });
         for (VariableDeclarationExpr vde : toRemove) {
             Optional<Node> parent = vde.getParentNode();
@@ -81,9 +84,12 @@ public class InstanceOfToPatternAction implements Action {
             }
         }
 
-        thenBlock.findAll(CastExpr.class, ce ->
-                ce.getExpression().equals(testedExpr) && ce.getType().equals(testedType)
-        ).forEach(ce -> {
+        thenBlock.findAll(CastExpr.class, ce -> {
+            if (!ce.getExpression().equals(testedExpr)) return false;
+            if (!(ce.getType().isClassOrInterfaceType() && testedType.isClassOrInterfaceType())) return false;
+            return ce.getType().asClassOrInterfaceType().getNameAsString()
+                    .equals(testedType.asClassOrInterfaceType().getNameAsString());
+        }).forEach(ce -> {
             ctx.saveOriginalNode(ce, ce.clone());
             ce.replace(new NameExpr(varName));
             System.out.println("[ACTION] instanceOfToPattern: replaced cast‑expr at " + ce.getRange().orElse(null));
