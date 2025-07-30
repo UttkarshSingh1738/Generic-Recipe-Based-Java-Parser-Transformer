@@ -1211,7 +1211,6 @@ actions:
     example: |
       Before:
 
-      ```java
       public class PatternTest {
           void test(Object obj) {
               if (obj instanceof Integer) {
@@ -1220,11 +1219,9 @@ actions:
               }
           }
       }
-      ```
 
       Recipe:
 
-      ```json
       {
         "match": {
           "nodeType": "InstanceOfExpr"
@@ -1233,11 +1230,9 @@ actions:
           { "instanceOfToPattern": {} }
         ]
       }
-      ```
 
       After:
 
-      ```java
       public class PatternTest {
           void test(Object obj) {
               if (obj instanceof Integer integer) {
@@ -1245,7 +1240,55 @@ actions:
               }
           }
       }
-      ```  
+
+  - key: replaceStringFormatWithFormatted
+    class: ReplaceStringFormatWithFormattedAction
+    description: >
+      Rewrite calls to `String.format(fmt, args…)` into Java 17’s instance‐method
+      form: `fmt.formatted(args…)`.  
+      Optionally wrap the format‐string in parentheses when it isn’t a simple literal.
+    parameters:
+      - name: parenthesizeFirstArg
+        type: Boolean
+        default: true
+        description: >
+          If `true`, and the format‐string expression is not a simple literal or name,
+          wrap it in parentheses before calling `.formatted(...)`.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      Before:
+
+      this.setId(String.format("user-%s-%s", userId, timestamp + ""));
+      log.error(
+        String.format("Failed to load %s", resourceName), 
+        e
+      );
+
+      Recipe:
+
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "scopePattern": "String",
+          "methodName": "format"
+        },
+        "actions": [
+          {
+            "replaceStringFormatWithFormatted": {
+              "parenthesizeFirstArg": true
+            }
+          }
+        ]
+      }
+
+      After:
+
+      this.setId("user-%s-%s".formatted(userId, timestamp + ""));
+      log.error(
+        "Failed to load %s".formatted(resourceName), 
+        e
+      );
 
 customProviders:
   - FactoryLocalVarReplacementActionProvider

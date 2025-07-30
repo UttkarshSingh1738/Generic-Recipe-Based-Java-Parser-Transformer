@@ -59,6 +59,8 @@ public class ActionFactory {
             case "removeArgument":              return new RemoveArgumentAction(stringParams);
             case "changeMethodReturnType":      return new ChangeMethodReturnTypeAction(stringParams);
             case "instanceOfToPattern":         return new InstanceOfToPatternAction(stringParams);
+            case "replaceStringFormatWithFormatted": return new ReplaceStringFormatWithFormattedAction(stringParams);
+
         }
 
         for(var p : CUSTOM_PROVIDERS) {

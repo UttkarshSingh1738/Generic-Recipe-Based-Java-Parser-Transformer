@@ -16,6 +16,27 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "PreferStringFormatted",
+            "description": "Use Java 17 String.formatted(...) instead of String.format(...)",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "scopePattern": "String",
+                        "methodName": "format"
+                    },
+                    "actions": [
+                        {
+                            "replaceStringFormatWithFormatted": {
+                                "parenthesizeFirstArg": true
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
