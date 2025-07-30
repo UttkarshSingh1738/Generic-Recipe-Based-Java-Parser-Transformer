@@ -179,40 +179,71 @@ actions:
   - key: collapseLiteralConcat
     class: CollapseLiteralConcatAction
     description: >
-      Flatten a tree of string concatenations containing `"\n"`
-      into a single `TextBlockLiteralExpr` (Java 15+ text block).
-    parameters: []
+      Flatten a tree of string concatenations into a single `TextBlockLiteralExpr`.
+      Converts concatenated string literals to text blocks,
+      with optional control over strings without newlines.
+    parameters:
+      - name: stringsWithoutNewlines
+        type: Boolean
+        default: true
+        description: >
+          Whether to convert string concatenations that don't contain newlines.
+          When true, converts all literal concatenations. When false, only 
+          converts concatenations containing explicit newlines (\\n).
     appliesTo:
       - BinaryExpr
     example: |
-      Before:
+      Before (with newlines):
       
       String html = "<ul>\n"
                   + "  <li>foo</li>\n"
                   + "  <li>bar</li>\n"
                   + "</ul>";
+                  
+      String error = "Database connection failed. "
+                  + "Please check network settings "
+                  + "and try again.";
       
-      Recipe:
+      Recipe (default behavior):
       
       {
         "match": {
           "nodeType": "BinaryExpr",
-          "literalOnly": true,
-          "literalPattern": "\\\\n"
+          "operator": "+",
+          "literalOnly": true
         },
         "actions": [
           { "collapseLiteralConcat": {} }
         ]
       }
       
-      After:
+      After (with newlines preserved, single-line gets continuation):
       
       String html = """
           <ul>
             <li>foo</li>
             <li>bar</li>
-          </ul>
-          """;
+          </ul>""";
+          
+      String error = """
+          Database connection failed. \
+          Please check network settings \
+          and try again.""";
+          
+      Recipe (only convert strings with newlines):
+      
+      {
+        "match": {
+          "nodeType": "BinaryExpr",
+          "operator": "+", 
+          "literalOnly": true
+        },
+        "actions": [
+          { "collapseLiteralConcat": { "stringsWithoutNewlines": "false" } }
+        ]
+      }
+      
+      Result: Only the first example (with \\n) would be converted;
       
 
   - key: forToForEach

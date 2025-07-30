@@ -115,3 +115,101 @@ public class StringFormatTest {
     private String getValue() { return "test"; }
     private void setId(String id) {}
 }
+
+public class TextBlockTest {
+    
+    void testBasicConcatenation() {
+        // Basic string concatenation with newlines
+        String html = "<ul>\n"
+                    + "  <li>foo</li>\n"
+                    + "  <li>bar</li>\n"
+                    + "</ul>";
+        
+        // Multi-line SQL query
+        String query = "SELECT u.name, u.email, p.title \n"
+                     + "FROM users u \n"
+                     + "JOIN posts p ON u.id = p.user_id \n"
+                     + "WHERE u.active = true";
+        
+        // Log message with newlines
+        String logMessage = "Error occurred during processing:\n"
+                          + "  - Input validation failed\n"
+                          + "  - Database connection lost\n"
+                          + "  - Retry attempts exhausted";
+    }
+    
+    void testComplexConcatenation() {
+        // JSON-like structure
+        String json = "{\n"
+                    + "  \"name\": \"John Doe\",\n"
+                    + "  \"age\": 30,\n"
+                    + "  \"address\": {\n"
+                    + "    \"street\": \"123 Main St\",\n"
+                    + "    \"city\": \"Anytown\"\n"
+                    + "  }\n"
+                    + "}";
+        
+        // Multi-line error message
+        String errorMsg = "An unknown error occurred while trying to connect to the database.\n"
+                        + "Please check the following:\n"
+                        + "  1. Network connectivity\n"
+                        + "  2. Database credentials\n"
+                        + "  3. Firewall settings\n"
+                        + "For more information, contact support.";
+    }
+    
+    void testEdgeCases() {
+        // Concatenation without newlines (should/shouldn't convert based on stringsWithoutNewlines)
+        String simple = "Hello " + "world " + "from " + "Java";
+        
+        // Mixed content with tabs and newlines
+        String mixed = "Name:\tJohn\n"
+                     + "Age:\t30\n"
+                     + "City:\tNew York";
+        
+        // Empty lines in concatenation
+        String withEmpty = "Line 1\n"
+                         + "\n"
+                         + "Line 3\n"
+                         + "\n"
+                         + "Line 5";
+        
+        // Single line with escaped characters
+        String escaped = "Path: C:\\Users\\John\\Documents\n"
+                       + "File: data.txt";
+        
+        // Documentation style
+        String docs = "/**\n"
+                    + " * This is a multi-line comment\n"
+                    + " * that describes the function\n"
+                    + " * @param input the input parameter\n"
+                    + " * @return the result\n"
+                    + " */";
+    }
+    
+    void testRealWorldExamples() {
+        // Example from the OpenRewrite documentation
+        logDeprecation("The datafeed 1 service will be fully replaced by the datafeed 2 service in the future. "
+            + "Please consider migrating over to datafeed 2. For more information on the timeline as well as on the "
+            + "benefits of datafeed 2, please reach out to your Technical Account Manager or to our developer "
+            + "documentation https://docs.developers.symphony.com/building-bots-on-symphony/datafeed)");
+        
+        // Error message example
+        String messageError = String.format("An unknown error occurred while trying to connect to %s. Please check below "
+            + "for more information: ", address);
+        
+        // Expected vs actual message
+        String testFailure = "Expected: controller used to showcase what " 
+                           + "happens when an exception is thrown";
+        
+        // Template with parameters
+        String template = "Hello {{name}},\n"
+                        + "\n"
+                        + "Welcome to our service!\n"
+                        + "\n"
+                        + "Best regards,\n"
+                        + "The Team";
+    }
+    
+    private void logDeprecation(String message) {}
+}

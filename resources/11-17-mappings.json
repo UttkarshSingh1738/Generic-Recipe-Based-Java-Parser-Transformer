@@ -172,26 +172,6 @@
             ]
         },
         {
-            "name": "UseTextBlock",
-            "description": "Collapse purely‐literal string concatenations containing `\\n` into a text block.",
-            "rollbackOnError": false,
-            "steps": [
-                {
-                    "match": {
-                        "nodeType": "BinaryExpr",
-                        "operator": "+",
-                        "literalOnly": true,
-                        "literalPattern": "\\\\n"
-                    },
-                    "actions": [
-                        {
-                            "collapseLiteralConcat": {}
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "name": "UseEnhancedFor",
             "description": "Rewrite classic for‐loops over arrays or lists into enhanced for‐each loops.",
             "rollbackOnError": false,

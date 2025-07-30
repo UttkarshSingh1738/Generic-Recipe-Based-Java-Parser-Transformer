@@ -37,6 +37,25 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "UseTextBlock",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "BinaryExpr",
+                        "operator": "+",
+                        "literalOnly": true
+                    },
+                    "actions": [
+                        {
+                            "collapseLiteralConcat": {
+                                "stringsWithoutNewlines": "false"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
