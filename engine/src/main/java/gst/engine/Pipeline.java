@@ -59,7 +59,7 @@ public class Pipeline {
         }
 
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
-        ParserConfiguration cfg = new ParserConfiguration().setSymbolResolver(symbolSolver);
+        ParserConfiguration cfg = new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17).setSymbolResolver(symbolSolver);
         StaticJavaParser.setConfiguration(cfg);
 
         TxContext ctx = new TxContext();
@@ -149,34 +149,41 @@ public class Pipeline {
                 }
 
                 if (ctx.isFileChanged(srcFile)) {
-                    List<ValidationError> errors = Validator.run(List.of(cu), ctx, symbolSolver);
+                    Set<String> applied = ctx.getRecipesForFile(srcFile);
 
-                    if (!errors.isEmpty()) {
-                        System.out.println("[VALIDATION] Errors found in file: " + rel);
-                        errors.forEach(System.out::println);
+                    // Check if any applied recipe has rollbackOnError=true
+                    boolean shouldRunValidation = recipes.stream()
+                            .filter(r -> r.rollbackOnError)
+                            .anyMatch(r -> applied.contains(r.name));
 
-                        Set<String> applied = ctx.getRecipesForFile(srcFile);
+                    if (shouldRunValidation) {
+                        List<ValidationError> errors = Validator.run(List.of(cu), ctx, symbolSolver);
 
-                        Optional<Recipe> toRollback = recipes.stream()
-                                .filter(r -> r.rollbackOnError)
-                                .filter(r -> applied.contains(r.name))
-                                .findFirst();
+                        if (!errors.isEmpty()) {
+                            System.out.println("[VALIDATION] Errors found in file: " + rel);
+                            errors.forEach(System.out::println);
 
-                        if (toRollback.isPresent()) {
-                            Recipe bad = toRollback.get();
-                            System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: "
-                                    + bad.name);
-                            ctx.getOriginalFile(srcFile).ifPresent(original -> {
-                                cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
-                                cu.setImports(original.getImports());
-                                cu.setTypes(original.getTypes());
-                            });
-                            ctx.markRolledBack(srcFile);
-                            ctx.recordRollbackError(srcFile, errors);
-                            fileChanged = false;
-                        } else {
-                            System.out.println("[WARNING] Validation errors found, but no applied recipe had rollbackOnError=true; keeping changes.");
+                            Optional<Recipe> toRollback = recipes.stream()
+                                    .filter(r -> r.rollbackOnError)
+                                    .filter(r -> applied.contains(r.name))
+                                    .findFirst();
+
+                            if (toRollback.isPresent()) {
+                                Recipe bad = toRollback.get();
+                                System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: "
+                                        + bad.name);
+                                ctx.getOriginalFile(srcFile).ifPresent(original -> {
+                                    cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
+                                    cu.setImports(original.getImports());
+                                    cu.setTypes(original.getTypes());
+                                });
+                                ctx.markRolledBack(srcFile);
+                                ctx.recordRollbackError(srcFile, errors);
+                                fileChanged = false;
+                            }
                         }
+                    } else {
+                        System.out.println("[VALIDATION] Skipping validation - no applied recipes have rollbackOnError=true");
                     }
                 }
 

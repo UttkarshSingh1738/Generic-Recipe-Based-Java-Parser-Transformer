@@ -1,6 +1,3 @@
-package com.rest.app.controller;
-
-
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.client.RestTemplate;
 import org.apache.logging.log4j.CustomLogManager;
@@ -30,7 +27,6 @@ public class CustomHealthCheck implements HealthIndication {    //HealthIndicato
     }
 }
 
-
 ////////////////////////////////////////////////////////////
 
 class TestExample {
@@ -56,5 +52,14 @@ class Demo {
     void foo() {
         System.out.println("hello");
         System.err.println("oops");
+    }
+}
+
+public class PatternTest {
+    void test(Object obj) {
+        if (obj instanceof Integer) {
+            Integer i = (Integer) obj;
+            System.out.println(i + 1);
+        }
     }
 }

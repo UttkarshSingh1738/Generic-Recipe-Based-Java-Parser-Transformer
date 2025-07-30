@@ -20,6 +20,7 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.InstanceOfExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
@@ -79,11 +80,13 @@ public class NodeMatcher {
             case "MethodDeclaration" ->
                 root.findAll(MethodDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "BlockStmt" ->
-                root.findAll(com.github.javaparser.ast.stmt.BlockStmt.class).stream()
-                        .map(n -> (Node) n).collect(Collectors.toList());
+                root.findAll(com.github.javaparser.ast.stmt.BlockStmt.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "VariableDeclarator" ->
-                root.findAll(com.github.javaparser.ast.body.VariableDeclarator.class).stream()
-                        .map(n -> (Node) n).collect(Collectors.toList());
+                root.findAll(com.github.javaparser.ast.body.VariableDeclarator.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+            case "InstanceOfExpr" ->
+                root.findAll(InstanceOfExpr.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+
+
             default -> {
                 System.err.println("[CANDIDATE-ERROR] Unknown nodeType: '" + nodeType + "'");
                 yield List.of();

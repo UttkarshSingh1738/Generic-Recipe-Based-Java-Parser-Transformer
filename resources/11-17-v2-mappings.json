@@ -1,0 +1,21 @@
+{
+    "recipes": [
+        {
+            "name": "UseInstanceOfPatternMatching",
+            "description": "Convert old‐style instanceof+cast into Java 17 pattern matching",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "InstanceOfExpr"
+                    },
+                    "actions": [
+                        {
+                            "instanceOfToPattern": {}
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

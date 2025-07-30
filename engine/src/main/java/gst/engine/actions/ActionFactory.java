@@ -58,9 +58,10 @@ public class ActionFactory {
             case "removeParameter":             return new RemoveParameterAction(stringParams);
             case "removeArgument":              return new RemoveArgumentAction(stringParams);
             case "changeMethodReturnType":      return new ChangeMethodReturnTypeAction(stringParams);
+            case "instanceOfToPattern":         return new InstanceOfToPatternAction(stringParams);
         }
 
-        for(ActionProvider p : CUSTOM_PROVIDERS) {
+        for(var p : CUSTOM_PROVIDERS) {
             if(p.getActionName().equalsIgnoreCase(name)) {
                 return p.create(stringParams);
             }
