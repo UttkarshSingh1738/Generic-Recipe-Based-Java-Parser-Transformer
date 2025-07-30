@@ -25,41 +25,42 @@ public class ActionFactory {
         }
 
         switch (name) {
-            case "changeType":                  return new ChangeTypeAction(stringParams);
-            case "replaceWithMethodCall":       return new ReplaceWithMethodCallAction(stringParams);
-            case "wrapArgument":                return new WrapArgumentAction(params);
-            case "switchToReturnExpression":    return new SwitchToReturnExpressionAction(stringParams);
-            case "collapseLiteralConcat":       return new CollapseLiteralConcatAction(stringParams);
-            case "forToForEach":                return new ForToForEachAction(stringParams);
-            case "insertBefore":                return new InsertBeforeAction(stringParams);
-            case "insertAfter":                 return new InsertAfterAction(stringParams);
-            case "removeNode":                  return new RemoveNodeAction(stringParams);
-            case "replaceWithTemplate":         return new ReplaceWithTemplateAction(stringParams);
-            case "addImport":                   return new AddImportAction(stringParams);
-            case "removeImport":                return new RemoveImportAction(stringParams);
-            case "addAnnotation":               return new AddAnnotationAction(params);
-            case "removeComment":               return new RemoveCommentAction(stringParams);
-            case "removeExceptionFromCatch":    return new RemoveExceptionFromCatchAction(stringParams);
-            case "renameMethodCall":            return new RenameMethodCallAction(stringParams);
-            case "removeModifier":              return new RemoveModifierAction(stringParams);
-            case "clearInitializer":            return new ClearInitializerAction(stringParams);
-            case "removeStatements":            return new RemoveStatementsAction(stringParams);
-            case "removeAnnotation":            return new RemoveAnnotationAction(stringParams);
-            case "updateAnnotationAttribute":   return new UpdateAnnotationAttributeAction(stringParams);
-            case "addModifier":                 return new AddModifierAction(stringParams);
-            case "setAccessLevel":              return new SetAccessLevelAction(stringParams);
-            case "renameVariable":              return new RenameVariableAction(stringParams);
-            case "renameClass":                 return new RenameClassAction(stringParams);
-            case "wrapWithTryCatch":            return new WrapWithTryCatchAction(stringParams);
-            case "migrateAnnotation":           return new MigrateAnnotationAction(params);
-            case "replaceWithScope":            return new ReplaceWithScopeAction(stringParams);
-            case "updateImplements":            return new UpdateImplementsAction(stringParams);
-            case "renameMethod":                return new RenameMethodAction(stringParams);
-            case "removeParameter":             return new RemoveParameterAction(stringParams);
-            case "removeArgument":              return new RemoveArgumentAction(stringParams);
-            case "changeMethodReturnType":      return new ChangeMethodReturnTypeAction(stringParams);
-            case "instanceOfToPattern":         return new InstanceOfToPatternAction(stringParams);
-            case "replaceStringFormatWithFormatted": return new ReplaceStringFormatWithFormattedAction(stringParams);
+            case "changeType":                          return new ChangeTypeAction(stringParams);
+            case "replaceWithMethodCall":               return new ReplaceWithMethodCallAction(stringParams);
+            case "wrapArgument":                        return new WrapArgumentAction(params);
+            case "switchToReturnExpression":            return new SwitchToReturnExpressionAction(stringParams);
+            case "collapseLiteralConcat":               return new CollapseLiteralConcatAction(stringParams);
+            case "forToForEach":                        return new ForToForEachAction(stringParams);
+            case "insertBefore":                        return new InsertBeforeAction(stringParams);
+            case "insertAfter":                         return new InsertAfterAction(stringParams);
+            case "removeNode":                          return new RemoveNodeAction(stringParams);
+            case "replaceWithTemplate":                 return new ReplaceWithTemplateAction(stringParams);
+            case "addImport":                           return new AddImportAction(stringParams);
+            case "removeImport":                        return new RemoveImportAction(stringParams);
+            case "addAnnotation":                       return new AddAnnotationAction(params);
+            case "removeComment":                       return new RemoveCommentAction(stringParams);
+            case "removeExceptionFromCatch":            return new RemoveExceptionFromCatchAction(stringParams);
+            case "renameMethodCall":                    return new RenameMethodCallAction(stringParams);
+            case "removeModifier":                      return new RemoveModifierAction(stringParams);
+            case "clearInitializer":                    return new ClearInitializerAction(stringParams);
+            case "removeStatements":                    return new RemoveStatementsAction(stringParams);
+            case "removeAnnotation":                    return new RemoveAnnotationAction(stringParams);
+            case "updateAnnotationAttribute":           return new UpdateAnnotationAttributeAction(stringParams);
+            case "addModifier":                         return new AddModifierAction(stringParams);
+            case "setAccessLevel":                      return new SetAccessLevelAction(stringParams);
+            case "renameVariable":                      return new RenameVariableAction(stringParams);
+            case "renameClass":                         return new RenameClassAction(stringParams);
+            case "wrapWithTryCatch":                    return new WrapWithTryCatchAction(stringParams);
+            case "migrateAnnotation":                   return new MigrateAnnotationAction(params);
+            case "replaceWithScope":                    return new ReplaceWithScopeAction(stringParams);
+            case "updateImplements":                    return new UpdateImplementsAction(stringParams);
+            case "renameMethod":                        return new RenameMethodAction(stringParams);
+            case "removeParameter":                     return new RemoveParameterAction(stringParams);
+            case "removeArgument":                      return new RemoveArgumentAction(stringParams);
+            case "changeMethodReturnType":              return new ChangeMethodReturnTypeAction(stringParams);
+            case "instanceOfToPattern":                 return new InstanceOfToPatternAction(stringParams);
+            case "replaceStringFormatWithFormatted":    return new ReplaceStringFormatWithFormattedAction(stringParams);
+            case "changeMethodTargetToStatic":          return new ChangeMethodTargetToStaticAction(stringParams);
 
         }
 

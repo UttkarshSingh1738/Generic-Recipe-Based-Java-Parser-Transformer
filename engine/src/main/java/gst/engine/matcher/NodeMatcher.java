@@ -239,15 +239,32 @@ public class NodeMatcher {
             }
         }
 
-        // methodName (for calls AND declarations)
+        // methodName (for calls AND declarations) - supports multiple names separated by |
         if (m.methodName != null) {
+            String[] allowedNames = m.methodName.split("\\|");
             if (node instanceof MethodCallExpr mc) {
-                if (!mc.getNameAsString().equals(m.methodName)) {
-                    failures.add("methodName mismatch: expected `" + m.methodName + "` but got `" + mc.getNameAsString() + "`");
+                String actualName = mc.getNameAsString();
+                boolean matches = false;
+                for (String allowedName : allowedNames) {
+                    if (actualName.equals(allowedName.trim())) {
+                        matches = true;
+                        break;
+                    }
+                }
+                if (!matches) {
+                    failures.add("methodName mismatch: expected `" + m.methodName + "` but got `" + actualName + "`");
                 }
             } else if (node instanceof MethodDeclaration md) {
-                if (!md.getNameAsString().equals(m.methodName)) {
-                    failures.add("methodName mismatch: expected `" + m.methodName + "` but got `" + md.getNameAsString() + "`");
+                String actualName = md.getNameAsString();
+                boolean matches = false;
+                for (String allowedName : allowedNames) {
+                    if (actualName.equals(allowedName.trim())) {
+                        matches = true;
+                        break;
+                    }
+                }
+                if (!matches) {
+                    failures.add("methodName mismatch: expected `" + m.methodName + "` but got `" + actualName + "`");
                 }
             } else {
                 failures.add("methodName not applicable to node type: " + node.getClass().getSimpleName());

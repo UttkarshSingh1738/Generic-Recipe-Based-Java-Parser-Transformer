@@ -1321,6 +1321,81 @@ actions:
         e
       );
 
+  - key: changeMethodTargetToStatic
+    class: ChangeMethodTargetToStaticAction
+    description: >
+      Convert instance method calls to static method calls by replacing the scope
+      with a class name. Designed for Java modernization where instance methods 
+      have been deprecated in favor of static equivalents.
+    parameters:
+      - name: methodPattern
+        type: String
+        description: Pattern for matching the original scope (not currently used in matching logic).
+      - name: targetType
+        type: String
+        description: Fully qualified class name to use as the new static scope.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      Before:
+
+      public class MethodTargetToStaticTest {
+          void testToolProviderCalls() {
+              ToolProvider provider = new ToolProvider();
+              JavaCompiler compiler1 = provider.getSystemJavaCompiler();
+              DocumentationTool docTool1 = provider.getSystemDocumentationTool();
+              
+              Modifier mod = new Modifier();
+              boolean isPublic = mod.isPublic(123);
+              boolean isStatic = mod.isStatic(456);
+          }
+      }
+
+      Recipe:
+
+      {
+        "name": "ChangeToolProviderToStatic",
+        "imports": ["javax.tools.ToolProvider"],
+        "steps": [
+          {
+            "match": {
+              "nodeType": "MethodCallExpr",
+              "methodName": "getSystemJavaCompiler|getSystemDocumentationTool|getSystemToolClassLoader"
+            },
+            "actions": [
+              {
+                "changeMethodTargetToStatic": {
+                  "methodPattern": "javax.tools.ToolProvider *",
+                  "targetType": "javax.tools.ToolProvider"
+                }
+              }
+            ]
+          },
+          {
+            "match": {
+              "nodeType": "ExpressionStmt",
+              "matchExpr": "ToolProvider\\s+\\w+\\s*=\\s*new\\s+ToolProvider\\(\\)"
+            },
+            "actions": [
+              { "removeNode": {} }
+            ]
+          }
+        ]
+      }
+
+      After:
+
+      import javax.tools.ToolProvider;
+      public class MethodTargetToStaticTest {
+          void testToolProviderCalls() {
+              JavaCompiler compiler1 = ToolProvider.getSystemJavaCompiler();
+              DocumentationTool docTool1 = ToolProvider.getSystemDocumentationTool();
+              
+              boolean isPublic = Modifier.isPublic(123);
+              boolean isStatic = Modifier.isStatic(456);
+          }
+      }
+
 customProviders:
   - FactoryLocalVarReplacementActionProvider
   - FactoryFieldInjectionActionProvider

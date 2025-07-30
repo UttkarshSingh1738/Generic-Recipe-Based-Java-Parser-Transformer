@@ -1,0 +1,109 @@
+{
+    "recipes": [
+        {
+            "name": "ChangeToolProviderToStatic", 
+            "description": "Convert ToolProvider instance method calls to static calls",
+            "rollbackOnError": false,
+            "imports": [
+                "javax.tools.ToolProvider"
+            ],
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "getSystemJavaCompiler|getSystemDocumentationTool|getSystemToolClassLoader"
+                    },
+                    "actions": [
+                        {
+                            "changeMethodTargetToStatic": {
+                                "methodPattern": "javax.tools.ToolProvider *",
+                                "targetType": "javax.tools.ToolProvider"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ExpressionStmt",
+                        "matchExpr": "ToolProvider\\s+\\w+\\s*=\\s*new\\s+ToolProvider\\(\\)"
+                    },
+                    "actions": [
+                        {
+                            "removeNode": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ChangeModifierToStatic",
+            "description": "Convert Modifier instance method calls to static calls", 
+            "rollbackOnError": false,
+            "imports": [
+                "java.lang.reflect.Modifier"
+            ],
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "isPublic|isStatic|isPrivate|isFinal|toString"
+                    },
+                    "actions": [
+                        {
+                            "changeMethodTargetToStatic": {
+                                "methodPattern": "java.lang.reflect.Modifier *",
+                                "targetType": "java.lang.reflect.Modifier"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ExpressionStmt", 
+                        "matchExpr": "Modifier\\s+\\w+\\s*=\\s*new\\s+Modifier\\(\\)"
+                    },
+                    "actions": [
+                        {
+                            "removeNode": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ChangeConstantBootstrapsToStatic",
+            "description": "Convert ConstantBootstraps instance method calls to static calls",
+            "rollbackOnError": false,
+            "imports": [
+                "java.lang.invoke.ConstantBootstraps"
+            ],
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "primitiveClass|enumConstant"
+                    },
+                    "actions": [
+                        {
+                            "changeMethodTargetToStatic": {
+                                "methodPattern": "java.lang.invoke.ConstantBootstraps *",
+                                "targetType": "java.lang.invoke.ConstantBootstraps"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ExpressionStmt",
+                        "matchExpr": "ConstantBootstraps\\s+\\w+\\s*=\\s*new\\s+ConstantBootstraps\\(\\)"
+                    },
+                    "actions": [
+                        {
+                            "removeNode": {}
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
