@@ -1186,6 +1186,66 @@ actions:
       JPAStoredProcedureFactory.getInstance(Constants.ams)
         .getStoredProcedure(id);
       
+  - key: instanceOfToPattern
+    class: InstanceOfToPatternAction
+    description: >
+      Convert an old‐style `instanceof` check plus a following cast and local
+      variable declaration into Java 17’s pattern‐matching form.  
+      It transforms:
+      ```java
+      if (expr instanceof Type) {
+          Type var = (Type) expr;
+          // …use var…
+      }
+      ```
+      into:
+      ```java
+      if (expr instanceof Type var) {
+          // …use var…
+      }
+      ```
+      and removes the redundant cast and declaration.
+    parameters: []
+    appliesTo:
+      - InstanceOfExpr
+    example: |
+      Before:
+
+      ```java
+      public class PatternTest {
+          void test(Object obj) {
+              if (obj instanceof Integer) {
+                  Integer i = (Integer) obj;
+                  System.out.println(i + 1);
+              }
+          }
+      }
+      ```
+
+      Recipe:
+
+      ```json
+      {
+        "match": {
+          "nodeType": "InstanceOfExpr"
+        },
+        "actions": [
+          { "instanceOfToPattern": {} }
+        ]
+      }
+      ```
+
+      After:
+
+      ```java
+      public class PatternTest {
+          void test(Object obj) {
+              if (obj instanceof Integer integer) {
+                  System.out.println(integer + 1);
+              }
+          }
+      }
+      ```  
 
 customProviders:
   - FactoryLocalVarReplacementActionProvider
