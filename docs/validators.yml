@@ -126,5 +126,5 @@ validators:
 # Note: Only ONE validator per recipe is currently supported. Multiple validators
 # are not supported in the current implementation.
 #
-# Important: Do not use boolean values for rollbackOnError (e.g., "rollbackOnError": true)
-# as this can cause configuration issues. Always specify a validator name explicitly.
+# Important: Do not use boolean values for rollbackOnError this will just resolve to null,
+# Always specify a validator name explicitly.

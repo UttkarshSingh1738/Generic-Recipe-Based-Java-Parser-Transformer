@@ -1,0 +1,140 @@
+{
+    "recipes": [
+        {
+            "name": "RemoveRuntimeTraceCalls",
+            "description": "Delete calls to the deprecated Runtime.traceInstructions(...) and traceMethodCalls(...) methods.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ExpressionStmt",
+                        "matchExpr": "traceInstructions\\s*\\("
+                    },
+                    "actions": [
+                        {
+                            "removeNode": {}
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ExpressionStmt",
+                        "matchExpr": "traceMethodCalls\\s*\\("
+                    },
+                    "actions": [
+                        {
+                            "removeNode": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "UseLongThreadID",
+            "description": "Rename LogRecord thread-ID methods to their Java 17 replacements and update return types.",
+            "rollbackOnError": "OverrideRule",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "getThreadID"
+                    },
+                    "actions": [
+                        {
+                            "renameMethodCall": {
+                                "oldName": "getThreadID",
+                                "newName": "getLongThreadID"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "setThreadID"
+                    },
+                    "actions": [
+                        {
+                            "renameMethodCall": {
+                                "oldName": "setThreadID",
+                                "newName": "setLongThreadID"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "VariableDeclarationExpr",
+                        "matchExpr": "getLongThreadID\\s*\\("
+                    },
+                    "actions": [
+                        {
+                            "changeType": {
+                                "newType": "long"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "declaringFqn": "java.util.logging.LogRecord",
+                        "methodName": "getThreadID"
+                    },
+                    "actions": [
+                        {
+                            "renameMethod": {
+                                "newName": "getLongThreadID"
+                            }
+                        },
+                        {
+                            "changeMethodReturnType": {
+                                "newType": "long"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "declaringFqn": "java.util.logging.LogRecord",
+                        "methodName": "setThreadID"
+                    },
+                    "actions": [
+                        {
+                            "renameMethod": {
+                                "newName": "setLongThreadID"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ReplaceDeprecatedCertPackage",
+            "description": "Swap out the deprecated javax.security.cert imports/types for java.security.cert.",
+            "imports": {
+                "remove": [
+                    "javax.security.cert.X509Certificate"
+                ],
+                "add": [
+                    "java.security.cert.X509Certificate"
+                ]
+            },
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceType",
+                        "matchExpr": "javax\\.security\\.cert\\.X509Certificate"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "X509Certificate"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

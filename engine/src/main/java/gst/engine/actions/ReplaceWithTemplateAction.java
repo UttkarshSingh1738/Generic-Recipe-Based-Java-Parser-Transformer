@@ -7,6 +7,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 
 import gst.engine.TxContext;
@@ -24,6 +25,8 @@ public class ReplaceWithTemplateAction implements Action {
             replacement = StaticJavaParser.parseStatement(template);
         } else if (node instanceof Expression) {
             replacement = StaticJavaParser.parseExpression(template);
+        } else if (node instanceof Type) {
+            replacement = StaticJavaParser.parseType(template);
         } else {
             return;
         }

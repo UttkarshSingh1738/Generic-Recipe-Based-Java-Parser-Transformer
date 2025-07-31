@@ -385,7 +385,7 @@ actions:
         type: String
         description: Valid Java code fragment to substitute.
     appliesTo:
-      - any Expression or Statement
+      - any Expression or Statement or Type
     example: |
       Before (UseIntegerSumFor1Plus2):
       
