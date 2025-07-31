@@ -24,6 +24,7 @@ import com.github.javaparser.ast.expr.InstanceOfExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
@@ -85,6 +86,8 @@ public class NodeMatcher {
                 root.findAll(com.github.javaparser.ast.body.VariableDeclarator.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "InstanceOfExpr" ->
                 root.findAll(InstanceOfExpr.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+            case "StringLiteralExpr" ->
+                root.findAll(StringLiteralExpr.class).stream().map(n -> (Node) n).collect(Collectors.toList());
 
 
             default -> {

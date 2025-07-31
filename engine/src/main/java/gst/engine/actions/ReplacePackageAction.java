@@ -5,6 +5,10 @@ import java.util.Map;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 
@@ -31,6 +35,14 @@ public class ReplacePackageAction implements Action {
             handleImportDeclaration(importDecl);
         } else if (node instanceof ClassOrInterfaceType type) {
             handleClassOrInterfaceType(type);
+        } else if (node instanceof FieldAccessExpr fieldAccess) {
+            handleFieldAccessExpr(fieldAccess);
+        } else if (node instanceof MethodCallExpr methodCall) {
+            handleMethodCallExpr(methodCall);
+        } else if (node instanceof ObjectCreationExpr objectCreation) {
+            handleObjectCreationExpr(objectCreation);
+        } else if (node instanceof NameExpr nameExpr) {
+            handleNameExpr(nameExpr);
         } else {
             System.out.println("[WARNING] ReplacePackageAction: Unsupported node type: " + node.getClass().getSimpleName());
             return;
@@ -65,6 +77,53 @@ public class ReplacePackageAction implements Action {
                 type.setScope(newScope);
             }
         });
+    }
+
+    private void handleFieldAccessExpr(FieldAccessExpr fieldAccess) {
+        // Handle cases like com.sun.net.ssl.SSLContext.getInstance()
+        String fullExpression = fieldAccess.toString();
+        if (fullExpression.startsWith(oldPackage)) {
+            // Replace the scope of the field access
+            if (fieldAccess.getScope().toString().startsWith(oldPackage)) {
+                String newScopeStr = fieldAccess.getScope().toString().replace(oldPackage, newPackage);
+                NameExpr newScope = new NameExpr(newScopeStr);
+                fieldAccess.setScope(newScope);
+            }
+        }
+        
+        // Also recursively handle scope if it's another FieldAccessExpr
+        if (fieldAccess.getScope() instanceof FieldAccessExpr) {
+            FieldAccessExpr scopeFieldAccess = (FieldAccessExpr) fieldAccess.getScope();
+            handleFieldAccessExpr(scopeFieldAccess);
+        }
+    }
+
+    private void handleMethodCallExpr(MethodCallExpr methodCall) {
+        // Handle method calls on qualified types like com.sun.net.ssl.SSLContext.getInstance()
+        methodCall.getScope().ifPresent(scope -> {
+            if (scope instanceof FieldAccessExpr) {
+                FieldAccessExpr fieldAccess = (FieldAccessExpr) scope;
+                handleFieldAccessExpr(fieldAccess);
+            } else if (scope instanceof NameExpr) {
+                NameExpr nameExpr = (NameExpr) scope;
+                handleNameExpr(nameExpr);
+            }
+        });
+    }
+
+    private void handleObjectCreationExpr(ObjectCreationExpr objectCreation) {
+        // Handle object creation with qualified types like new com.sun.net.ssl.SSLContext()
+        ClassOrInterfaceType type = objectCreation.getType();
+        handleClassOrInterfaceType(type);
+    }
+
+    private void handleNameExpr(NameExpr nameExpr) {
+        // Handle simple qualified names like com.sun.net.ssl.SSLContext
+        String name = nameExpr.getNameAsString();
+        if (name.startsWith(oldPackage)) {
+            String newName = name.replace(oldPackage, newPackage);
+            nameExpr.setName(newName);
+        }
     }
 
     private ClassOrInterfaceType parseClassOrInterfaceType(String qualifiedName) {

@@ -1439,8 +1439,10 @@ actions:
     class: ReplacePackageAction
     description: >
       Replace all occurrences of an old package name with a new package name.
-      Handles both import declarations and fully qualified type references.
-      Ideal for package migrations (e.g., javax.* → java.*).
+      Handles import declarations, fully qualified type references, field access 
+      expressions, method calls on qualified types, object creation with qualified 
+      types, and qualified name expressions. Ideal for comprehensive package 
+      migrations (e.g., javax.* → java.*, com.sun.net.ssl → javax.net.ssl).
     parameters:
       - name: oldPackage
         type: String
@@ -1453,16 +1455,25 @@ actions:
     appliesTo:
       - ImportDeclaration
       - ClassOrInterfaceType
+      - FieldAccessExpr
+      - MethodCallExpr
+      - ObjectCreationExpr
+      - NameExpr
     example: |
       Before:
       
       import javax.security.cert.X509Certificate;
+      import com.sun.net.ssl.SSLContext;
       
       public class CertTest {
           javax.security.cert.X509Certificate cert;
           
           public void set(javax.security.cert.X509Certificate c) {
               this.cert = c;
+              // Qualified method call
+              com.sun.net.ssl.SSLContext.getInstance("SSL");
+              // Object creation with qualified type
+              new com.sun.net.ssl.SSLContext();
           }
       }
       
@@ -1497,6 +1508,34 @@ actions:
                 }
               }
             ]
+          },
+          {
+            "match": {
+              "nodeType": "FieldAccessExpr",
+              "matchExpr": "com\\.sun\\.net\\.ssl"
+            },
+            "actions": [
+              {
+                "replacePackage": {
+                  "oldPackage": "com.sun.net.ssl",
+                  "newPackage": "javax.net.ssl"
+                }
+              }
+            ]
+          },
+          {
+            "match": {
+              "nodeType": "ObjectCreationExpr",
+              "matchExpr": "com\\.sun\\.net\\.ssl"
+            },
+            "actions": [
+              {
+                "replacePackage": {
+                  "oldPackage": "com.sun.net.ssl",
+                  "newPackage": "javax.net.ssl"
+                }
+              }
+            ]
           }
         ]
       }
@@ -1504,12 +1543,17 @@ actions:
       After:
       
       import java.security.cert.X509Certificate;
+      import javax.net.ssl.SSLContext;
       
       public class CertTest {
           java.security.cert.X509Certificate cert;
           
           public void set(java.security.cert.X509Certificate c) {
               this.cert = c;
+              // Qualified method call
+              javax.net.ssl.SSLContext.getInstance("SSL");
+              // Object creation with qualified type
+              new javax.net.ssl.SSLContext();
           }
       }
 

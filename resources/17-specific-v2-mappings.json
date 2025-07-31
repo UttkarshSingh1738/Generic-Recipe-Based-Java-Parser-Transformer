@@ -1,0 +1,162 @@
+{
+    "recipes": [
+        {
+            "name": "ReplaceRMICredentialTypesConstant",
+            "description": "Replace RMIConnectorServer.CREDENTIAL_TYPES constant with CREDENTIALS_FILTER_PATTERN",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "FieldAccessExpr",
+                        "matchExpr": "CREDENTIAL_TYPES"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "RMIConnectorServer.CREDENTIALS_FILTER_PATTERN"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ReplaceZipFinalizeWithClose",
+            "description": "Replace finalize() methods in java.util.zip classes with appropriate close/end methods",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "finalize",
+                        "scopePattern": ".*zipFile.*|.*ZipFile.*"
+                    },
+                    "actions": [
+                        {
+                            "renameMethodCall": {
+                                "oldName": "finalize",
+                                "newName": "close"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "finalize",
+                        "scopePattern": ".*inflater.*|.*Inflater.*"
+                    },
+                    "actions": [
+                        {
+                            "renameMethodCall": {
+                                "oldName": "finalize",
+                                "newName": "end"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "finalize",
+                        "scopePattern": ".*deflater.*|.*Deflater.*"
+                    },
+                    "actions": [
+                        {
+                            "renameMethodCall": {
+                                "oldName": "finalize",
+                                "newName": "end"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ReplaceFileStreamFinalize",
+            "description": "Replace finalize() methods in java.io.FileInputStream and java.io.FileOutputStream with close()",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr", 
+                        "methodName": "finalize",
+                        "scopePattern": ".*fis.*|.*fos.*|.*FileInputStream.*|.*FileOutputStream.*"
+                    },
+                    "actions": [
+                        {
+                            "renameMethodCall": {
+                                "oldName": "finalize",
+                                "newName": "close"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ReplaceSunSSLProvider",
+            "description": "Replace com.sun.net.ssl.internal.ssl.Provider with SunJSSE",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "StringLiteralExpr",
+                        "matchExpr": "com\\.sun\\.net\\.ssl\\.internal\\.ssl\\.Provider"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithTemplate": {
+                                "template": "\"SunJSSE\""
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ReplaceSunNetSSLPackage",
+            "description": "Replace com.sun.net.ssl package with javax.net.ssl package",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ImportDeclaration",
+                        "matchExpr": "com\\.sun\\.net\\.ssl"
+                    },
+                    "actions": [
+                        {
+                            "replacePackage": {
+                                "oldPackage": "com.sun.net.ssl",
+                                "newPackage": "javax.net.ssl"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceType",
+                        "matchExpr": "com\\.sun\\.net\\.ssl"
+                    },
+                    "actions": [
+                        {
+                            "replacePackage": {
+                                "oldPackage": "com.sun.net.ssl",
+                                "newPackage": "javax.net.ssl"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "FieldAccessExpr",
+                        "matchExpr": "com\\.sun\\.net\\.ssl"
+                    },
+                    "actions": [
+                        {
+                            "replacePackage": {
+                                "oldPackage": "com.sun.net.ssl",
+                                "newPackage": "javax.net.ssl"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

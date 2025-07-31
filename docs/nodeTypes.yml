@@ -36,6 +36,17 @@
     // matches this:
     System.err.println("oops");
 
+- nodeType: StringLiteralExpr
+  class: com.github.javaparser.ast.expr.StringLiteralExpr
+  description: >
+    A literal string constant in Java source code, represented with
+    double quotes.  This node covers any occurrence of `"..."` in
+    expressions or initializers.
+  example: |
+    // matches the literal "Hello, world!" in both contexts:
+    String greeting = "Hello, world!";
+    System.out.println("Hello, world!".toUpperCase());
+
 - nodeType: AnnotationExpr
   class: com.github.javaparser.ast.expr.AnnotationExpr
   description: >
