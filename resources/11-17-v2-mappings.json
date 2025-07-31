@@ -20,7 +20,6 @@
         {
             "name": "PreferStringFormatted",
             "description": "Use Java 17 String.formatted(...) instead of String.format(...)",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -41,7 +40,6 @@
         {
             "name": "UseTextBlock",
             "description": "Convert string literals to text blocks where applicable",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -62,7 +60,6 @@
         {
             "name": "AnnotateSerialVersionUIDWithSerial",
             "description": "Add `@Serial` to any `serialVersionUID` field (Java 14+).",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
