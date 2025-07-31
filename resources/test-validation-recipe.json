@@ -1,0 +1,21 @@
+{
+  "recipes": [
+    {
+      "name": "test-pattern-validation-rollback",
+      "rollbackOnError": "PatternVariableUsageRule",
+      "steps": [
+        {
+          "match": {
+            "nodeType": "InstanceOfExpr",
+            "type": "Integer"
+          },
+          "actions": [
+            {
+              "instanceOfToPattern": {}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+# validators.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# A catalog of all available validators for recipe validation.
+
+validators:
+  - name: PatternVariableUsageRule
+    class: gst.engine.validator.PatternVariableUsageRule
+    description: >
+      Validates that pattern variables introduced by instanceof pattern matching 
+      are actually used in the then block. Prevents unnecessary conversions where 
+      the pattern variable is created but never referenced.
+    appliesTo:
+      - InstanceOfExpr (with pattern matching)
+    example: |
+      // This would trigger a validation error:
+      if (obj instanceof String str) {
+          // str is never used here
+          System.out.println("Found a string");
+      }
+      
+      // This would pass validation:
+      if (obj instanceof String str) {
+          System.out.println("String value: " + str);
+      }
+
+  - name: SwitchExpressionCompletenessRule
+    class: gst.engine.validator.SwitchExpressionCompletenessRule
+    description: >
+      Validates that switch expressions are complete and well-formed. Ensures
+      each case either produces a value directly or ends with return/throw.
+    appliesTo:
+      - SwitchExpr
+    example: |
+      // This would trigger a validation error:
+      return switch (value) {
+          case 1 -> {
+              System.out.println("One");
+              // Missing return or yield
+          }
+          case 2 -> "Two"; // OK
+      };
+      
+      // This would pass validation:
+      return switch (value) {
+          case 1 -> {
+              System.out.println("One");
+              return "One";
+          }
+          case 2 -> "Two";
+      };
+
+  - name: EnhancedForUsageRule
+    class: gst.engine.validator.EnhancedForUsageRule
+    description: >
+      Validates enhanced for loop transformations and usage patterns. Checks
+      that converted loops maintain semantic correctness and that iteration
+      variables are properly used.
+    appliesTo:
+      - ForStmt (traditional for loops)
+      - ForEachStmt (enhanced for loops)
+    example: |
+      // This would trigger a validation error (index used for more than iteration):
+      for (int i = 0; i < array.length; i++) {
+          process(array[i]);
+          System.out.println("Index: " + i); // i used beyond array access
+      }
+      
+      // This would pass validation:
+      for (String item : items) {
+          process(item); // item is used
+      }
+
+  - name: TypeCompatibilityRule
+    class: gst.engine.validator.TypeCompatibilityRule
+    description: >
+      Validates type compatibility after variable type changes. Ensures that
+      variables with changed types are still compatible with their usage contexts,
+      particularly in method calls.
+    appliesTo:
+      - MethodCallExpr (where arguments have changed types)
+    example: |
+      // This would trigger a validation error:
+      List<String> items = new ArrayList<>(); // Changed to var
+      someMethod(items); // someMethod expects List<Integer>
+      
+      // This would pass validation:
+      var items = new ArrayList<String>();
+      someMethod(items); // someMethod accepts List<String>
+
+  - name: OverrideRule
+    class: gst.engine.validator.OverrideRule
+    description: >
+      Validates that @Override annotations are correctly placed on methods that
+      actually override superclass or interface methods. Prevents incorrect
+      @Override usage after method signature changes.
+    appliesTo:
+      - MethodDeclaration (with @Override annotation)
+    example: |
+      // This would trigger a validation error:
+      @Override
+      public void someMethod() {
+          // Method doesn't actually override anything
+      }
+      
+      // This would pass validation:
+      @Override
+      public String toString() {
+          return "Valid override";
+      }
+
+# Usage in Recipes
+# ─────────────────────────────────────────────────────────────────────────────
+# CAUTION: Use validators with care. While the provided validators have been tested miniminally,
+# to ensure functionality they may not cover all edge cases. For specific validation needs, consider
+# creating small, focused custom validators tailored to your exact use case rather than relying
+# solely on the general-purpose validators provided.
+#
+# To use a validator in recipes, add a "rollbackOnError" field with the validator name:
+#
+# {
+#   "name": "MyRecipe",
+#   "rollbackOnError": "PatternVariableUsageRule",
+#   "steps": [...]
+# }
+#
+# Note: Only ONE validator per recipe is currently supported. Multiple validators
+# are not supported in the current implementation.
+#
+# Important: Do not use boolean values for rollbackOnError (e.g., "rollbackOnError": true)
+# as this can cause configuration issues. Always specify a validator name explicitly.

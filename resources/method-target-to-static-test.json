@@ -3,7 +3,6 @@
         {
             "name": "ChangeToolProviderToStatic", 
             "description": "Convert ToolProvider instance method calls to static calls",
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "javax.tools.ToolProvider"
@@ -41,7 +40,6 @@
         {
             "name": "ChangeModifierToStatic",
             "description": "Convert Modifier instance method calls to static calls", 
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "java.lang.reflect.Modifier"
@@ -94,7 +92,6 @@
         {
             "name": "ChangeConstantBootstrapsToStatic",
             "description": "Convert ConstantBootstraps instance method calls to static calls",
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "java.lang.invoke.ConstantBootstraps"

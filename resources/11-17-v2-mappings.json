@@ -3,7 +3,7 @@
         {
             "name": "UseInstanceOfPatternMatching",
             "description": "Convert old‐style instanceof+cast into Java 17 pattern matching",
-            "rollbackOnError": false,
+            "rollbackOnError": "PatternVariableUsageRule",
             "steps": [
                 {
                     "match": {

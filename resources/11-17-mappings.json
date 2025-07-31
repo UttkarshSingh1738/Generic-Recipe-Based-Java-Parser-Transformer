@@ -3,7 +3,6 @@
         {
             "name": "UseVarForListDecl",
             "description": "Convert local List<T> declarations to `var` when they have an initializer.",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -24,7 +23,7 @@
         {
             "name": "ReplaceDateWithLocalDateTime",
             "description": "Replace Date with LocalDateTime and new Date() with LocalDateTime.now().",
-            "rollbackOnError": false,
+            "rollbackOnError": "TypeCompatibilityRule",
             "imports": {
                 "add": [
                     "java.time.LocalDateTime"
@@ -96,7 +95,6 @@
         {
             "name": "UseCopyOfForUnmodifiableList",
             "description": "Replace Collections.unmodifiableList(...) with List.copyOf(...).",
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "java.util.List"
@@ -126,7 +124,6 @@
         {
             "name": "UseListOfForAsList",
             "description": "Replace Arrays.asList(...) with List.of(...).",
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "java.util.List",
@@ -157,7 +154,7 @@
         {
             "name": "UseSwitchReturnExpression",
             "description": "Convert switch statements into a single return switch‐expression.",
-            "rollbackOnError": false,
+            "rollbackOnError": "SwitchExpressionCompletenessRule",
             "steps": [
                 {
                     "match": {
@@ -174,7 +171,7 @@
         {
             "name": "UseEnhancedFor",
             "description": "Rewrite classic for‐loops over arrays or lists into enhanced for‐each loops.",
-            "rollbackOnError": false,
+            "rollbackOnError": "EnhancedForUsageRule",
             "steps": [
                 {
                     "match": {
@@ -195,7 +192,6 @@
         {
             "name": "UseRequireNonNullElse",
             "description": "Replace Optional.ofNullable(x).orElse(y) with Objects.requireNonNullElse(x,y).",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -223,7 +219,6 @@
         {
             "name": "UseIntegerSumFor1Plus2",
             "description": "Replace the literal `1 + 2` with `Integer.sum(1, 2)`.",
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "java.lang.Integer"
@@ -249,7 +244,6 @@
         {
             "name": "UseLineSeparator",
             "description": "Replace `System.getProperty(\"line.separator\")` with `System.lineSeparator()`.",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {

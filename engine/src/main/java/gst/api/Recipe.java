@@ -10,5 +10,5 @@ public class Recipe {
     public String description;
     public ImportMods imports;
     public List<Step> steps;
-    public boolean rollbackOnError = false;
+    public String rollbackOnError = null;
 }

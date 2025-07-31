@@ -238,6 +238,21 @@ public class NodeMatcher {
                 failures.add("type mismatch: got `" + simple + "` and `" + resolved + "`");
             }
         }
+        if (m.type != null && node instanceof InstanceOfExpr ioe) {
+            String simple = ioe.getType().asString();
+            String resolved = null;
+            try {
+                resolved = ioe.getType().resolve().asReferenceType().getQualifiedName();
+            } catch (Exception e) {
+                failures.add("type resolution error: " + e.getMessage());
+            }
+            boolean ok = simple.equals(m.type)
+                    || (resolved != null && resolved.equals(m.type))
+                    || simple.endsWith("." + m.type);
+            if (!ok) {
+                failures.add("type mismatch: got `" + simple + "` and `" + resolved + "`");
+            }
+        }
 
         // methodName (for calls AND declarations) - supports multiple names separated by |
         if (m.methodName != null) {

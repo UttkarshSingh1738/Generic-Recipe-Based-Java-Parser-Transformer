@@ -32,7 +32,8 @@ import gst.engine.actions.ActionFactory;
 import gst.engine.matcher.MatchResult;
 import gst.engine.matcher.NodeMatcher;
 import gst.engine.validator.ValidationError;
-import gst.engine.validator.Validator;
+import gst.engine.validator.ValidationFactory;
+import gst.engine.validator.ValidationRule;
 
 public class Pipeline {
 
@@ -136,7 +137,7 @@ public class Pipeline {
                                     String actionName = spec.getKey();
                                     Map<String, Object> params = spec.getParams();
 
-                                    ctx.saveOriginalNode(node, node.clone());
+                                    ctx.saveOriginalNodeForRecipe(recipe.name, node, node.clone());
                                     Action act = ActionFactory.create(actionName, params);
                                     System.out.println("[ACTION] " + actionName
                                             + " on node at " + node.getRange().orElse(null));
@@ -188,33 +189,51 @@ public class Pipeline {
                             System.out.println("[PARSE-CHECK] [OK] No parsing issues detected after recipe '" + recipe.name + "'");
                         }
                         
-                        // Run validation per-recipe if this specific recipe has rollbackOnError=true
-                        if (recipe.rollbackOnError) {
-                            List<ValidationError> errors = Validator.run(List.of(cu), ctx, symbolSolver);
-                            
-                            if (!errors.isEmpty()) {
-                                System.out.println("[VALIDATION] Errors found after applying recipe '" + recipe.name + "' in file: " + rel);
-                                errors.forEach(System.out::println);
+                        // Run validation per-recipe if this specific recipe has rollbackOnError specified
+                        if (recipe.rollbackOnError != null && !recipe.rollbackOnError.trim().isEmpty()) {
+                            try {
+                                ValidationRule validator = ValidationFactory.create(recipe.rollbackOnError);
+                                List<Node> allChangedNodes = ctx.getRecipeChanges(recipe.name);
                                 
-                                System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: " + recipe.name);
-                                ctx.getOriginalFile(srcFile).ifPresent(original -> {
-                                    cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
-                                    cu.setImports(original.getImports());
-                                    cu.setTypes(original.getTypes());
-                                });
-                                ctx.markRolledBack(srcFile);
-                                ctx.recordRollbackError(srcFile, errors);
+                                // Filter changed nodes to only include nodes from the current file
+                                String currentFilePath = cu.getStorage().map(s -> s.getPath().toString()).orElse(null);
+                                List<Node> fileChangedNodes = allChangedNodes.stream()
+                                    .filter(node -> {
+                                        String nodeFilePath = node.findCompilationUnit()
+                                            .flatMap(nodeCu -> nodeCu.getStorage())
+                                            .map(s -> s.getPath().toString())
+                                            .orElse(null);
+                                        return currentFilePath != null && currentFilePath.equals(nodeFilePath);
+                                    })
+                                    .collect(java.util.stream.Collectors.toList());
                                 
-                                fileChanged = false;
+                                List<ValidationError> errors = validator.validateRecipeChanges(cu, fileChangedNodes, ctx, symbolSolver, recipe.name);
                                 
-                                break;
-                            } else {
-                                ctx.markFileChanged(srcFile);
+                                if (!errors.isEmpty()) {
+                                    System.out.println("[VALIDATION] Errors found in recipe '" + recipe.name + "' using validator '" + recipe.rollbackOnError + "' in file: " + rel);
+                                    errors.forEach(System.out::println);
+                                    
+                                    System.out.println("[ROLLBACK] Rolling back changes from recipe: " + recipe.name);
+                                    ctx.rollbackRecipe(recipe.name);
+                                    ctx.markRolledBack(srcFile);
+                                    ctx.recordRollbackError(srcFile, errors);
+                                    
+                                    // fileChanged remains true if other recipes modified the file
+                                    Set<String> remainingRecipes = ctx.getRecipesForFile(srcFile);
+                                    fileChanged = !remainingRecipes.isEmpty();
+                                    
+                                    break;
+                                } else {
+                                    ctx.registerRecipeForFile(srcFile, recipe.name);
+                                    System.out.println("[VALIDATION] Recipe '" + recipe.name + "' passed validation using '" + recipe.rollbackOnError + "'");
+                                }
+                            } catch (IllegalArgumentException e) {
+                                System.err.println("[VALIDATION] Unknown validator '" + recipe.rollbackOnError + "' in recipe '" + recipe.name + "'. Available validators: " + 
+                                    String.join(", ", ValidationFactory.getAvailableValidators()));
+                                // Continue without validation
                                 ctx.registerRecipeForFile(srcFile, recipe.name);
-                                System.out.println("[VALIDATION] Recipe '" + recipe.name + "' passed validation");
                             }
                         } else {
-                            ctx.markFileChanged(srcFile);
                             ctx.registerRecipeForFile(srcFile, recipe.name);
                         }
                     }

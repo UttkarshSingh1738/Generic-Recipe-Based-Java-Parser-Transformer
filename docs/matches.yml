@@ -66,6 +66,7 @@ matches:
     appliesTo:
       - VariableDeclarationExpr
       - Parameter
+      - InstanceOfExpr
     example: |
       # Convert any method parameter typed java.util.Date → java.time.LocalDateTime
         public void setDate(java.util.Date date) {
