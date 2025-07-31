@@ -204,6 +204,24 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "RemoveCountStackFrames",
+            "description": "Remove standalone calls to Thread.countStackFrames() (Java SE 14+).",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "countStackFrames",
+                        "parentNodeType": "ExpressionStmt"
+                    },
+                    "actions": [
+                        {
+                            "removeParentNode": {}
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

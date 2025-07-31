@@ -34,6 +34,7 @@ public class ActionFactory {
             case "insertBefore":                        return new InsertBeforeAction(stringParams);
             case "insertAfter":                         return new InsertAfterAction(stringParams);
             case "removeNode":                          return new RemoveNodeAction(stringParams);
+            case "removeParentNode":                    return new RemoveParentNodeAction(stringParams);
             case "replaceWithTemplate":                 return new ReplaceWithTemplateAction(stringParams);
             case "addImport":                           return new AddImportAction(stringParams);
             case "removeImport":                        return new RemoveImportAction(stringParams);

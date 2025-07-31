@@ -137,4 +137,11 @@
     static void agentmain(String agentArgs, Instrumentation inst) {
         System.out.println("agentmain two-arg");
     }
+
+    void foos() {
+        // standalone call → should be removed
+        Thread.currentThread().countStackFrames();
+        // used in an assignment → should stay
+        int depth = Thread.currentThread().countStackFrames();
+    }
 }
