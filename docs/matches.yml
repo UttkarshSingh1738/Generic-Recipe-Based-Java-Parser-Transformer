@@ -408,6 +408,28 @@ matches:
         ]
       }
 
+  - key: argumentCount
+    description: >
+      For MethodCallExpr only: require exactly this many arguments in the method call.
+    appliesTo:
+      - MethodCallExpr
+    example: |
+      # Only match method calls with exactly 2 arguments
+        process(arg1, arg2);
+        // matches
+        process(arg1);
+        // does not match
+      {
+        "match": {
+          "nodeType": "MethodCallExpr",
+          "methodName": "process",
+          "argumentCount": 2
+        },
+        "actions": [
+          { "replaceWithMethodCall": { "scope": "Processor", "method": "handle" } }
+        ]
+      }
+
   - key: expectedParamType
     description: >
       Used with `argumentType`: the corresponding method parameter’s resolved type.
