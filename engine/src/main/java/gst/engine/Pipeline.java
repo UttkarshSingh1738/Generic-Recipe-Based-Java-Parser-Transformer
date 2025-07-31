@@ -213,7 +213,8 @@ public class Pipeline {
                                     System.out.println("[VALIDATION] Errors found in recipe '" + recipe.name + "' using validator '" + recipe.rollbackOnError + "' in file: " + rel);
                                     errors.forEach(System.out::println);
                                     
-                                    System.out.println("[ROLLBACK] Rolling back changes from recipe: " + recipe.name);
+                                    System.out.println("[ROLLBACK] Rolling back changes from recipe: " + recipe.name + " (Note: ROLLBACK temporarily not working - manually check file)");
+                                    // TODO: Fix TxContext rollback mechanism - node tracking/replacement not working correctly
                                     ctx.rollbackRecipe(recipe.name);
                                     ctx.markRolledBack(srcFile);
                                     ctx.recordRollbackError(srcFile, errors);

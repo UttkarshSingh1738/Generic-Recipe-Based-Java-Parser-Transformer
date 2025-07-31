@@ -129,7 +129,7 @@
                 },
                 {
                     "match": {
-                        "nodeType": "ClassOrInterfaceType", 
+                        "nodeType": "ClassOrInterfaceType",
                         "matchExpr": "javax\\.security\\.cert"
                     },
                     "actions": [
@@ -137,6 +137,68 @@
                             "replacePackage": {
                                 "oldPackage": "javax.security.cert",
                                 "newPackage": "java.security.cert"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "MakeAgentEntryPointsPublic",
+            "description": "Ensure premain/agentmain entry-points are declared public so the JVM can load the agent.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "methodName": "premain",
+                        "paramCount": 1
+                    },
+                    "actions": [
+                        {
+                            "setAccessLevel": {
+                                "level": "public"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "methodName": "premain",
+                        "paramCount": 2
+                    },
+                    "actions": [
+                        {
+                            "setAccessLevel": {
+                                "level": "public"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "methodName": "agentmain",
+                        "paramCount": 1
+                    },
+                    "actions": [
+                        {
+                            "setAccessLevel": {
+                                "level": "public"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "methodName": "agentmain",
+                        "paramCount": 2
+                    },
+                    "actions": [
+                        {
+                            "setAccessLevel": {
+                                "level": "public"
                             }
                         }
                     ]

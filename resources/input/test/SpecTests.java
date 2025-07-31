@@ -118,5 +118,23 @@
     //     }
     // }
 
+    // package-private – JVM won’t see this as an agent entrypoint
+    static void premain(String agentArgs) {
+        System.out.println("premain one-arg");
+    }
 
+    // private – same problem
+    private static void premain(String agentArgs, Instrumentation inst) {
+        System.out.println("premain two-arg");
+    }
+
+    // protected – again, not public
+    protected static void agentmain(String agentArgs) {
+        System.out.println("agentmain one-arg");
+    }
+
+    // package-private
+    static void agentmain(String agentArgs, Instrumentation inst) {
+        System.out.println("agentmain two-arg");
+    }
 }
