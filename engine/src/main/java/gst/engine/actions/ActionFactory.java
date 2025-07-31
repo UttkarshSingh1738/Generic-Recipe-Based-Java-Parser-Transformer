@@ -61,6 +61,7 @@ public class ActionFactory {
             case "instanceOfToPattern":                 return new InstanceOfToPatternAction(stringParams);
             case "replaceStringFormatWithFormatted":    return new ReplaceStringFormatWithFormattedAction(stringParams);
             case "changeMethodTargetToStatic":          return new ChangeMethodTargetToStaticAction(stringParams);
+            case "replacePackage":                      return new ReplacePackageAction(stringParams);
 
         }
 

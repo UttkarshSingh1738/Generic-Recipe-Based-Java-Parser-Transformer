@@ -1396,6 +1396,84 @@ actions:
           }
       }
 
+  - key: replacePackage
+    class: ReplacePackageAction
+    description: >
+      Replace all occurrences of an old package name with a new package name.
+      Handles both import declarations and fully qualified type references.
+      Ideal for package migrations (e.g., javax.* → java.*).
+    parameters:
+      - name: oldPackage
+        type: String
+        description: The old package name to replace.
+        required: true
+      - name: newPackage
+        type: String
+        description: The new package name to use.
+        required: true
+    appliesTo:
+      - ImportDeclaration
+      - ClassOrInterfaceType
+    example: |
+      Before:
+      
+      import javax.security.cert.X509Certificate;
+      
+      public class CertTest {
+          javax.security.cert.X509Certificate cert;
+          
+          public void set(javax.security.cert.X509Certificate c) {
+              this.cert = c;
+          }
+      }
+      
+      Recipe:
+      
+      {
+        "steps": [
+          {
+            "match": {
+              "nodeType": "ImportDeclaration",
+              "matchExpr": "javax\\.security\\.cert"
+            },
+            "actions": [
+              {
+                "replacePackage": {
+                  "oldPackage": "javax.security.cert",
+                  "newPackage": "java.security.cert"
+                }
+              }
+            ]
+          },
+          {
+            "match": {
+              "nodeType": "ClassOrInterfaceType",
+              "matchExpr": "javax\\.security\\.cert"
+            },
+            "actions": [
+              {
+                "replacePackage": {
+                  "oldPackage": "javax.security.cert",
+                  "newPackage": "java.security.cert"
+                }
+              }
+            ]
+          }
+        ]
+      }
+      
+      After:
+      
+      import java.security.cert.X509Certificate;
+      
+      public class CertTest {
+          java.security.cert.X509Certificate cert;
+          
+          public void set(java.security.cert.X509Certificate c) {
+              this.cert = c;
+          }
+      }
+
 customProviders:
   - FactoryLocalVarReplacementActionProvider
   - FactoryFieldInjectionActionProvider

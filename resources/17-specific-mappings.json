@@ -111,25 +111,32 @@
         },
         {
             "name": "ReplaceDeprecatedCertPackage",
-            "description": "Swap out the deprecated javax.security.cert imports/types for java.security.cert.",
-            "imports": {
-                "remove": [
-                    "javax.security.cert.X509Certificate"
-                ],
-                "add": [
-                    "java.security.cert.X509Certificate"
-                ]
-            },
+            "description": "Replace javax.security.cert with java.security.cert",
             "steps": [
                 {
                     "match": {
-                        "nodeType": "ClassOrInterfaceType",
-                        "matchExpr": "javax\\.security\\.cert\\.X509Certificate"
+                        "nodeType": "ImportDeclaration",
+                        "matchExpr": "javax\\.security\\.cert"
                     },
                     "actions": [
                         {
-                            "replaceWithTemplate": {
-                                "template": "X509Certificate"
+                            "replacePackage": {
+                                "oldPackage": "javax.security.cert",
+                                "newPackage": "java.security.cert"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceType", 
+                        "matchExpr": "javax\\.security\\.cert"
+                    },
+                    "actions": [
+                        {
+                            "replacePackage": {
+                                "oldPackage": "javax.security.cert",
+                                "newPackage": "java.security.cert"
                             }
                         }
                     ]
