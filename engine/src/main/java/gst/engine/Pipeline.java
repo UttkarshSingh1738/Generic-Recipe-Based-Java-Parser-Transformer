@@ -222,7 +222,8 @@ public class Pipeline {
                                     Set<String> remainingRecipes = ctx.getRecipesForFile(srcFile);
                                     fileChanged = !remainingRecipes.isEmpty();
                                     
-                                    break;
+                                    // break;
+                                    // TEST - Was causing early exit for recipes.
                                 } else {
                                     ctx.registerRecipeForFile(srcFile, recipe.name);
                                     System.out.println("[VALIDATION] Recipe '" + recipe.name + "' passed validation using '" + recipe.rollbackOnError + "'");
