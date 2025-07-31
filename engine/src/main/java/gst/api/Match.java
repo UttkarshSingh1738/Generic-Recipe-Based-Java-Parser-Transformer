@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = false)
 public class Match {
     public String nodeType;
     public String fqn;
@@ -41,4 +41,5 @@ public class Match {
     public String declaringFqnPattern;
     public String overridesFqnPattern;
     public String annotationValuePattern;
+    public Integer argumentCount;
 }

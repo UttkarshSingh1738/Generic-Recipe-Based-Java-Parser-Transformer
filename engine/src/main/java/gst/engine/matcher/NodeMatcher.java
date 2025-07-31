@@ -500,6 +500,13 @@ public class NodeMatcher {
             }
         }
 
+        // argumentCount (for MethodCallExpr)
+        if (m.argumentCount != null && node instanceof com.github.javaparser.ast.expr.MethodCallExpr mc4) {
+            if (mc4.getArguments().size() != m.argumentCount) {
+                failures.add("argumentCount mismatch: expected " + m.argumentCount + " but got " + mc4.getArguments().size());
+            }
+        }
+
         // beforeLine / afterLine (if implemented)
         if (m.beforeLine != null || m.afterLine != null) {
             Optional<Range> r = node.getRange();

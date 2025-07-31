@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,12 +36,31 @@ import gst.engine.validator.Validator;
 
 public class Pipeline {
 
+    private static List<String> performParseCheck(String code) {
+        List<String> issues = new ArrayList<>();
+        
+        try {
+            StaticJavaParser.parse(code);
+        } catch (com.github.javaparser.ParseProblemException e) {
+            issues.add("Parse error: " + e.getMessage());
+        } catch (Exception e) {
+            issues.add("Unexpected parsing issue: " + e.getMessage());
+        }
+        
+        return issues;
+    }
+    private static List<String> performParseCheck(CompilationUnit cu) {return performParseCheck(cu.toString());}
+
     public static void run(Path mappingFile, Path inputRoot, Path outputRoot) throws IOException {
-        run(mappingFile, inputRoot, outputRoot, List.of());
+        run(mappingFile, inputRoot, outputRoot, List.of(), false);
+    }
+    
+    public static void run(Path mappingFile, Path inputRoot, Path outputRoot, List<Path> jarPaths) throws IOException {
+        run(mappingFile, inputRoot, outputRoot, jarPaths, false);
     }
 
     @SuppressWarnings("UseSpecificCatch")
-    public static void run(Path mappingFile, Path inputRoot, Path outputRoot, List<Path> jarPaths) throws IOException {
+    public static void run(Path mappingFile, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
         List<Recipe> recipes = MappingLoader.load(mappingFile);
 
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
@@ -59,7 +78,7 @@ public class Pipeline {
         }
 
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
-        ParserConfiguration cfg = new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17).setSymbolResolver(symbolSolver);
+        ParserConfiguration cfg = new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21).setSymbolResolver(symbolSolver);
         StaticJavaParser.setConfiguration(cfg);
 
         TxContext ctx = new TxContext();
@@ -72,6 +91,21 @@ public class Pipeline {
             for (Path srcFile : javaFiles) {
                 String rel = inputRoot.relativize(srcFile).toString();
                 System.out.println("[PROCESS] Processing file: " + rel);
+                
+                try {
+                    String originalContent = Files.readString(srcFile, StandardCharsets.UTF_8);
+                    List<String> initialParseIssues = performParseCheck(originalContent);
+                    if (!initialParseIssues.isEmpty()) {
+                        System.out.println("[INITIAL-PARSE-CHECK] Issues detected in original input file: " + rel);
+                        initialParseIssues.forEach(issue -> System.out.println("  [WARNING] " + issue));
+                        System.out.println("[INFO] These are pre-existing issues in the source code, not caused by transformations");
+                    } else {
+                        System.out.println("[INITIAL-PARSE-CHECK] [OK] Original input file has no parsing issues: " + rel);
+                    }
+                } catch (IOException e) {
+                    System.err.println("[ERROR] Could not read file for initial parse check: " + srcFile + " - " + e.getMessage());
+                }
+                
                 CompilationUnit cu;
                 try {
                     cu = StaticJavaParser.parse(srcFile);
@@ -113,9 +147,11 @@ public class Pipeline {
                                 matchedRecipe = true;
                                 fileChanged = true;
                             } else {
-                                System.out.println("[MATCH-FAILED] "
-                                    + step.match.nodeType + " at " + node.getRange().orElse(null)
-                                    + " → " + result.getFailureReasons());
+                                if (matchDebug) {
+                                    List<String> reasons = result.getFailureReasons();
+                                    String primaryReason = reasons.isEmpty() ? "unknown" : reasons.get(0);
+                                    System.out.println("[MATCH-FAILED] " + step.match.nodeType + " → " + primaryReason);
+                                }
                             }
                         }
 
@@ -143,35 +179,24 @@ public class Pipeline {
                     }
 
                     if (matchedRecipe) {
-                        ctx.markFileChanged(srcFile);
-                        ctx.registerRecipeForFile(srcFile, recipe.name);
-                    }
-                }
-
-                if (ctx.isFileChanged(srcFile)) {
-                    Set<String> applied = ctx.getRecipesForFile(srcFile);
-
-                    // Check if any applied recipe has rollbackOnError=true
-                    boolean shouldRunValidation = recipes.stream()
-                            .filter(r -> r.rollbackOnError)
-                            .anyMatch(r -> applied.contains(r.name));
-
-                    if (shouldRunValidation) {
-                        List<ValidationError> errors = Validator.run(List.of(cu), ctx, symbolSolver);
-
-                        if (!errors.isEmpty()) {
-                            System.out.println("[VALIDATION] Errors found in file: " + rel);
-                            errors.forEach(System.out::println);
-
-                            Optional<Recipe> toRollback = recipes.stream()
-                                    .filter(r -> r.rollbackOnError)
-                                    .filter(r -> applied.contains(r.name))
-                                    .findFirst();
-
-                            if (toRollback.isPresent()) {
-                                Recipe bad = toRollback.get();
-                                System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: "
-                                        + bad.name);
+                        // Perform immediate parse check after recipe application
+                        List<String> parseIssues = performParseCheck(cu);
+                        if (!parseIssues.isEmpty()) {
+                            System.out.println("[PARSE-CHECK] Issues detected after applying recipe '" + recipe.name + "' in file: " + rel);
+                            parseIssues.forEach(issue -> System.out.println("  [WARNING] " + issue));
+                        } else {
+                            System.out.println("[PARSE-CHECK] [OK] No parsing issues detected after recipe '" + recipe.name + "'");
+                        }
+                        
+                        // Run validation per-recipe if this specific recipe has rollbackOnError=true
+                        if (recipe.rollbackOnError) {
+                            List<ValidationError> errors = Validator.run(List.of(cu), ctx, symbolSolver);
+                            
+                            if (!errors.isEmpty()) {
+                                System.out.println("[VALIDATION] Errors found after applying recipe '" + recipe.name + "' in file: " + rel);
+                                errors.forEach(System.out::println);
+                                
+                                System.out.println("[ROLLBACK] Rolling back changes due to validation failure in recipe: " + recipe.name);
                                 ctx.getOriginalFile(srcFile).ifPresent(original -> {
                                     cu.setPackageDeclaration(original.getPackageDeclaration().orElse(null));
                                     cu.setImports(original.getImports());
@@ -179,11 +204,29 @@ public class Pipeline {
                                 });
                                 ctx.markRolledBack(srcFile);
                                 ctx.recordRollbackError(srcFile, errors);
+                                
                                 fileChanged = false;
+                                
+                                break;
+                            } else {
+                                ctx.markFileChanged(srcFile);
+                                ctx.registerRecipeForFile(srcFile, recipe.name);
+                                System.out.println("[VALIDATION] Recipe '" + recipe.name + "' passed validation");
                             }
+                        } else {
+                            ctx.markFileChanged(srcFile);
+                            ctx.registerRecipeForFile(srcFile, recipe.name);
                         }
+                    }
+                }
+
+                if (fileChanged) {
+                    List<String> finalParseIssues = performParseCheck(cu);
+                    if (!finalParseIssues.isEmpty()) {
+                        System.out.println("[FINAL-PARSE-CHECK] Issues detected in final transformed file: " + rel);
+                        finalParseIssues.forEach(issue -> System.out.println("  [WARNING] " + issue));
                     } else {
-                        System.out.println("[VALIDATION] Skipping validation - no applied recipes have rollbackOnError=true");
+                        System.out.println("[FINAL-PARSE-CHECK] [OK] Final transformed file passes parse validation: " + rel);
                     }
                 }
 
@@ -216,6 +259,8 @@ public class Pipeline {
                 System.out.println("     =>> " + err);
             }
         });
+
+        System.out.println("\n\n\n\n\n");
 
     }
 }

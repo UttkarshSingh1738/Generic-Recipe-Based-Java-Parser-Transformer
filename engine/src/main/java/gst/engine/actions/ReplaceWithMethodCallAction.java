@@ -45,7 +45,10 @@ public class ReplaceWithMethodCallAction implements Action {
             } else if (includeScopeArg && mc.getScope().isPresent()) {
                 args.add(mc.getScope().get().clone());
             }
-            args.addAll(mc.getArguments());
+            // Only add original arguments if includeScopeArg is true, otherwise start fresh
+            if (includeScopeArg) {
+                args.addAll(mc.getArguments());
+            }
 
             Expression scope = StaticJavaParser.parseExpression(scopeExpression);
             MethodCallExpr newCall = new MethodCallExpr(scope, method, args);

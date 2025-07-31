@@ -4,9 +4,12 @@
             "name": "ChangeToolProviderToStatic", 
             "description": "Convert ToolProvider instance method calls to static calls",
             "rollbackOnError": false,
-            "imports": [
-                "javax.tools.ToolProvider"
-            ],
+            "imports": {
+                "add": [
+                    "javax.tools.ToolProvider"
+                ],
+                "remove": []
+            },
             "steps": [
                 {
                     "match": {
@@ -39,14 +42,32 @@
             "name": "ChangeModifierToStatic",
             "description": "Convert Modifier instance method calls to static calls", 
             "rollbackOnError": false,
-            "imports": [
-                "java.lang.reflect.Modifier"
-            ],
+            "imports": {
+                "add": [
+                    "java.lang.reflect.Modifier"
+                ],
+                "remove": []
+            },
             "steps": [
                 {
                     "match": {
                         "nodeType": "MethodCallExpr",
-                        "methodName": "isPublic|isStatic|isPrivate|isFinal|toString"
+                        "methodName": "isPublic|isStatic|isPrivate|isFinal"
+                    },
+                    "actions": [
+                        {
+                            "changeMethodTargetToStatic": {
+                                "methodPattern": "java.lang.reflect.Modifier *",
+                                "targetType": "java.lang.reflect.Modifier"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "toString",
+                        "argumentCount": 1
                     },
                     "actions": [
                         {
@@ -74,9 +95,12 @@
             "name": "ChangeConstantBootstrapsToStatic",
             "description": "Convert ConstantBootstraps instance method calls to static calls",
             "rollbackOnError": false,
-            "imports": [
-                "java.lang.invoke.ConstantBootstraps"
-            ],
+            "imports": {
+                "add": [
+                    "java.lang.invoke.ConstantBootstraps"
+                ],
+                "remove": []
+            },
             "steps": [
                 {
                     "match": {

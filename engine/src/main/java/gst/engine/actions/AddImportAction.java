@@ -15,7 +15,11 @@ public class AddImportAction implements Action {
     }
     @Override
     public void apply(Node node, CompilationUnit cu, TxContext ctx, JavaSymbolSolver solver) {
-        ctx.saveOriginalNode(cu, cu.clone());
+        try {
+            ctx.saveOriginalNode(cu, cu.clone());
+        } catch (IllegalStateException e) {
+            System.out.println("[WARNING] Could not save original CompilationUnit due to cloning issue: " + e.getMessage());
+        }
         boolean present = cu.getImports().stream()
             .anyMatch(i -> i.getNameAsString().equals(name));
         if (!present) {

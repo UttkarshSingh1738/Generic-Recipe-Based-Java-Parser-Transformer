@@ -19,6 +19,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 
 import gst.engine.TxContext;
+import gst.engine.utils.VariableNameGenerator;
 
 public class InstanceOfToPatternAction implements Action {
 
@@ -31,10 +32,12 @@ public class InstanceOfToPatternAction implements Action {
         Expression testedExpr = ioe.getExpression().clone();
         var testedType = ioe.getType().clone();
 
-        String simple = testedType.isClassOrInterfaceType()
-                ? testedType.asClassOrInterfaceType().getName().asString()
-                : testedType.asString();
-        String varName = Character.toLowerCase(simple.charAt(0)) + simple.substring(1);
+        String varName = VariableNameGenerator.generatePatternVariableName(testedType);
+        
+        if (varName == null) {
+            System.out.println("[SKIP] Cannot generate safe variable name for type: " + testedType);
+            return;
+        }
 
         ctx.saveOriginalNode(ioe, ioe.clone());
         ioe.setPattern(new TypePatternExpr(
@@ -44,6 +47,7 @@ public class InstanceOfToPatternAction implements Action {
         ));
         System.out.println("[ACTION] instanceOfToPattern: inserted pattern var '" + varName + "'");
 
+        @SuppressWarnings("unchecked")
         Optional<IfStmt> ifOpt = ioe.findAncestor(IfStmt.class);
         if (ifOpt.isEmpty()) return;
         IfStmt ifStmt = ifOpt.get();
@@ -55,6 +59,7 @@ public class InstanceOfToPatternAction implements Action {
             ifStmt.setThenStmt(thenBlock);
         }
 
+        // Remove redundant cast declarations
         List<VariableDeclarationExpr> toRemove = thenBlock.findAll(VariableDeclarationExpr.class, vde -> {
             if (vde.getVariables().size() != 1) return false;
             var vd = vde.getVariables().get(0);
@@ -84,6 +89,7 @@ public class InstanceOfToPatternAction implements Action {
             }
         }
 
+        // Replace redundant cast expressions
         thenBlock.findAll(CastExpr.class, ce -> {
             if (!ce.getExpression().equals(testedExpr)) return false;
             if (!(ce.getType().isClassOrInterfaceType() && testedType.isClassOrInterfaceType())) return false;

@@ -10,7 +10,7 @@ public class ValidationError {
 
     public ValidationError(String filePath, Node node, String message) {
         this.filePath = filePath;
-        this.location = node.getRange().orElse(null);
+        this.location = node != null ? node.getRange().orElse(null) : null;
         this.message  = message;
     }
 
@@ -19,6 +19,6 @@ public class ValidationError {
         String loc = location != null
             ? filePath + ":" + location.begin.line + ":" + location.begin.column
             : filePath;
-        return loc + "  ▶ " + message;
+        return loc + "  >>> " + message;
     }
 }

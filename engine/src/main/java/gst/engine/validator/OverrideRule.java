@@ -39,7 +39,14 @@ public class OverrideRule implements ValidationRule {
                 continue;
             }
 
-            ResolvedReferenceTypeDeclaration declaringType = rmd.declaringType();
+            ResolvedReferenceTypeDeclaration declaringType;
+            try {
+                declaringType = rmd.declaringType();
+            } catch (Exception e) {
+                // Skip methods where we can't resolve the declaring type (e.g., anonymous classes)
+                continue;
+            }
+            
             boolean overrides = false;
 
             List<ResolvedReferenceType> ancestors;

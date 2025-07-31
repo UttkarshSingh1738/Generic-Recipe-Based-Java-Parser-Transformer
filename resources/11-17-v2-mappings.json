@@ -40,6 +40,8 @@
         },
         {
             "name": "UseTextBlock",
+            "description": "Convert string literals to text blocks where applicable",
+            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -51,6 +53,31 @@
                         {
                             "collapseLiteralConcat": {
                                 "stringsWithoutNewlines": "false"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "AnnotateSerialVersionUIDWithSerial",
+            "description": "Add `@Serial` to any `serialVersionUID` field (Java 14+).",
+            "rollbackOnError": false,
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "FieldDeclaration",
+                        "matchExpr": "serialVersionUID"
+                    },
+                    "actions": [
+                        {
+                            "addImport": {
+                                "name": "java.io.Serial"
+                            }
+                        },
+                        {
+                            "addAnnotation": {
+                                "name": "Serial"
                             }
                         }
                     ]

@@ -23,6 +23,7 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 
 import gst.engine.TxContext;
+import gst.engine.utils.VariableNameGenerator;
 
 public class ForToForEachAction implements Action {
     public ForToForEachAction(Map<String,String> params) { }
@@ -32,11 +33,10 @@ public class ForToForEachAction implements Action {
         if (!(node instanceof ForStmt fs)) return;
         ctx.saveOriginalNode(fs, fs.clone());
 
-        // loop var name
+        // Extract loop variable and collection expression
         VariableDeclarationExpr init = (VariableDeclarationExpr) fs.getInitialization().get(0);
         String idxVar = init.getVariables().get(0).getNameAsString();
 
-        // collection expression from the compare
         Expression compare = fs.getCompare().orElseThrow();
         final Expression colExpr;
         if (compare instanceof BinaryExpr be && be.getRight() instanceof FieldAccessExpr fa
@@ -47,7 +47,7 @@ public class ForToForEachAction implements Action {
             colExpr = mc.getScope().get().clone();
         } else return;
 
-        // element type
+        // Determine element type
         String elemTypeName;
         try {
             ResolvedType rt = solver.calculateType(colExpr);
@@ -66,16 +66,57 @@ public class ForToForEachAction implements Action {
             return;
         }
 
-        final String elemVar = (colExpr.isNameExpr() && colExpr.asNameExpr().getNameAsString().endsWith("s") && colExpr.asNameExpr().getNameAsString().length() > 1)
-            ? colExpr.asNameExpr().getNameAsString().substring(0, colExpr.asNameExpr().getNameAsString().length() - 1)
-            : "item";
+        final String elemVar = VariableNameGenerator.generateForEachVariableName(colExpr, elemTypeName);
+        
+        if (VariableNameGenerator.isReservedKeyword(elemVar)) {
+            System.out.println("[SKIP] Generated variable name '" + elemVar + "' conflicts with reserved keyword");
+            return;
+        }
 
-        // build new body, replacing array[i] and list.get(i) with elemVar
+        // Safety check: ensure all index variable uses can be safely converted
         Statement origBody = fs.getBody();
         BlockStmt body = origBody.isBlockStmt()
                         ? origBody.asBlockStmt().clone()
                         : new BlockStmt(new NodeList<>(origBody.clone()));
-        // replace accesses
+        
+        var indexUsages = body.findAll(NameExpr.class).stream()
+            .filter(n -> n.getNameAsString().equals(idxVar))
+            .toList();
+        
+        int convertibleUsages = 0;
+        for (var usage : indexUsages) {
+            Node parent = usage.getParentNode().orElse(null);
+            
+            // Pattern: array[i] where array matches colExpr
+            if (parent instanceof ArrayAccessExpr aa && aa.getIndex() == usage) {
+                if (aa.getName().toString().equals(colExpr.toString())) {
+                    convertibleUsages++;
+                    continue;
+                }
+            }
+            
+            // Pattern: list.get(i) where list matches colExpr
+            if (parent instanceof MethodCallExpr mc && mc.getArguments().contains(usage)) {
+                if (mc.getNameAsString().equals("get") 
+                    && mc.getScope().isPresent()
+                    && mc.getScope().get().toString().equals(colExpr.toString())
+                    && mc.getArguments().size() == 1
+                    && mc.getArgument(0) == usage) {
+                    convertibleUsages++;
+                    continue;
+                }
+            }
+            
+            System.out.println("[SKIP] Found unsafe index variable usage: " + usage + " in context: " + parent);
+            return;
+        }
+        
+        if (convertibleUsages == 0) {
+            System.out.println("[SKIP] No convertible index usages found for transformation");
+            return;
+        }
+        
+        // Apply safe replacements
         body.findAll(ArrayAccessExpr.class).forEach(a -> {
             if (a.getIndex().toString().equals(idxVar)
              && a.getName().toString().equals(colExpr.toString()))
@@ -90,7 +131,7 @@ public class ForToForEachAction implements Action {
                 mc.replace(new NameExpr(elemVar));
         });
 
-        // the ForEachStmt
+        // Create ForEachStmt
         VariableDeclarator vd = new VariableDeclarator(
             StaticJavaParser.parseType(elemTypeName),
             elemVar

@@ -18,10 +18,12 @@ import gst.engine.Pipeline;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Usage: java -cp \"engine.jar;custom-actions.jar\" gst.Main <inputSourceRoot>");
+        if (args.length < 1 || args.length > 2) {
+            System.err.println("Usage: java -cp \"engine.jar;custom-actions.jar\" gst.Main <inputSourceRoot> [--match-debug]");
             System.exit(1);
         }
+
+        boolean matchDebug = args.length == 2 && "--match-debug".equals(args[1]);
 
         Path cwd = Paths.get("").toAbsolutePath();
 
@@ -94,7 +96,7 @@ public class Main {
             System.err.println(">  [" + (i + 1) + "/" + mappingNames.size() + "] "
                     + mapName + ": " + currentIn + " >>> " + thisOut);
 
-            Pipeline.run(mappingFile, currentIn, thisOut, extraJars);
+            Pipeline.run(mappingFile, currentIn, thisOut, extraJars, matchDebug);
             currentIn = thisOut;
         }
 

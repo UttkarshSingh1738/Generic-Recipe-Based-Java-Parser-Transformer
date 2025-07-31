@@ -62,6 +62,28 @@ public class PatternTest {
             System.out.println(i + 1);
         }
     }
+    
+    // Additional test cases for InstanceOfToPatternAction
+    void testString(Object obj) {
+        if (obj instanceof String) {
+            String s = (String) obj;
+            System.out.println("String length: " + s.length());
+        }
+    }
+    
+    void testArrayType(Object obj) {
+        if (obj instanceof int[]) {
+            int[] arr = (int[]) obj;
+            System.out.println("Array length: " + arr.length);
+        }
+    }
+    
+    void testCustomType(Object obj) {
+        if (obj instanceof CustomHealthCheck) {
+            CustomHealthCheck check = (CustomHealthCheck) obj;
+            check.health("test");
+        }
+    }
 }
 
 public class StringFormatTest {
@@ -268,4 +290,75 @@ public class MethodTargetToStaticTest {
     
     private ToolProvider getToolProvider() { return new ToolProvider(); }
     private void process(Object obj) {}
+}
+
+// Test cases for ForToForEachAction
+public class ForLoopTest {
+    void testArrayLoop() {
+        int[] numbers = {1, 2, 3, 4, 5};
+        for (int i = 0; i < numbers.length; i++) {
+            System.out.println(numbers[i]);
+        }
+    }
+    
+    void testListLoop() {
+        java.util.List<String> items = java.util.Arrays.asList("a", "b", "c");
+        for (int i = 0; i < items.size(); i++) {
+            System.out.println(items.get(i));
+        }
+    }
+    
+    void testStringArrayLoop() {
+        String[] words = {"hello", "world"};
+        for (int j = 0; j < words.length; j++) {
+            System.out.println(words[j].toUpperCase());
+        }
+    }
+    
+    void testUnsafeLoop() {
+        int[] data = {1, 2, 3};
+        for (int i = 0; i < data.length; i++) {
+            System.out.println(i); // Uses index directly - should not convert
+        }
+    }
+}
+
+// Test cases for SwitchToReturnExpressionAction  
+public class SwitchReturnTest {
+    String getValueByType(int type) {
+        switch (type) {
+            case 1:
+                return "One";
+            case 2:
+                return "Two";
+            case 3:
+                return "Three";
+            default:
+                return "Unknown";
+        }
+    }
+    
+    int getNumberByChar(char c) {
+        switch (c) {
+            case 'a':
+                return 1;
+            case 'b':
+                return 2;
+            default:
+                return 0;
+        }
+    }
+    
+    void unsafeSwitch(int value) {
+        switch (value) {
+            case 1:
+                System.out.println("Complex case");
+                doSomething();
+                return;
+            case 2:
+                return; // No expression - should not convert
+        }
+    }
+    
+    private void doSomething() {}
 }
