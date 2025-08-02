@@ -17,6 +17,7 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.RecordDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
@@ -88,7 +89,8 @@ public class NodeMatcher {
                 root.findAll(InstanceOfExpr.class).stream().map(n -> (Node) n).collect(Collectors.toList());
             case "StringLiteralExpr" ->
                 root.findAll(StringLiteralExpr.class).stream().map(n -> (Node) n).collect(Collectors.toList());
-
+            case "RecordDeclaration" ->
+                root.findAll(RecordDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
 
             default -> {
                 System.err.println("[CANDIDATE-ERROR] Unknown nodeType: '" + nodeType + "'");
@@ -246,6 +248,36 @@ public class NodeMatcher {
             String resolved = null;
             try {
                 resolved = ioe.getType().resolve().asReferenceType().getQualifiedName();
+            } catch (Exception e) {
+                failures.add("type resolution error: " + e.getMessage());
+            }
+            boolean ok = simple.equals(m.type)
+                    || (resolved != null && resolved.equals(m.type))
+                    || simple.endsWith("." + m.type);
+            if (!ok) {
+                failures.add("type mismatch: got `" + simple + "` and `" + resolved + "`");
+            }
+        }
+        if (m.type != null && node instanceof FieldDeclaration fd) {
+            String simple = fd.getElementType().asString();
+            String resolved = null;
+            try {
+                resolved = fd.getElementType().resolve().asReferenceType().getQualifiedName();
+            } catch (Exception e) {
+                failures.add("type resolution error: " + e.getMessage());
+            }
+            boolean ok = simple.equals(m.type)
+                    || (resolved != null && resolved.equals(m.type))
+                    || simple.endsWith("." + m.type);
+            if (!ok) {
+                failures.add("type mismatch: got `" + simple + "` and `" + resolved + "`");
+            }
+        }
+        if (m.type != null && node instanceof ObjectCreationExpr oce) {
+            String simple = oce.getType().asString();
+            String resolved = null;
+            try {
+                resolved = oce.getType().resolve().asReferenceType().getQualifiedName();
             } catch (Exception e) {
                 failures.add("type resolution error: " + e.getMessage());
             }
@@ -472,6 +504,8 @@ public class NodeMatcher {
                 name = ne.getNameAsString();
             } else if (node instanceof ClassOrInterfaceDeclaration cd) {
                 name = cd.getNameAsString();
+            } else if (node instanceof RecordDeclaration rd) {
+                name = rd.getNameAsString();
             }
             if (name == null || !Pattern.compile(m.namePattern).matcher(name).find()) {
                 failures.add("namePattern not matched: " + m.namePattern);

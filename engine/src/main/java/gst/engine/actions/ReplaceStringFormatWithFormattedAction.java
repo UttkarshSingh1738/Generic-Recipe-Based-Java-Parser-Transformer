@@ -35,14 +35,10 @@ public class ReplaceStringFormatWithFormattedAction implements Action {
         boolean isStringLiteral = formatString.isStringLiteralExpr();
         boolean isSimpleVariable = formatString.isNameExpr();
         boolean hasPlaceholders = containsFormatPlaceholders(formatString);
-        
-        if (isStringLiteral && !hasPlaceholders) {
-            return; // String literal without placeholders - skip
-        }
-        
-        if (isSimpleVariable) {
-            return; // Simple variable like ERROR_TEMPLATE - skip
-        }
+        boolean hasFormatArguments = args.size() > 1;
+
+        if (isStringLiteral && !hasPlaceholders) {return;}
+        if (isSimpleVariable && !hasFormatArguments) {return;}
         
         Expression clonedFormatString = formatString.clone();
         
@@ -66,7 +62,7 @@ public class ReplaceStringFormatWithFormattedAction implements Action {
         if (expr.isStringLiteralExpr()) {
             String value = expr.asStringLiteralExpr().getValue();
             return value.contains("%s") || value.contains("%d") || value.contains("%f") || 
-                   value.contains("%c") || value.contains("%b") || value.matches(".*%\\d*[sdfc].*");
+                value.contains("%c") || value.contains("%b") || value.matches(".*%\\d*[sdfc].*");
         }
         return false;
     }

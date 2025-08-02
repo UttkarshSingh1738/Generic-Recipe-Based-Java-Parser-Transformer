@@ -15,7 +15,7 @@
 >
 > - Error Handling (for json mapping)
 >
-> - Validators (Optional)
+> - ~~Validators (Optional)~~
 >
 > - ~~Order of json and multiple jsons to be used~~
 > 

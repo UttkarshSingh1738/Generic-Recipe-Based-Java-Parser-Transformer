@@ -1,17 +1,132 @@
 {
   "recipes": [
     {
-      "name": "test-pattern-validation-rollback",
-      "rollbackOnError": "PatternVariableUsageRule",
+      "name": "Test Transformation",
+      "description": "A sample recipe for testing transformations.",
       "steps": [
         {
           "match": {
-            "nodeType": "InstanceOfExpr",
-            "type": "Integer"
+            "nodeType": "RecordDeclaration",
+            "namePattern": "Greeting"
           },
           "actions": [
             {
-              "instanceOfToPattern": {}
+              "addAnnotation": {
+                "name": "Deprecated"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodCallExpr",
+            "scopePattern": "String",
+            "methodName": "format"
+          },
+          "actions": [
+            {
+              "replaceStringFormatWithFormatted": {
+                "parenthesizeFirstArg": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestInsertBeforeAfter",
+      "description": "Demo using insertBefore & insertAfter around the SpringApplication.run call",
+      "steps": [
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "namePattern": "^RestServiceApplication$"
+          },
+          "actions": [
+            {
+              "addImport": {
+                "name": "org.slf4j.Logger"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.slf4j.LoggerFactory"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodCallExpr",
+            "scopePattern": "SpringApplication",
+            "methodName": "run"
+          },
+          "actions": [
+            {
+              "insertBefore": {
+                "code": "Logger log = LoggerFactory.getLogger(RestServiceApplication.class);"
+              }
+            },
+            {
+              "insertBefore": {
+                "code": "log.info(\"[BEFORE] about to start SpringApplication\");"
+              }
+            },
+            {
+              "insertAfter": {
+                "code": "log.info(\"[AFTER] SpringApplication.run returned\");"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ModernizeTests",
+      "description": "Modernize the tests with JUnit 5 features.",
+      "steps": [
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "namePattern": "GreetingControllerTests"
+          },
+          "actions": [
+            {
+              "addImport": {
+                "name": "org.junit.jupiter.api.DisplayName"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodDeclaration",
+            "methodName": "noParamGreetingShouldReturnDefaultMessage"
+          },
+          "actions": [
+            {
+              "addAnnotation": {
+                "name": "DisplayName",
+                "attributes": {
+                  "value": "No param greeting should return default message"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodDeclaration",
+            "methodName": "paramGreetingShouldReturnTailoredMessage"
+          },
+          "actions": [
+            {
+              "addAnnotation": {
+                "name": "DisplayName",
+                "attributes": {
+                  "value": "Param greeting should return tailored message"
+                }
+              }
             }
           ]
         }

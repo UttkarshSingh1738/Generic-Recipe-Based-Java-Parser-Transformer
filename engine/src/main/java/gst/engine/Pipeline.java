@@ -39,7 +39,7 @@ public class Pipeline {
 
     private static List<String> performParseCheck(String code) {
         List<String> issues = new ArrayList<>();
-        
+
         try {
             StaticJavaParser.parse(code);
         } catch (com.github.javaparser.ParseProblemException e) {
@@ -47,15 +47,18 @@ public class Pipeline {
         } catch (Exception e) {
             issues.add("Unexpected parsing issue: " + e.getMessage());
         }
-        
+
         return issues;
     }
-    private static List<String> performParseCheck(CompilationUnit cu) {return performParseCheck(cu.toString());}
+
+    private static List<String> performParseCheck(CompilationUnit cu) {
+        return performParseCheck(cu.toString());
+    }
 
     public static void run(Path mappingFile, Path inputRoot, Path outputRoot) throws IOException {
         run(mappingFile, inputRoot, outputRoot, List.of(), false);
     }
-    
+
     public static void run(Path mappingFile, Path inputRoot, Path outputRoot, List<Path> jarPaths) throws IOException {
         run(mappingFile, inputRoot, outputRoot, jarPaths, false);
     }
@@ -85,14 +88,36 @@ public class Pipeline {
         TxContext ctx = new TxContext();
 
         try (Stream<Path> files = Files.walk(inputRoot)) {
-            List<Path> javaFiles = files
+            List<Path> allFiles = files
+                    .filter(Files::isRegularFile)
+                    .collect(Collectors.toList());
+
+            List<Path> javaFiles = allFiles.stream()
                     .filter(p -> p.toString().endsWith(".java"))
                     .collect(Collectors.toList());
 
+            List<Path> nonJavaFiles = allFiles.stream()
+                    .filter(p -> !p.toString().endsWith(".java"))
+                    .collect(Collectors.toList());
+
+            System.out.println("[INFO] Copying " + nonJavaFiles.size() + " non-Java files...");
+            for (Path nonJavaFile : nonJavaFiles) {
+                String rel = inputRoot.relativize(nonJavaFile).toString();
+                Path outFile = outputRoot.resolve(rel);
+                Files.createDirectories(outFile.getParent());
+                try {
+                    Files.copy(nonJavaFile, outFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    System.out.println("[COPY] Copied: " + rel);
+                } catch (IOException e) {
+                    System.err.println("[ERROR] Failed to copy file: " + nonJavaFile + " - " + e.getMessage());
+                }
+            }
+
+            System.out.println("[INFO] Processing " + javaFiles.size() + " Java files...");
             for (Path srcFile : javaFiles) {
                 String rel = inputRoot.relativize(srcFile).toString();
                 System.out.println("[PROCESS] Processing file: " + rel);
-                
+
                 try {
                     String originalContent = Files.readString(srcFile, StandardCharsets.UTF_8);
                     List<String> initialParseIssues = performParseCheck(originalContent);
@@ -106,7 +131,7 @@ public class Pipeline {
                 } catch (IOException e) {
                     System.err.println("[ERROR] Could not read file for initial parse check: " + srcFile + " - " + e.getMessage());
                 }
-                
+
                 CompilationUnit cu;
                 try {
                     cu = StaticJavaParser.parse(srcFile);
@@ -188,50 +213,48 @@ public class Pipeline {
                         } else {
                             System.out.println("[PARSE-CHECK] [OK] No parsing issues detected after recipe '" + recipe.name + "'");
                         }
-                        
+
                         // Run validation per-recipe if this specific recipe has rollbackOnError specified
                         if (recipe.rollbackOnError != null && !recipe.rollbackOnError.trim().isEmpty()) {
                             try {
                                 ValidationRule validator = ValidationFactory.create(recipe.rollbackOnError);
                                 List<Node> allChangedNodes = ctx.getRecipeChanges(recipe.name);
-                                
+
                                 // Filter changed nodes to only include nodes from the current file
                                 String currentFilePath = cu.getStorage().map(s -> s.getPath().toString()).orElse(null);
                                 List<Node> fileChangedNodes = allChangedNodes.stream()
-                                    .filter(node -> {
-                                        String nodeFilePath = node.findCompilationUnit()
-                                            .flatMap(nodeCu -> nodeCu.getStorage())
-                                            .map(s -> s.getPath().toString())
-                                            .orElse(null);
-                                        return currentFilePath != null && currentFilePath.equals(nodeFilePath);
-                                    })
-                                    .collect(java.util.stream.Collectors.toList());
-                                
+                                        .filter(node -> {
+                                            String nodeFilePath = node.findCompilationUnit()
+                                                    .flatMap(nodeCu -> nodeCu.getStorage())
+                                                    .map(s -> s.getPath().toString())
+                                                    .orElse(null);
+                                            return currentFilePath != null && currentFilePath.equals(nodeFilePath);
+                                        })
+                                        .collect(java.util.stream.Collectors.toList());
+
                                 List<ValidationError> errors = validator.validateRecipeChanges(cu, fileChangedNodes, ctx, symbolSolver, recipe.name);
-                                
+
                                 if (!errors.isEmpty()) {
                                     System.out.println("[VALIDATION] Errors found in recipe '" + recipe.name + "' using validator '" + recipe.rollbackOnError + "' in file: " + rel);
                                     errors.forEach(System.out::println);
-                                    
+
                                     System.out.println("[ROLLBACK] Rolling back changes from recipe: " + recipe.name + " (Note: Please verify rollback manually for correctness)");
                                     // Rollback mechanism: Uses AST node tracking to restore original state should verify rollback completeness for complex transformations
                                     ctx.rollbackRecipe(recipe.name);
                                     ctx.markRolledBack(srcFile);
                                     ctx.recordRollbackError(srcFile, errors);
-                                    
+
                                     // Backup rollback: restore entire file from original
                                     // Uncomment if granular recipe rollback proves insufficient
-                                    
                                     // CompilationUnit originalCu = ctx.getOriginalFile(srcFile).orElse(null);
                                     // if (originalCu != null) {
                                     //     cu.replace(originalCu.clone());
                                     //     System.out.println("[ROLLBACK] Applied whole-file rollback for: " + recipe.name);
                                     // }
-                                    
                                     // fileChanged remains true if other recipes modified the file
                                     Set<String> remainingRecipes = ctx.getRecipesForFile(srcFile);
                                     fileChanged = !remainingRecipes.isEmpty();
-                                    
+
                                     // break;
                                     // TEST - Was causing early exit for recipes.
                                 } else {
@@ -239,8 +262,8 @@ public class Pipeline {
                                     System.out.println("[VALIDATION] Recipe '" + recipe.name + "' passed validation using '" + recipe.rollbackOnError + "'");
                                 }
                             } catch (IllegalArgumentException e) {
-                                System.err.println("[VALIDATION] Unknown validator '" + recipe.rollbackOnError + "' in recipe '" + recipe.name + "'. Available validators: " + 
-                                    String.join(", ", ValidationFactory.getAvailableValidators()));
+                                System.err.println("[VALIDATION] Unknown validator '" + recipe.rollbackOnError + "' in recipe '" + recipe.name + "'. Available validators: "
+                                        + String.join(", ", ValidationFactory.getAvailableValidators()));
                                 // Continue without validation
                                 ctx.registerRecipeForFile(srcFile, recipe.name);
                             }

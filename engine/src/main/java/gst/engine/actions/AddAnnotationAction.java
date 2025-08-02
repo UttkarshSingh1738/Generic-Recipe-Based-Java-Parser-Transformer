@@ -43,8 +43,17 @@ public class AddAnnotationAction implements Action {
             ann = StaticJavaParser.parseAnnotation("@" + name);
         } else {
             List<String> pairs = attributes.entrySet().stream()
-                    .map(e -> e.getKey() + " = " + e.getValue())
-                    .collect(Collectors.toList());
+                    .map(e -> {
+                    String rawVal = e.getValue();
+                    // if it doesn’t already look like a quoted literal, wrap in quotes:
+                    if (!(rawVal.startsWith("\"") && rawVal.endsWith("\""))) {
+                        rawVal = "\"" + rawVal
+                            .replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                            + "\"";
+                    }
+                    return e.getKey() + " = " + rawVal;
+                }).collect(Collectors.toList());
             String inside = String.join(", ", pairs);
             ann = StaticJavaParser.parseAnnotation("@" + name + "(" + inside + ")");
         }
