@@ -7,3 +7,4 @@ output
 app.password
 .rewrite-cache/
 spring-boot-migrator.jar
+spring-boot-migrator-v1.14.0.jar
