@@ -5,3 +5,5 @@ output
 *.log
 .DS_Store
 app.password
+.rewrite-cache/
+spring-boot-migrator.jar
