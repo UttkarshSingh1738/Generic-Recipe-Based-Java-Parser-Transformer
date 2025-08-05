@@ -3,5 +3,6 @@
   "jsf-beans-to-spring-components",
   "producer-to-configuration",
   "cdi-to-spring-injection",
-  "jaxrs-to-spring-mvc"
+  "jaxrs-to-spring-mvc",
+  "jax-spring-annotation-mappings"
 ]

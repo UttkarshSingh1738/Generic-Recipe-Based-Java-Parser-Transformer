@@ -1,82 +1,82 @@
 {
-  "recipes": [
-    {
-      "name": "CdiToSpringInjection",
-      "description": "Convert CDI injection annotations to Spring.",
-      "steps": [
+    "recipes": [
         {
-          "match": {
-            "nodeType": "FieldDeclaration",
-            "annotation": "Inject"
-          },
-          "actions": [
-            {
-              "migrateAnnotation": {
-                "from": "Inject",
-                "to": "Autowired"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.beans.factory.annotation.Autowired"
-              }
-            },
-            {
-              "removeImport": {
-                "name": "javax.inject.Inject"
-              }
-            }
-          ]
-        },
-        {
-          "match": {
-            "nodeType": "FieldDeclaration",
-            "annotation": "PersistenceContext"
-          },
-          "actions": [
-            {
-              "migrateAnnotation": {
-                "from": "PersistenceContext",
-                "to": "Autowired"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.beans.factory.annotation.Autowired"
-              }
-            },
-            {
-              "removeImport": {
-                "name": "javax.persistence.PersistenceContext"
-              }
-            }
-          ]
-        },
-        {
-          "match": {
-            "nodeType": "FieldDeclaration",
-            "annotation": "Resource"
-          },
-          "actions": [
-            {
-              "migrateAnnotation": {
-                "from": "Resource",
-                "to": "Autowired"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.beans.factory.annotation.Autowired"
-              }
-            },
-            {
-              "removeImport": {
-                "name": "javax.annotation.Resource"
-              }
-            }
-          ]
+            "name": "CdiToSpringInjection",
+            "description": "Convert CDI injection annotations to Spring.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "FieldDeclaration",
+                        "annotation": "Inject"
+                    },
+                    "actions": [
+                        {
+                            "migrateAnnotation": {
+                                "from": "Inject",
+                                "to": "Autowired"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.beans.factory.annotation.Autowired"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.inject.Inject"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "FieldDeclaration",
+                        "annotation": "PersistenceContext"
+                    },
+                    "actions": [
+                        {
+                            "migrateAnnotation": {
+                                "from": "PersistenceContext",
+                                "to": "Autowired"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.beans.factory.annotation.Autowired"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.persistence.PersistenceContext"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "FieldDeclaration",
+                        "annotation": "Resource"
+                    },
+                    "actions": [
+                        {
+                            "migrateAnnotation": {
+                                "from": "Resource",
+                                "to": "Autowired"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.beans.factory.annotation.Autowired"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.annotation.Resource"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }

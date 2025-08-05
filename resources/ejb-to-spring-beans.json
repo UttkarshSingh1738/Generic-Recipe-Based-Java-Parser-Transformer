@@ -1,111 +1,111 @@
 {
-  "recipes": [
-    {
-      "name": "ConvertStatelessToService",
-      "description": "Replace @Stateless on a class with Spring’s @Service.",
-      "steps": [
+    "recipes": [
         {
-          "match": {
-            "nodeType": "ClassOrInterfaceDeclaration",
-            "annotation": "Stateless"
-          },
-          "actions": [
-            {
-              "migrateAnnotation": {
-                "from": "Stateless",
-                "to": "Service"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.stereotype.Service"
-              }
-            },
-            {
-              "removeImport": {
-                "name": "javax.ejb.Stateless"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "ConvertStatefulToComponent",
-      "description": "Replace @Stateful on a class with @Component + @Scope(\"session\").",
-      "steps": [
-        {
-          "match": {
-            "nodeType": "ClassOrInterfaceDeclaration",
-            "annotation": "Stateful"
-          },
-          "actions": [
-            {
-              "removeAnnotation": {
-                "name": "Stateful"
-              }
-            },
-            {
-              "addAnnotation": {
-                "name": "Component"
-              }
-            },
-            {
-              "addAnnotation": {
-                "name": "Scope",
-                "attributes": {
-                  "value": "\"session\""
+            "name": "ConvertStatelessToService",
+            "description": "Replace @Stateless on a class with Spring’s @Service.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "annotation": "Stateless"
+                    },
+                    "actions": [
+                        {
+                            "migrateAnnotation": {
+                                "from": "Stateless",
+                                "to": "Service"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.stereotype.Service"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.ejb.Stateless"
+                            }
+                        }
+                    ]
                 }
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.stereotype.Component"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.context.annotation.Scope"
-              }
-            },
-            {
-              "removeImport": {
-                "name": "javax.ejb.Stateful"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "ConvertLocalBeanToComponent",
-      "description": "Replace @LocalBean with Spring's @Component.",
-      "steps": [
+            ]
+        },
         {
-          "match": {
-            "nodeType": "ClassOrInterfaceDeclaration",
-            "annotation": "LocalBean"
-          },
-          "actions": [
-            {
-              "migrateAnnotation": {
-                "from": "LocalBean",
-                "to": "Component"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.stereotype.Component"
-              }
-            },
-            {
-              "removeImport": {
-                "name": "javax.ejb.LocalBean"
-              }
-            }
-          ]
+            "name": "ConvertStatefulToComponent",
+            "description": "Replace @Stateful on a class with @Component + @Scope(\"session\").",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "annotation": "Stateful"
+                    },
+                    "actions": [
+                        {
+                            "removeAnnotation": {
+                                "name": "Stateful"
+                            }
+                        },
+                        {
+                            "addAnnotation": {
+                                "name": "Component"
+                            }
+                        },
+                        {
+                            "addAnnotation": {
+                                "name": "Scope",
+                                "attributes": {
+                                    "value": "\"session\""
+                                }
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.stereotype.Component"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.context.annotation.Scope"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.ejb.Stateful"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ConvertLocalBeanToComponent",
+            "description": "Replace @LocalBean with Spring's @Component.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "ClassOrInterfaceDeclaration",
+                        "annotation": "LocalBean"
+                    },
+                    "actions": [
+                        {
+                            "migrateAnnotation": {
+                                "from": "LocalBean",
+                                "to": "Component"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.stereotype.Component"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.ejb.LocalBean"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }

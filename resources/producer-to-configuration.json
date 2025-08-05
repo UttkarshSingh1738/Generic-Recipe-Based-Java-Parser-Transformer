@@ -1,44 +1,45 @@
 {
-  "recipes": [
-    {
-      "name": "ProducerToConfiguration",
-      "description": "Convert CDI producer methods to Spring @Bean methods.",
-      "steps": [
+    "recipes": [
         {
-          "match": {
-            "nodeType": "MethodDeclaration",
-            "annotation": "Produces"
-          },
-          "actions": [
-            {
-              "addAnnotationToParentClass": {
-                "name": "Configuration"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.context.annotation.Configuration"
-              }
-            },
-            {
-              "migrateAnnotation": {
-                "from": "Produces",
-                "to": "Bean"
-              }
-            },
-            {
-              "addImport": {
-                "name": "org.springframework.context.annotation.Bean"
-              }
-            },
-            {
-              "removeImport": {
-                "name": "javax.enterprise.inject.Produces"
-              }
-            }
-          ]
+            "name": "ProducerToConfiguration",
+            "description": "Convert CDI producer methods to Spring @Bean methods.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "annotation": "Produces",
+                        "requiresImport": "java.util.List"
+                    },
+                    "actions": [
+                        {
+                            "addAnnotationToParentClass": {
+                                "name": "Configuration"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.context.annotation.Configuration"
+                            }
+                        },
+                        {
+                            "migrateAnnotation": {
+                                "from": "Produces",
+                                "to": "Bean"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.springframework.context.annotation.Bean"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.enterprise.inject.Produces"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
