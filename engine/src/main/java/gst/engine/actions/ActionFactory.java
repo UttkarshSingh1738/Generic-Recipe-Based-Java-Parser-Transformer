@@ -63,6 +63,7 @@ public class ActionFactory {
             case "replaceStringFormatWithFormatted":    return new ReplaceStringFormatWithFormattedAction(stringParams);
             case "changeMethodTargetToStatic":          return new ChangeMethodTargetToStaticAction(stringParams);
             case "replacePackage":                      return new ReplacePackageAction(stringParams);
+            case "addAnnotationToParentClass":          return new AddAnnotationToParentClassAction(params);
 
         }
 

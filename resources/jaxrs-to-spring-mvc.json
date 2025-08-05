@@ -1,0 +1,191 @@
+{
+  "recipes": [
+    {
+      "name": "JaxRsToSpringMvc",
+      "description": "Convert JAX-RS annotations to Spring MVC.",
+      "steps": [
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "annotation": "Path"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "Path",
+                "to": "RequestMapping",
+                "attributeMap": {
+                  "value": "value"
+                }
+              }
+            },
+            {
+              "addAnnotation": {
+                "name": "RestController"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.RestController"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.RequestMapping"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.ws.rs.Path"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "GET"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "GET",
+                "to": "GetMapping"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.GetMapping"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.ws.rs.GET"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "POST"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "POST",
+                "to": "PostMapping"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.PostMapping"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.ws.rs.POST"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "PUT"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "PUT",
+                "to": "PutMapping"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.PutMapping"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.ws.rs.PUT"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodDeclaration",
+            "annotation": "DELETE"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "DELETE",
+                "to": "DeleteMapping"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.DeleteMapping"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.ws.rs.DELETE"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "Parameter",
+            "annotation": "PathParam"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "PathParam",
+                "to": "PathVariable"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.PathVariable"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.ws.rs.PathParam"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "Parameter",
+            "annotation": "QueryParam"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "QueryParam",
+                "to": "RequestParam"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.web.bind.annotation.RequestParam"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.ws.rs.QueryParam"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

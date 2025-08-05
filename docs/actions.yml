@@ -542,6 +542,50 @@ actions:
       @Deprecated
       public class FooUtil { … }
       
+  - key: addAnnotationToParentClass
+    class: AddAnnotationToParentClassAction
+    description: >
+      Add an annotation to the parent class of the matched node.
+    parameters:
+      - name: name
+        type: String
+        description: Simple annotation name (no leading `@`).
+      - name: attributes
+        type: Map[String,String]
+        description: Optional map of attribute names→values.
+    appliesTo:
+      - any Node
+    example: |
+      Before:
+      
+      public class MyProducer {
+        @Produces
+        public MyService build() { … }
+      }
+      
+      Recipe:
+      
+      {
+        "match": {
+          "nodeType": "MethodDeclaration",
+          "annotation": "Produces"
+        },
+        "actions": [
+          {
+            "addAnnotationToParentClass": {
+              "name": "Configuration"
+            }
+          }
+        ]
+      }
+      
+      After:
+      
+      @Configuration
+      public class MyProducer {
+        @Produces
+        public MyService build() { … }
+      }
 
   - key: removeAnnotation
     class: RemoveAnnotationAction

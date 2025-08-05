@@ -1,3 +1,7 @@
 [
-  "test-validation-recipe"
+  "ejb-to-spring-beans",
+  "jsf-beans-to-spring-components",
+  "producer-to-configuration",
+  "cdi-to-spring-injection",
+  "jaxrs-to-spring-mvc"
 ]

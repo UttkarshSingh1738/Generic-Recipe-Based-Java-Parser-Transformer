@@ -1,0 +1,65 @@
+{
+  "recipes": [
+    {
+      "name": "JsfBeansToSpringComponents",
+      "description": "Convert JSF and CDI bean annotations to Spring.",
+      "steps": [
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "annotation": "Named"
+          },
+          "actions": [
+            {
+              "migrateAnnotation": {
+                "from": "Named",
+                "to": "Component"
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.stereotype.Component"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.inject.Named"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "annotation": "ConversationScoped"
+          },
+          "actions": [
+            {
+              "removeAnnotation": {
+                "name": "ConversationScoped"
+              }
+            },
+            {
+              "addAnnotation": {
+                "name": "Scope",
+                "attributes": {
+                  "value": "\"session\""
+                }
+              }
+            },
+            {
+              "addImport": {
+                "name": "org.springframework.context.annotation.Scope"
+              }
+            },
+            {
+              "removeImport": {
+                "name": "javax.enterprise.context.ConversationScoped"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
