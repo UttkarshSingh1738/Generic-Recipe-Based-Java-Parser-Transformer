@@ -4,5 +4,6 @@
   "producer-to-configuration",
   "cdi-to-spring-injection",
   "jaxrs-to-spring-mvc",
+  "lifecycle-and-logging",
   "jax-spring-annotation-mappings"
 ]

@@ -1,0 +1,107 @@
+{
+    "recipes": [
+        {
+            "name": "MigrateLifecycleAnnotations",
+            "description": "Migrate EJB lifecycle annotations @PostConstruct and @PreDestroy to their Spring equivalents.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "annotation": "PostConstruct"
+                    },
+                    "actions": [
+                        {
+                            "migrateAnnotation": {
+                                "from": "javax.annotation.PostConstruct",
+                                "to": "jakarta.annotation.PostConstruct"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.annotation.PostConstruct"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "jakarta.annotation.PostConstruct"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodDeclaration",
+                        "annotation": "PreDestroy"
+                    },
+                    "actions": [
+                        {
+                            "migrateAnnotation": {
+                                "from": "javax.annotation.PreDestroy",
+                                "to": "jakarta.annotation.PreDestroy"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "javax.annotation.PreDestroy"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "jakarta.annotation.PreDestroy"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "MigrateJulToSlf4j",
+            "description": "Migrate java.util.logging.Logger to SLF4J.",
+            "steps": [
+                {
+                    "match": {
+                        "nodeType": "FieldDeclaration",
+                        "type": "java.util.logging.Logger"
+                    },
+                    "actions": [
+                        {
+                            "changeType": {
+                                "newType": "org.slf4j.Logger"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.slf4j.Logger"
+                            }
+                        },
+                        {
+                            "removeImport": {
+                                "name": "java.util.logging.Logger"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "match": {
+                        "nodeType": "MethodCallExpr",
+                        "methodName": "getLogger",
+                        "fqnScope": "java.util.logging.Logger"
+                    },
+                    "actions": [
+                        {
+                            "replaceWithMethodCall": {
+                                "scope": "org.slf4j.LoggerFactory",
+                                "method": "getLogger"
+                            }
+                        },
+                        {
+                            "addImport": {
+                                "name": "org.slf4j.LoggerFactory"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -39,6 +39,7 @@ public class ActionFactory {
             case "addImport":                           return new AddImportAction(stringParams);
             case "removeImport":                        return new RemoveImportAction(stringParams);
             case "addAnnotation":                       return new AddAnnotationAction(params);
+            case "addComment":                          return new AddCommentAction(stringParams);
             case "removeComment":                       return new RemoveCommentAction(stringParams);
             case "removeExceptionFromCatch":            return new RemoveExceptionFromCatchAction(stringParams);
             case "renameMethodCall":                    return new RenameMethodCallAction(stringParams);

@@ -672,29 +672,66 @@ actions:
   - key: removeComment
     class: RemoveCommentAction
     description: >
-      Strip any comment (line or block) attached to the matched node.
-    parameters: []
+      Strip any comment (line or block) attached to the matched node. If a
+      `pattern` is given, only comments containing that text will be removed.
+    parameters:
+      - name: pattern
+        type: String
+        description: Optional text that must be present in a comment for it to be removed.
     appliesTo:
       - any Node
     example: |
       Before:
       
       // TODO: fix this
-      int x = compute();
+      int x = compute(); // a regular comment
       
       Recipe:
       
       {
-        "match": { "matchExpr": "// TODO:" },
+        "match": { "nodeType": "MethodDeclaration" },
         "actions": [
-          { "removeComment": {} }
+          { "removeComment": { "pattern": "TODO" } }
         ]
       }
       
       After:
       
-      int x = compute();
+      int x = compute(); // a regular comment
       
+
+  - key: addComment
+    class: AddCommentAction
+    description: >
+      Add a single-line comment before the matched node.
+    parameters:
+      - name: comment
+        type: String
+        description: The comment text to add (without //).
+    appliesTo:
+      - any Node
+    example: |
+      Before:
+      
+      public class MyClass { … }
+      
+      Recipe:
+      
+      {
+        "match": {
+          "nodeType": "ClassOrInterfaceDeclaration",
+          "namePattern": "MyClass"
+        },
+        "actions": [
+          { "addComment": { "comment": "This class is important" } }
+        ]
+      }
+      
+      After:
+      
+      // This class is important
+      public class MyClass { …
+
 
   - key: removeExceptionFromCatch
     class: RemoveExceptionFromCatchAction
