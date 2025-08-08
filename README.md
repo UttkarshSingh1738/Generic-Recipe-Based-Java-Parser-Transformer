@@ -1,132 +1,292 @@
+# Generic Recipe-Based Java Parser Transformer
 
-## *Tasks to be verified*
+This tool is a generic recipe-based transformer for Java source code, built on top of the JavaParser library. It allows you to define a series of transformations in JSON files (recipes) that can be applied to a Java project to perform large-scale refactoring, such as migrating from Java EE to Spring Boot.
 
-> - Prepare documentation
->
->>1. List all possible match/action keys/attributes, nodeTypes etc.
->>2. Add all sub attributes if any
->>3. Add some sample syntax
->>4. Add more examples (probably list out all the currently used in the documentation)
->
-> - Code Review
->
->>1. Code Review to understand the current flow
->>2. Optimize the code to make it more flexible by consolidating multiple common Actions to one Action
->
-> - Error Handling (for json mapping)
->
-> - ~~Validators (Optional)~~
->
-> - ~~Order of json and multiple jsons to be used~~
-> 
->>1. ~~Create config.json where the order of the json to be executed is maintained~~
->>2. ~~Add config for validators to be used and ignored~~
->>3. ~~Pickup all the configs/json/output path relatively from the jar instead of expecting from the command~~
->
-> - ~~Create Actions as a Java Type like Match, Step etc.. instead of having it as List<Map<Map>> - might be useful for readability and additional usage~~
->
-> - ~~NodeMatcher Code Refactor~~
-> 
->>1. ~~Add flags instead of return so all the conditions will be met before moving out the matches~~
->>2. ~~Populate new exception list where the conditions fail because of manual error caused in the json~~
->
-> - Need to cover almost all scenarios by logs so that will be helpful for debugging purposes
->
-> - Need to check the performance on huge codebases like having more than 10k files as well as files having more than 20k/30k lines of code
->>1. If there are huge lines of code and exception happens will it be properly logged?
->
-> - Test jarTypeSolver with some sample projects to see whether we can link the classes from the jar with the current class file
+## Building the Project
 
+To build the engine, run the following Maven command from the root directory of the project:
 
-## *spring boot moderne recipes*
+```bash
+mvn clean install
+```
 
-Found these recipes:
+This will create two important artifacts:
+1.  A shaded JAR file in `engine/target/` named `engine-1.0-SNAPSHOT-shaded.jar`. This JAR contains all the necessary dependencies to run the tool.
+2.  A JAR file in `custom-actions/target/` named `custom-actions-1.0-SNAPSHOT.jar`. This project, located in `custom-actions/`, is where you can define your own transformation actions. These actions are loaded into the engine at runtime via Java's `ServiceLoader` mechanism.
 
-1) remove-redundant-maven-compiler-plugin
-    -> Remove standard maven-compiler plugin for applications with boot parent.
-2) initialize-spring-boot-migration
-    -> Initialize an application as Spring Boot application.
-3) migrate-jndi-lookup
-    -> Migrate JNDI lookup using InitialContext to Spring Boot
-4) migrate-jpa-to-spring-boot
-    -> Migrate JPA to Spring Boot
-5) migrate-ejb-jar-deployment-descriptor
-    -> Add or overrides @Stateless annotation as defined in ejb deployment descriptor
-6) migrate-weblogic-ejb-deployment-descriptor
-    -> Migrate weblogic-ejb-jar.xml deployment descriptor
-7) mark-and-clean-remote-ejbs
-    -> Search @Stateless EJBs implementing a @Remote interface
-8) migrate-stateless-ejb
-    -> Migration of stateless EJB to Spring components.
-9) migrate-annotated-servlets
-    -> Allow Spring Boot to deploy servlets annotated with @WebServlet
-10) migrate-jax-ws
-    -> Migrate Jax Web-Service implementation to Spring Boot bases Web-Service
-11) migrate-jax-rs
-    -> Any class has import starting with javax.ws.rs
-12) migrate-mule-to-boot
-    -> Migrate Mulesoft 3.9 to Spring Boot.
-13) migrate-tx-to-spring-boot
-    -> Migration of @TransactionAttribute to @Transactionsl
-14) spring-context-xml-import
-    -> Import Spring Framework xml bean configuration into Java configuration without converting them.
-15) migrate-spring-xml-to-java-config
-    -> Migrate Spring Framework xml bean configuration to Java configuration.
-16) migrate-jms
-    -> Convert JEE JMS app into Spring Boot JMS app
-17) documentation-actions
-    -> Create Documentation for Actions
-18) migrate-jsf-2.x-to-spring-boot
-    -> Use joinfaces to integrate JSF 2.x with Spring Boot.
-19) cn-spring-cloud-config-server
-    -> Externalize properties to Spring Cloud Config Server
-20) boot-2.4-2.5-upgrade-report
-    -> Create Upgrade Report for a Spring Boot 2.4 Application
-21) boot-2.7-3.0-dependency-version-update
-    -> Bump spring-boot-starter-parent from 2.7.x to 3.0.0
-22) boot-autoconfiguration-update
-    -> Create org.springframework.boot.autoconfigure.AutoConfiguration.imports file for new spring 2.7
-23) boot-2.4-2.5-datasource-initializer
-    -> Replace deprecated spring.datasource.* properties
-24) boot-2.4-2.5-spring-data-jpa
-    -> Rename JpaRepository methods getId() and calls to getOne()
-25) boot-2.4-2.5-dependency-version-update
-    -> Update Spring Boot dependencies from 2.4 to 2.5
-26) boot-2.7-3.0-upgrade-report
-    -> Create a report for Spring Boot Upgrade from 2.7.x to 3.0.0-M3
-27) boot-2.4-2.5-sql-init-properties
-    -> Replace deprecated spring.datasource.* properties
-28) sbu30-report
-    -> Create a report for Spring Boot Upgrade from 2.7.x to 3.0.x
-29) sbu30-upgrade-dependencies
-    -> Spring boot 3.0 Upgrade - Upgrade dependencies
-30) sbu30-set-java-version
-    -> Spring boot 3.0 Upgrade - Set java version property in build file
-31) sbu30-add-milestone-repositories
-    -> Spring boot 3.0 Upgrade - Add milestone repository for dependencies and plugins
-32) sbu30-migrate-spring-data-properties
-    -> Spring boot 3.0 Upgrade - Migrate 'spring.data' properties to new property names
-33) sbu30-remove-construtor-binding
-    -> Spring boot 3.0 Upgrade - Remove redundant @ConstructorBinding annotations
-34) sbu30-migrate-to-jakarta-packages
-    -> Spring boot 3.0 Upgrade - Migrate javax packages to new jakarta packages
-35) sbu30-johnzon-dependency-update
-    -> Spring boot 3.0 Upgrade - Specify version number for johnzon-core
-36) sbu30-225-logging-date-format
-    -> Spring boot 3.0 Upgrade - Logging Date Format
-37) sbu30-auto-configuration
-    -> Move EnableAutoConfiguration Property from spring.factories to AutoConfiguration.imports
-38) sbu30-upgrade-spring-cloud-dependency
-    -> Upgrade Spring Cloud Dependencies
-39) sbu30-upgrade-boot-version
-    -> Spring boot 3.0 Upgrade - Upgrade Spring Boot version
-40) sbu30-remove-image-banner
-    -> Spring boot 3.0 Upgrade - Remove the image banner at src/main/resources
-41) sbu30-paging-and-sorting-repository
-    -> Spring boot 3.0 Upgrade - Add CrudRepository interface extension additionally to PagingAndSortingRepository
-42) migrate-raml-to-spring-mvc
-    -> Create Spring Boot @RestController from .raml files.
-43) migrate-boot-2.3-2.4
-    -> Migrate from Spring Boot 2.3 to 2.4
-44) upgrade-boot-1x-to-2x
-    -> Migrate applications built on previous versions of Spring Boot to the latest Spring Boot 2.7 release. This recipe will modify an application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have changes across Spring Boot versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data, JUnit, etc) that are required as part of the migration to Spring Boot 2.7.
+## How It Works
+
+The transformation process is driven by JSON recipes. You specify a sequence of recipes to be executed in a `config.json` file. The engine applies each recipe to the input source code, with the output of one recipe serving as the input for the next.
+
+The recipes listed in `config.json` are executed sequentially.
+
+**Example `config.json`:**
+```json
+[
+  "ejb-to-spring-beans",
+  "jsf-beans-to-spring-components",
+  "producer-to-configuration",
+  "cdi-to-spring-injection",
+  "jaxrs-to-spring-mvc",
+  "lifecycle-and-logging",
+  "jax-spring-annotation-mappings"
+]
+```
+
+### The Recipe Structure
+
+A recipe is a JSON file containing one or more named recipes. Each recipe has a list of steps, and each step has a `match` block to identify the code to be modified and an `actions` block that defines the modifications.
+
+Here is a more detailed example:
+
+```json
+{
+  "recipes": [
+    {
+        "name": "ReplaceDateWithLocalDateTime",
+        "description": "Replace Date with LocalDateTime and new Date() with LocalDateTime.now().",
+        "rollbackOnError": "TypeCompatibilityRule",
+        "imports": {
+            "add": [
+                "java.time.LocalDateTime"
+            ],
+            "remove": []
+        },
+        "steps": [
+            {
+                "match": {
+                    "nodeType": "ObjectCreationExpr",
+                    "fqn": "java.util.Date"
+                },
+                "actions": [
+                    {
+                        "replaceWithMethodCall": {
+                            "scope": "LocalDateTime",
+                            "method": "now"
+                        }
+                    }
+                ]
+            },
+            {
+                "match": {
+                    "nodeType": "VariableDeclarationExpr",
+                    "type": "java.util.Date"
+                },
+                "actions": [
+                    {
+                        "changeType": {
+                            "newType": "java.time.LocalDateTime"
+                        }
+                    }
+                ]
+            },
+            {
+                "match": {
+                    "nodeType": "Parameter",
+                    "type": "java.util.Date"
+                },
+                "actions": [
+                    {
+                        "changeType": {
+                            "newType": "java.time.LocalDateTime"
+                        }
+                    }
+                ]
+            },
+            {
+                "match": {
+                    "nodeType": "MethodCallExpr",
+                    "methodName": "awaitUntil",
+                    "argumentType": "java.time.LocalDateTime",
+                    "expectedParamType": "java.util.Date"
+                },
+                "actions": [
+                    {
+                        "wrapArgument": {
+                            "template": "Date.from($ARG$.atZone(ZoneId.systemDefault()).toInstant())",
+                            "addImports": [
+                                "java.util.Date",
+                                "java.time.ZoneId"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+  ]
+}
+```
+- **name**: A unique identifier for the recipe.
+- **imports**: A list of imports to be added to any file modified by this recipe.
+- **rollbackOnError**: The name of a validator. If this validator fails after the recipe runs, all changes from this recipe will be rolled back.
+- **steps**: An array of match/action blocks that perform the actual transformation.
+
+### Understanding the Documentation
+
+To create effective recipes, you must understand the available `match` keys and `actions`. This information is located in the `docs/` directory:
+
+-   `docs/nodeTypes.yml`: Lists all the AST node types that the tool can match against.
+-   `docs/matches.yml`: Describes all the possible keys you can use in a `match` block.
+-   `docs/actions.yml`: Details all available actions and their parameters.
+
+**Example snippet from `docs/actions.yml`:**
+```yaml
+- key: changeType
+  class: ChangeTypeAction
+  description: >
+    Change the declared type of a variable, parameter, method return,
+    object creation, or field to a new type.
+  parameters:
+    - name: newType
+  appliesTo:
+    - VariableDeclarationExpr
+    - FieldDeclaration
+```
+
+### Validators and Rollback
+
+The engine supports validators that can check the code for certain conditions. If a validator fails, and the recipe is configured with `rollbackOnError`, the engine will revert the changes made by that recipe.
+
+**Example `output.log` snippet showing a rollback:**
+```
+INFO: Executing recipe: Migrate-Javax-Annotations
+INFO: Matched node: @Resource private UserTransaction transaction;
+INFO: Executing action: changeType
+INFO: Executing action: addAnnotation
+INFO: Finished recipe: Migrate-Javax-Annotations
+INFO: Running validator: check-for-javax
+ERROR: Validator 'check-for-javax' failed for file: com/mycompany/MyService.java. Found 'javax.transaction.UserTransaction'.
+INFO: Rolling back changes for: com/mycompany/MyService.java
+```
+
+## Running the Application
+
+You can run the transformation from the command line.
+
+### CLI Arguments
+
+The basic command to run the tool is:
+```bash
+java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main <input_path>
+```
+**Example:**
+```bash
+java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main resources/input/java-application-petstore-ee7
+```
+
+### Using Custom Actions
+
+To use custom actions, include the `custom-actions.jar` in the classpath, separated by a semicolon (Windows) or colon (Linux/macOS).
+```bash
+# Windows
+java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar;custom-actions/target/custom-actions-1.0-SNAPSHOT.jar" gst.Main <input_path>
+```
+
+### Debugging
+
+-   `output/output.log`: Contains detailed logs of matched nodes and actions performed.
+
+**Example `output.log` snippet:**
+
+    ```
+    INFO: Matched node: private Logger logger = Logger.getLogger(SampleController.class.getName());
+    INFO: Executing action: replaceWithMethodCall
+    ```
+
+-   `--match-debug`: A flag for more verbose logging to debug why a node did or did not match.
+    ```bash
+    java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main <input_path> --match-debug
+    ```
+
+## Customization
+
+The engine is designed to be extensible.
+
+### Adding a New Node Type to Match
+
+To process a new AST node type, you need to add it to the `findCandidates` method in `engine/src/main/java/gst/engine/matcher/NodeMatcher.java`.
+
+**Example: Adding `RecordDeclaration`**
+```java
+// ... in NodeMatcher.java
+public static List<Node> findCandidates(Node root, String nodeType) {
+    return switch (nodeType) {
+        // ... existing cases
+        case "RecordDeclaration":
+            return root.findAll(RecordDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
+        default:
+            // ...
+    };
+}
+```
+
+### Adding New Match Logic
+
+To add a new match key (e.g., `hasConstructor`), first add the field to `gst.api.Match.java`, then implement the logic in the `matches` method of `NodeMatcher.java`.
+
+**Example: Adding a new check in `matches`**
+```java
+// ... in NodeMatcher.java
+public static MatchResult matches(Node node, Match m, CombinedTypeSolver typeSolver) {
+    List<String> failures = new ArrayList<>();
+    // ... existing checks
+
+    // New check for a custom key `namePattern` on a ClassOrInterfaceDeclaration
+    if (m.namePattern != null && node instanceof ClassOrInterfaceDeclaration coid) {
+        if (!Pattern.matches(m.namePattern, coid.getNameAsString())) {
+            failures.add("namePattern '" + m.namePattern + "' does not match class name '" + co.getNameAsString() + "'");
+        }
+    }
+
+    return new MatchResult(failures.isEmpty(), failures);
+}
+```
+
+### The `Match.java` Class
+
+This class holds all supported fields for the `match` block in a recipe. When adding a new match key, you must first declare it here.
+
+**Snippet from `Match.java`:**
+```java
+// ... in gst.api.Match.java
+@JsonIgnoreProperties(ignoreUnknown = false)
+public class Match {
+    public String nodeType;
+    public String fqn;
+    public String type;
+    public String methodName;
+    public String fqnScope;
+    public String annotation;
+    public String namePattern;
+    // ... other fields
+}
+```
+
+### Adding a New Action
+
+To add a new action:
+1.  Create a new class that implements the `Action` interface (e.g., in the `custom-actions` project).
+2.  Register the action by adding a `case` for it in the `create` method of `engine/src/main/java/gst/engine/actions/ActionFactory.java`.
+
+**Example: Adding a `myNewAction` case in `ActionFactory.java`**
+```java
+// ... in ActionFactory.java
+public static Action create(String name, Map<String, Object> params) {
+    // ...
+    switch (name) {
+        // ... existing cases
+        case "addAnnotationToParentClass":
+            return new AddAnnotationToParentClassAction(params);
+        case "myNewAction":
+            return new MyNewAction(params);
+    }
+    // ...
+}
+```
+
+## Things to Look Out For
+
+-   **Correct Match Keys:** Always use the correct match keys for a given `nodeType` as specified in `docs/matches.yml`. Using an unsupported key for a node type will be ignored.
+-   **NodeMatcher Configuration:** If a `nodeType` needs to support a new match key, you must add the logic for it in `NodeMatcher.java`.
+-   **Action Parameters:** Ensure you provide all necessary parameters for an action as documented in `docs/actions.yml`. Missing parameters will cause the action to fail.
