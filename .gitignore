@@ -8,3 +8,10 @@ app.password
 .rewrite-cache/
 spring-boot-migrator.jar
 spring-boot-migrator-v1.14.0.jar
+
+# Runtime storage data (should not be committed)
+api/storage/
+rag-service/embeddings/
+
+# Test input projects (may contain nested git repos)
+resources/input/
