@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: recipe-transformer-api
+  
+  # H2 Database Configuration (Development)
+  datasource:
+    url: jdbc:h2:mem:recipe_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  # PostgreSQL Configuration (Production)
+  # Uncomment and configure for production:
+  # datasource:
+  #   url: jdbc:postgresql://localhost:5432/recipe_db
+  #   driver-class-name: org.postgresql.Driver
+  #   username: ${DB_USERNAME:recipe_user}
+  #   password: ${DB_PASSWORD:recipe_password}
+  
+  jpa:
+    hibernate:
+      ddl-auto: update # Use 'validate' or 'none' in production
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        # For PostgreSQL, use: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 8
+        queue-capacity: 100
+
+server:
+  port: 8080
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+logging:
+  level:
+    com.recipe.api: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: INFO
+
+# Storage Configuration
+storage:
+  # Use 'local' for development, 'minio' for production
+  type: local
+  local:
+    base-path: ./storage
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket: recipe-transformer
+
+# OpenAI Configuration (for RAG)
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: gpt-4
+  embedding-model: text-embedding-3-small
+
+# Documentation path for RAG (relative to project root)
+docs:
+  path: ../docs
+
+# Recipes resources path (relative to project root)
+recipes:
+  resources-path: ../resources
+

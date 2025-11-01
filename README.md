@@ -1,292 +1,231 @@
-# Generic Recipe-Based Java Parser Transformer
+# CodeForge - Enterprise Java Code Transformation Platform
 
-This tool is a generic recipe-based transformer for Java source code, built on top of the JavaParser library. It allows you to define a series of transformations in JSON files (recipes) that can be applied to a Java project to perform large-scale refactoring, such as migrating from Java EE to Spring Boot.
+> Transform Java codebases with AI-powered recipes. Modern, scalable, and enterprise-ready.
 
-## Building the Project
+![CodeForge](https://img.shields.io/badge/CodeForge-Enterprise-blue?style=for-the-badge)
+![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-green?style=flat-square)
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square)
 
-To build the engine, run the following Maven command from the root directory of the project:
+## ✨ Features
+
+- **🎯 Recipe-Based Transformations**: Declarative JSON recipes for precise AST transformations
+- **🤖 AI-Powered Generation**: Generate recipes from natural language using RAG (Retrieval-Augmented Generation)
+- **🏢 Enterprise-Ready**: REST API, async job queuing, progress tracking, validation, and rollback capabilities
+- **🎨 Modern Web Dashboard**: Beautiful dark-themed Next.js UI with gradient accents
+- **☁️ Scalable Storage**: Support for local filesystem and S3-compatible storage (MinIO)
+- **🔍 Recipe Discovery**: Automatically discover and manage recipes from your resources folder
+- **📊 Diff & Log Analysis**: View detailed diffs and execution logs for each transformation
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Java 21+**
+- **Maven 3.8+**
+- **Node.js 18+** and npm
+- **(Optional)** PostgreSQL, OpenAI API key for AI features
+
+### Backend Setup
 
 ```bash
+# Build all modules
 mvn clean install
+
+# Run the Spring Boot API
+cd api
+mvn spring-boot:run
 ```
 
-This will create two important artifacts:
-1.  A shaded JAR file in `engine/target/` named `engine-1.0-SNAPSHOT-shaded.jar`. This JAR contains all the necessary dependencies to run the tool.
-2.  A JAR file in `custom-actions/target/` named `custom-actions-1.0-SNAPSHOT.jar`. This project, located in `custom-actions/`, is where you can define your own transformation actions. These actions are loaded into the engine at runtime via Java's `ServiceLoader` mechanism.
+API will be available at `http://localhost:8080`
 
-## How It Works
+### Frontend Setup
 
-The transformation process is driven by JSON recipes. You specify a sequence of recipes to be executed in a `config.json` file. The engine applies each recipe to the input source code, with the output of one recipe serving as the input for the next.
-
-The recipes listed in `config.json` are executed sequentially.
-
-**Example `config.json`:**
-```json
-[
-  "ejb-to-spring-beans",
-  "jsf-beans-to-spring-components",
-  "producer-to-configuration",
-  "cdi-to-spring-injection",
-  "jaxrs-to-spring-mvc",
-  "lifecycle-and-logging",
-  "jax-spring-annotation-mappings"
-]
+```bash
+cd web
+npm install
+npm run dev
 ```
 
-### The Recipe Structure
+Frontend will be available at `http://localhost:3000`
 
-A recipe is a JSON file containing one or more named recipes. Each recipe has a list of steps, and each step has a `match` block to identify the code to be modified and an `actions` block that defines the modifications.
+> 📘 See [SETUP.md](SETUP.md) for detailed setup and configuration instructions.
 
-Here is a more detailed example:
+## 🏗️ Architecture
+
+The platform consists of several modules:
+
+- **`engine/`** - Core transformation engine using JavaParser for AST manipulation
+- **`api/`** - REST API layer built with Spring Boot
+- **`rag-service/`** - AI recipe generation service with OpenAI integration
+- **`web/`** - Modern frontend dashboard built with Next.js 14 and TypeScript
+- **`custom-actions/`** - Extensible custom transformation actions
+
+## 📖 Documentation
+
+- **[SETUP.md](SETUP.md)** - Detailed setup and configuration guide
+- **[PROGRESS.md](PROGRESS.md)** - Implementation progress and status
+- **[ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md)** - Deep dive into the engine architecture
+- **`docs/`** - Recipe system documentation:
+  - `nodeTypes.yml` - Supported AST node types
+  - `matches.yml` - Match criteria documentation
+  - `actions.yml` - Available transformation actions
+  - `validators.yml` - Validation rules
+
+## 🔧 Configuration
+
+### API Configuration (`api/src/main/resources/application.yml`)
+
+```yaml
+# Database (H2 for development, PostgreSQL for production)
+spring:
+  datasource:
+    url: jdbc:h2:mem:recipe_db  # Change to PostgreSQL URL for production
+
+# Storage (local filesystem or MinIO)
+storage:
+  type: local  # Options: 'local' or 'minio'
+
+# OpenAI API (for AI-powered recipe generation)
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: gpt-4
+  embedding-model: text-embedding-3-small
+
+# Recipe resources path
+recipes:
+  resources-path: ../resources
+```
+
+### Frontend Configuration (`web/.env.local`)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+## 📚 Usage Examples
+
+### Browse and Select Recipes
+
+1. Navigate to the **Recipes** page
+2. Browse available recipes from the `resources/` folder
+3. Click on any recipe to view its complete JSON structure
+4. Select multiple recipes to build your transformation pipeline
+
+### Create a Custom Recipe
 
 ```json
 {
-  "recipes": [
-    {
-        "name": "ReplaceDateWithLocalDateTime",
-        "description": "Replace Date with LocalDateTime and new Date() with LocalDateTime.now().",
-        "rollbackOnError": "TypeCompatibilityRule",
-        "imports": {
-            "add": [
-                "java.time.LocalDateTime"
-            ],
-            "remove": []
-        },
-        "steps": [
-            {
-                "match": {
-                    "nodeType": "ObjectCreationExpr",
-                    "fqn": "java.util.Date"
-                },
-                "actions": [
-                    {
-                        "replaceWithMethodCall": {
-                            "scope": "LocalDateTime",
-                            "method": "now"
-                        }
-                    }
-                ]
-            },
-            {
-                "match": {
-                    "nodeType": "VariableDeclarationExpr",
-                    "type": "java.util.Date"
-                },
-                "actions": [
-                    {
-                        "changeType": {
-                            "newType": "java.time.LocalDateTime"
-                        }
-                    }
-                ]
-            },
-            {
-                "match": {
-                    "nodeType": "Parameter",
-                    "type": "java.util.Date"
-                },
-                "actions": [
-                    {
-                        "changeType": {
-                            "newType": "java.time.LocalDateTime"
-                        }
-                    }
-                ]
-            },
-            {
-                "match": {
-                    "nodeType": "MethodCallExpr",
-                    "methodName": "awaitUntil",
-                    "argumentType": "java.time.LocalDateTime",
-                    "expectedParamType": "java.util.Date"
-                },
-                "actions": [
-                    {
-                        "wrapArgument": {
-                            "template": "Date.from($ARG$.atZone(ZoneId.systemDefault()).toInstant())",
-                            "addImports": [
-                                "java.util.Date",
-                                "java.time.ZoneId"
-                            ]
-                        }
-                    }
-                ]
-            }
-        ]
-    }
-  ]
-}
-```
-- **name**: A unique identifier for the recipe.
-- **imports**: A list of imports to be added to any file modified by this recipe.
-- **rollbackOnError**: The name of a validator. If this validator fails after the recipe runs, all changes from this recipe will be rolled back.
-- **steps**: An array of match/action blocks that perform the actual transformation.
-
-### Understanding the Documentation
-
-To create effective recipes, you must understand the available `match` keys and `actions`. This information is located in the `docs/` directory:
-
--   `docs/nodeTypes.yml`: Lists all the AST node types that the tool can match against.
--   `docs/matches.yml`: Describes all the possible keys you can use in a `match` block.
--   `docs/actions.yml`: Details all available actions and their parameters.
-
-**Example snippet from `docs/actions.yml`:**
-```yaml
-- key: changeType
-  class: ChangeTypeAction
-  description: >
-    Change the declared type of a variable, parameter, method return,
-    object creation, or field to a new type.
-  parameters:
-    - name: newType
-  appliesTo:
-    - VariableDeclarationExpr
-    - FieldDeclaration
-```
-
-### Validators and Rollback
-
-The engine supports validators that can check the code for certain conditions. If a validator fails, and the recipe is configured with `rollbackOnError`, the engine will revert the changes made by that recipe.
-
-**Example `output.log` snippet showing a rollback:**
-```
-INFO: Executing recipe: Migrate-Javax-Annotations
-INFO: Matched node: @Resource private UserTransaction transaction;
-INFO: Executing action: changeType
-INFO: Executing action: addAnnotation
-INFO: Finished recipe: Migrate-Javax-Annotations
-INFO: Running validator: check-for-javax
-ERROR: Validator 'check-for-javax' failed for file: com/mycompany/MyService.java. Found 'javax.transaction.UserTransaction'.
-INFO: Rolling back changes for: com/mycompany/MyService.java
-```
-
-## Running the Application
-
-You can run the transformation from the command line.
-
-### CLI Arguments
-
-The basic command to run the tool is:
-```bash
-java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main <input_path>
-```
-**Example:**
-```bash
-java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main resources/input/java-application-petstore-ee7
-```
-
-### Using Custom Actions
-
-To use custom actions, include the `custom-actions.jar` in the classpath, separated by a semicolon (Windows) or colon (Linux/macOS).
-```bash
-# Windows
-java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar;custom-actions/target/custom-actions-1.0-SNAPSHOT.jar" gst.Main <input_path>
-```
-
-### Debugging
-
--   `output/output.log`: Contains detailed logs of matched nodes and actions performed.
-
-**Example `output.log` snippet:**
-
-    ```
-    INFO: Matched node: private Logger logger = Logger.getLogger(SampleController.class.getName());
-    INFO: Executing action: replaceWithMethodCall
-    ```
-
--   `--match-debug`: A flag for more verbose logging to debug why a node did or did not match.
-    ```bash
-    java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main <input_path> --match-debug
-    ```
-
-## Customization
-
-The engine is designed to be extensible.
-
-### Adding a New Node Type to Match
-
-To process a new AST node type, you need to add it to the `findCandidates` method in `engine/src/main/java/gst/engine/matcher/NodeMatcher.java`.
-
-**Example: Adding `RecordDeclaration`**
-```java
-// ... in NodeMatcher.java
-public static List<Node> findCandidates(Node root, String nodeType) {
-    return switch (nodeType) {
-        // ... existing cases
-        case "RecordDeclaration":
-            return root.findAll(RecordDeclaration.class).stream().map(n -> (Node) n).collect(Collectors.toList());
-        default:
-            // ...
-    };
-}
-```
-
-### Adding New Match Logic
-
-To add a new match key (e.g., `hasConstructor`), first add the field to `gst.api.Match.java`, then implement the logic in the `matches` method of `NodeMatcher.java`.
-
-**Example: Adding a new check in `matches`**
-```java
-// ... in NodeMatcher.java
-public static MatchResult matches(Node node, Match m, CombinedTypeSolver typeSolver) {
-    List<String> failures = new ArrayList<>();
-    // ... existing checks
-
-    // New check for a custom key `namePattern` on a ClassOrInterfaceDeclaration
-    if (m.namePattern != null && node instanceof ClassOrInterfaceDeclaration coid) {
-        if (!Pattern.matches(m.namePattern, coid.getNameAsString())) {
-            failures.add("namePattern '" + m.namePattern + "' does not match class name '" + co.getNameAsString() + "'");
+  "recipes": [{
+    "name": "ConvertDateToLocalDateTime",
+    "description": "Replace Date with LocalDateTime",
+    "steps": [{
+      "match": {
+        "nodeType": "ObjectCreationExpr",
+        "fqn": "java.util.Date"
+      },
+      "actions": [{
+        "replaceWithMethodCall": {
+          "scope": "LocalDateTime",
+          "method": "now"
         }
-    }
-
-    return new MatchResult(failures.isEmpty(), failures);
+      }, {
+        "addImport": {
+          "name": "java.time.LocalDateTime"
+        }
+      }]
+    }]
+  }]
 }
 ```
 
-### The `Match.java` Class
+### Run a Transformation
 
-This class holds all supported fields for the `match` block in a recipe. When adding a new match key, you must first declare it here.
+1. Upload your Java project (ZIP file)
+2. Select one or more recipes from the Recipe Library
+3. Start the transformation job
+4. View detailed diffs and logs for each recipe execution
 
-**Snippet from `Match.java`:**
-```java
-// ... in gst.api.Match.java
-@JsonIgnoreProperties(ignoreUnknown = false)
-public class Match {
-    public String nodeType;
-    public String fqn;
-    public String type;
-    public String methodName;
-    public String fqnScope;
-    public String annotation;
-    public String namePattern;
-    // ... other fields
+### Generate Recipe with AI
+
+```bash
+POST /api/recipes/generate
+{
+  "intent": "Convert all Date objects to LocalDateTime and replace new Date() with LocalDateTime.now()"
 }
 ```
 
-### Adding a New Action
+## 🛠️ Development
 
-To add a new action:
-1.  Create a new class that implements the `Action` interface (e.g., in the `custom-actions` project).
-2.  Register the action by adding a `case` for it in the `create` method of `engine/src/main/java/gst/engine/actions/ActionFactory.java`.
+### Building the Project
 
-**Example: Adding a `myNewAction` case in `ActionFactory.java`**
-```java
-// ... in ActionFactory.java
-public static Action create(String name, Map<String, Object> params) {
-    // ...
-    switch (name) {
-        // ... existing cases
-        case "addAnnotationToParentClass":
-            return new AddAnnotationToParentClassAction(params);
-        case "myNewAction":
-            return new MyNewAction(params);
-    }
-    // ...
-}
+```bash
+# Build all modules
+mvn clean install
+
+# Build specific module
+cd api && mvn clean install
 ```
 
-## Things to Look Out For
+### Running Tests
 
--   **Correct Match Keys:** Always use the correct match keys for a given `nodeType` as specified in `docs/matches.yml`. Using an unsupported key for a node type will be ignored.
--   **NodeMatcher Configuration:** If a `nodeType` needs to support a new match key, you must add the logic for it in `NodeMatcher.java`.
--   **Action Parameters:** Ensure you provide all necessary parameters for an action as documented in `docs/actions.yml`. Missing parameters will cause the action to fail.
+```bash
+mvn test
+```
+
+### Frontend Development
+
+```bash
+cd web
+npm install
+npm run dev        # Development server
+npm run build      # Production build
+npm run start      # Start production server
+```
+
+### Project Structure
+
+```
+.
+├── engine/              # Core transformation engine
+├── api/                 # Spring Boot REST API
+├── rag-service/         # AI recipe generation
+├── web/                 # Next.js frontend
+├── custom-actions/      # Custom transformation actions
+├── resources/           # Recipe JSON files
+├── docs/               # Documentation files
+└── README.md           # This file
+```
+
+## 🎨 UI Features
+
+- **Dark Theme**: Modern dark UI with gradient accents
+- **Recipe Discovery**: Automatic scanning of recipe files
+- **Interactive Recipe Viewer**: View full recipe JSON with expandable steps
+- **Transformation Dashboard**: Track job progress and view results
+- **Diff Viewer**: Side-by-side comparison of transformed code
+- **Log Analysis**: View detailed execution logs for debugging
+
+## 🔄 Workflow
+
+1. **Upload Project**: Upload your Java project as a ZIP file
+2. **Select Recipes**: Choose recipes from the library or create custom ones
+3. **Run Transformation**: Start a transformation job
+4. **Analyze Results**: Review diffs, logs, and transformed files
+5. **Download Output**: Download the transformed codebase
+
+## 📝 License
+
+[Add your license here]
+
+## 🤝 Contributing
+
+[Add contribution guidelines here]
+
+## 📧 Support
+
+For issues, questions, or contributions, please [open an issue](https://github.com/yourusername/codeforge/issues).
+
+---
+
+**Built with ❤️ using Java, Spring Boot, and Next.js**

@@ -12,6 +12,8 @@
     <modules>
         <module>engine</module>
         <module>custom-actions</module>
+        <module>api</module>
+        <module>rag-service</module>
     </modules>
 
     <properties>
