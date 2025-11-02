@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CheckCircle, XCircle, Clock, FileCode, Plus, Minus, FileText } from 'lucide-react'
 import { jobApi } from '@/lib/api'
 import DiffViewer from '@/components/DiffViewer'
+import Navbar from '@/components/Navbar'
 
 interface Job {
   id: number
@@ -57,6 +58,19 @@ export default function JobDetailPage() {
       loadJob()
     }
   }, [jobId])
+
+  // Auto-refresh while job is pending or running
+  useEffect(() => {
+    if (!job || (job.status !== 'PENDING' && job.status !== 'RUNNING')) {
+      return
+    }
+
+    const interval = setInterval(() => {
+      loadJob()
+    }, 3000) // Refresh every 3 seconds
+
+    return () => clearInterval(interval)
+  }, [job?.status])
 
   useEffect(() => {
     if (job && job.status === 'COMPLETED' && selectedRecipe) {
@@ -129,15 +143,27 @@ export default function JobDetailPage() {
   }
 
   if (loading) {
-    return <div className="container mx-auto px-4 py-8">Loading job details...</div>
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Loading job details...</div>
+      </div>
+    )
   }
 
   if (!job) {
-    return <div className="container mx-auto px-4 py-8">Job not found</div>
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Job not found</div>
+      </div>
+    )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <Link href="/jobs" className="text-gray-600 hover:text-gray-900 mb-4 inline-block">
           ← Back to Jobs
@@ -300,7 +326,7 @@ export default function JobDetailPage() {
           <p className="text-sm text-gray-500 mt-2">This page will auto-refresh</p>
         </div>
       )}
-    </div>
+    </div></div>
   )
 }
 

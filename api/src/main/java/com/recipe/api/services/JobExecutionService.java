@@ -66,16 +66,16 @@ public class JobExecutionService {
     }
     
     @Async
-    @Transactional
     public CompletableFuture<Void> executeJob(Long jobId) {
+        logger.info("Starting execution of job {}", jobId);
+        
         TransformationJob job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalArgumentException("Job not found: " + jobId));
         
         try {
-            // Update job status to RUNNING
-            job.setStatus(TransformationJob.JobStatus.RUNNING);
-            job.setStartedAt(LocalDateTime.now());
-            jobRepository.save(job);
+            // Update job status to RUNNING (in separate transaction)
+            updateJobStatus(jobId, TransformationJob.JobStatus.RUNNING, null);
+            logger.info("Job {} status updated to RUNNING", jobId);
             
             // Load project and recipes
             Project project = job.getProject();
@@ -175,13 +175,14 @@ public class JobExecutionService {
                         uploadDirectoryToStorage(recipeOutputPath, recipeOutputPrefix);
                         recipeOutputPaths.add(recipeOutputPrefix);
                         
-                        // Upload log file
-                        if (Files.exists(recipeLogFile)) {
-                            String logPath = "projects/" + project.getId() + "/jobs/" + jobId + "/logs/" + recipeName + ".log";
-                            try (InputStream logStream = Files.newInputStream(recipeLogFile)) {
-                                storageService.storeFile(logPath, logStream, "text/plain");
-                            }
-                        }
+                       // Upload log file
+                       if (Files.exists(recipeLogFile)) {
+                           String logPath = "projects/" + project.getId() + "/jobs/" + jobId + "/logs/" + recipeName + ".log";
+                           try (InputStream logStream = Files.newInputStream(recipeLogFile)) {
+                               storageService.storeFile(logPath, logStream, "text/plain");
+                           }
+                           logger.info("Uploaded log file for recipe: {}", recipeName);
+                       }
                         
                         // Generate and store diff for this recipe
                         try {
@@ -197,39 +198,71 @@ public class JobExecutionService {
                             logger.warn("Failed to generate diff for recipe: " + recipeName, e);
                         }
                         
-                        // Cleanup recipe input
-                        deleteDirectory(recipeInputPath);
-                        
-                    } catch (Exception e) {
-                        logger.error("Failed to execute recipe: " + recipeName, e);
-                        totalFilesFailed++;
-                    }
-                }
-                
-                // Update job with results
-                job.setStatus(TransformationJob.JobStatus.COMPLETED);
-                job.setCompletedAt(LocalDateTime.now());
-                job.setFilesTransformed(totalFilesTransformed);
-                job.setFilesFailed(totalFilesFailed);
-                job.setOutputPath("projects/" + project.getId() + "/jobs/" + jobId + "/recipes");
-                
-                jobRepository.save(job);
+                       // Cleanup recipe input
+                       deleteDirectory(recipeInputPath);
+                       
+                   } catch (Exception e) {
+                       logger.error("Failed to execute recipe: " + recipeName, e);
+                       totalFilesFailed++;
+                   }
+               }
+               
+               // Update job with results (in separate transaction)
+               updateJobCompletion(jobId, totalFilesTransformed, totalFilesFailed, 
+                       "projects/" + project.getId() + "/jobs/" + jobId + "/recipes");
+               
+               logger.info("Job {} completed successfully. Files transformed: {}, failed: {}", 
+                       jobId, totalFilesTransformed, totalFilesFailed);
                 
             } finally {
                 // Cleanup temp directory
                 deleteDirectory(tempDir);
             }
             
-        } catch (Exception e) {
-            logger.error("Job execution failed", e);
-            job.setStatus(TransformationJob.JobStatus.FAILED);
-            job.setCompletedAt(LocalDateTime.now());
-            job.setErrorMessage(e.getMessage());
-            jobRepository.save(job);
-        }
-        
-        return CompletableFuture.completedFuture(null);
-    }
+           } catch (Exception e) {
+               logger.error("Job {} execution failed", jobId, e);
+               updateJobStatus(jobId, TransformationJob.JobStatus.FAILED, e.getMessage());
+           }
+           
+           return CompletableFuture.completedFuture(null);
+       }
+       
+       @Transactional
+       private void updateJobStatus(Long jobId, TransformationJob.JobStatus status, String errorMessage) {
+           TransformationJob job = jobRepository.findById(jobId)
+                   .orElseThrow(() -> new IllegalArgumentException("Job not found: " + jobId));
+           
+           job.setStatus(status);
+           
+           if (status == TransformationJob.JobStatus.RUNNING && job.getStartedAt() == null) {
+               job.setStartedAt(LocalDateTime.now());
+           }
+           
+           if (status == TransformationJob.JobStatus.FAILED) {
+               job.setCompletedAt(LocalDateTime.now());
+               job.setErrorMessage(errorMessage);
+           }
+           
+           jobRepository.save(job);
+           jobRepository.flush(); // Force immediate persistence
+           logger.info("Job {} status updated to {} in database", jobId, status);
+       }
+       
+       @Transactional
+       private void updateJobCompletion(Long jobId, int filesTransformed, int filesFailed, String outputPath) {
+           TransformationJob job = jobRepository.findById(jobId)
+                   .orElseThrow(() -> new IllegalArgumentException("Job not found: " + jobId));
+           
+           job.setStatus(TransformationJob.JobStatus.COMPLETED);
+           job.setCompletedAt(LocalDateTime.now());
+           job.setFilesTransformed(filesTransformed);
+           job.setFilesFailed(filesFailed);
+           job.setOutputPath(outputPath);
+           
+           jobRepository.save(job);
+           jobRepository.flush(); // Force immediate persistence
+           logger.info("Job {} marked as COMPLETED in database", jobId);
+       }
     
     private void uploadDirectoryToStorage(Path localDir, String storagePrefix) throws IOException {
         Files.walk(localDir)
