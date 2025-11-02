@@ -186,26 +186,33 @@ public class JobExecutionService {
                         
                         // Generate and store diff for this recipe
                         try {
+                            logger.info("Starting diff generation for recipe: {}", recipeName);
                             DiffService.DirectoryDiff diff = diffService.generateDirectoryDiff(recipeInputPath, recipeOutputPath);
+                            logger.info("Diff generated, serializing to JSON...");
                             String diffJson = new ObjectMapper().writeValueAsString(diff);
                             String diffPath = "projects/" + project.getId() + "/jobs/" + jobId + "/diffs/" + recipeName + ".json";
+                            logger.info("Storing diff to: {}", diffPath);
                             try (InputStream diffStream = new ByteArrayInputStream(diffJson.getBytes())) {
                                 storageService.storeFile(diffPath, diffStream, "application/json");
                             }
                             logger.info("Generated diff for recipe {}: {} files changed, +{} -{}", 
                                     recipeName, diff.getChangedFiles(), diff.getTotalAdditions(), diff.getTotalDeletions());
                         } catch (Exception e) {
-                            logger.warn("Failed to generate diff for recipe: " + recipeName, e);
+                            logger.error("Failed to generate diff for recipe: " + recipeName, e);
                         }
                         
                         // Cleanup recipe input
+                        logger.info("Cleaning up temporary input directory for recipe: {}", recipeName);
                         deleteDirectory(recipeInputPath);
+                        logger.info("Recipe {} processing completed successfully", recipeName);
                         
                     } catch (Exception e) {
                         logger.error("Failed to execute recipe: " + recipeName, e);
                         totalFilesFailed++;
                     }
                }
+               
+               logger.info("All recipes processed. Total transformed: {}, failed: {}", totalFilesTransformed, totalFilesFailed);
                
                logger.info("Job {} transformation loop completed. Preparing to update status...", jobId);
                logger.info("Total files transformed: {}, failed: {}", totalFilesTransformed, totalFilesFailed);
