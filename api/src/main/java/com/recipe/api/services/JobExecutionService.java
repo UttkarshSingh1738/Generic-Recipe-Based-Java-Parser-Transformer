@@ -188,17 +188,28 @@ public class JobExecutionService {
                         try {
                             logger.info("Starting diff generation for recipe: {}", recipeName);
                             DiffService.DirectoryDiff diff = diffService.generateDirectoryDiff(recipeInputPath, recipeOutputPath);
-                            logger.info("Diff generated, serializing to JSON...");
-                            String diffJson = new ObjectMapper().writeValueAsString(diff);
-                            String diffPath = "projects/" + project.getId() + "/jobs/" + jobId + "/diffs/" + recipeName + ".json";
-                            logger.info("Storing diff to: {}", diffPath);
-                            try (InputStream diffStream = new ByteArrayInputStream(diffJson.getBytes())) {
-                                storageService.storeFile(diffPath, diffStream, "application/json");
+                            logger.info("Diff generated: {} files changed, +{} -{}", 
+                                    diff.getChangedFiles(), diff.getTotalAdditions(), diff.getTotalDeletions());
+                            
+                            // Only serialize and store if there are actual changes
+                            if (diff.getChangedFiles() > 0) {
+                                logger.info("Serializing diff to JSON...");
+                                ObjectMapper diffMapper = new ObjectMapper();
+                                String diffJson = diffMapper.writeValueAsString(diff);
+                                logger.info("Diff JSON size: {} bytes", diffJson.length());
+                                
+                                String diffPath = "projects/" + project.getId() + "/jobs/" + jobId + "/diffs/" + recipeName + ".json";
+                                logger.info("Storing diff to: {}", diffPath);
+                                try (InputStream diffStream = new ByteArrayInputStream(diffJson.getBytes())) {
+                                    storageService.storeFile(diffPath, diffStream, "application/json");
+                                }
+                                logger.info("Diff stored successfully for recipe: {}", recipeName);
+                            } else {
+                                logger.info("No changes detected for recipe {}, skipping diff storage", recipeName);
                             }
-                            logger.info("Generated diff for recipe {}: {} files changed, +{} -{}", 
-                                    recipeName, diff.getChangedFiles(), diff.getTotalAdditions(), diff.getTotalDeletions());
                         } catch (Exception e) {
-                            logger.error("Failed to generate diff for recipe: " + recipeName, e);
+                            logger.error("Failed to generate/store diff for recipe: " + recipeName, e);
+                            // Don't fail the entire job if diff fails
                         }
                         
                         // Cleanup recipe input
