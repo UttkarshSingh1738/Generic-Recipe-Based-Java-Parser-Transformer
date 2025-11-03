@@ -60,37 +60,23 @@ public class EnhancedPipelineService {
             result.setTotalFiles(javaFiles.size());
             logger.info("Starting transformation of {} Java files", javaFiles.size());
             
-            // Create recipe file for pipeline
-            Path tempRecipeFile = Files.createTempFile("recipe", ".json");
-            RecipeContainer container = new RecipeContainer();
-            container.recipes = recipes;
+            // Execute pipeline directly with Recipe objects (no re-serialization needed)
+            Pipeline.run(recipes, inputRoot, outputRoot, jarPaths, matchDebug);
             
-            // Save recipe container to temp file
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writerWithDefaultPrettyPrinter().writeValue(tempRecipeFile.toFile(), container);
+            // Count transformed files
+            List<Path> transformedFiles = Files.walk(outputRoot)
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .collect(Collectors.toList());
             
-            try {
-                // Execute pipeline
-                Pipeline.run(tempRecipeFile, inputRoot, outputRoot, jarPaths, matchDebug);
-                
-                // Count transformed files
-                List<Path> transformedFiles = Files.walk(outputRoot)
-                        .filter(Files::isRegularFile)
-                        .filter(p -> p.toString().endsWith(".java"))
-                        .collect(Collectors.toList());
-                
-                result.setFilesTransformed(transformedFiles.size());
-                
-                if (callback != null) {
-                    callback.onComplete(javaFiles.size(), transformedFiles.size(), 0);
-                }
-                
-                logger.info("Transformation completed: {} files processed, {} transformed", 
-                        javaFiles.size(), transformedFiles.size());
-                
-            } finally {
-                Files.deleteIfExists(tempRecipeFile);
+            result.setFilesTransformed(transformedFiles.size());
+            
+            if (callback != null) {
+                callback.onComplete(javaFiles.size(), transformedFiles.size(), 0);
             }
+            
+            logger.info("Transformation completed: {} files processed, {} transformed", 
+                    javaFiles.size(), transformedFiles.size());
             
         } catch (Exception e) {
             logger.error("Transformation failed", e);

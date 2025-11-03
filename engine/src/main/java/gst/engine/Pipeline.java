@@ -63,9 +63,18 @@ public class Pipeline {
         run(mappingFile, inputRoot, outputRoot, jarPaths, false);
     }
 
+    public static void run(List<Recipe> recipes, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
+        runWithRecipes(recipes, inputRoot, outputRoot, jarPaths, matchDebug);
+    }
+
     @SuppressWarnings("UseSpecificCatch")
     public static void run(Path mappingFile, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
         List<Recipe> recipes = MappingLoader.load(mappingFile);
+        runWithRecipes(recipes, inputRoot, outputRoot, jarPaths, matchDebug);
+    }
+
+    @SuppressWarnings("UseSpecificCatch")
+    private static void runWithRecipes(List<Recipe> recipes, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
 
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
                 new ReflectionTypeSolver(),
