@@ -1,9 +1,3 @@
 [
-  "ejb-to-spring-beans",
-  "jsf-beans-to-spring-components",
-  "producer-to-configuration",
-  "cdi-to-spring-injection",
-  "jaxrs-to-spring-mvc",
-  "lifecycle-and-logging",
-  "jax-spring-annotation-mappings"
+  "test-mappings"
 ]

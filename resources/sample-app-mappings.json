@@ -3,7 +3,6 @@
         {
             "name": "UseSpringContext_GenericFactory",
             "description": "Turn XxFactory.getService(...) fields into @Autowired/@Qualifier injection and all local getService calls into SpringContext.getBean(...)",
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "org.springframework.beans.factory.annotation.Autowired",
@@ -78,8 +77,7 @@
         },
         {
             "name": "StripEjbAccessException",
-            "description": "Remove EjbAccessException from all catch clauses; if it’s the only exception, drop the clause entirely.",
-            "rollbackOnError": false,
+            "description": "Remove EjbAccessException from all catch clauses; if it's the only exception, drop the clause entirely.",
             "steps": [
                 {
                     "match": {
@@ -98,7 +96,6 @@
         {
             "name": "RenameGetUser_AllSvcs",
             "description": "rename getUserName → getUser on every *Svc interface",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {

@@ -2,7 +2,6 @@
     "recipes": [
         {
             "name": "JaxRsClassToSpringController",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -288,7 +287,6 @@
         },
         {
             "name": "ContextToAutowiredHttpServletRequest",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {
@@ -347,7 +345,6 @@
         {
             "name": "UseLinkOfWithRequestURI",
             "description": "Switch Link.fromUri(uriInfo.getPath()).rel(uri).build() → Link.of(request.getRequestURI())",
-            "rollbackOnError": false,
             "imports": {
                 "remove": [
                     "javax.ws.rs.core.Link"
@@ -416,7 +413,6 @@
         {
             "name": "AnnotateConfigurationWithRequestBody",
             "description": "Add @RequestBody to any handler method parameter of type Configuration",
-            "rollbackOnError": false,
             "imports": {
                 "add": [
                     "org.springframework.web.bind.annotation.RequestBody"

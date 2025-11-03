@@ -27,6 +27,9 @@ matches:
       - MethodDeclaration
       - BlockStmt
       - VariableDeclarator
+      - InstanceOfExpr
+      - StringLiteralExpr
+      - RecordDeclaration
     example: |
       # Match every method call so you can wrap it in a try/catch
       {

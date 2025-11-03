@@ -3,7 +3,6 @@
         {
             "name": "SampleTransform",
             "description": "Remove @Deprecated, update @MyAnno value, rename class, method, variables, wrap println in try/catch, and remove err prints",
-            "rollbackOnError": false,
             "steps": [
                 {
                     "match": {

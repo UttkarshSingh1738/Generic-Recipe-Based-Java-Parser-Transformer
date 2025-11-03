@@ -67,15 +67,7 @@ public class RecipeDiscoveryService {
             if (relativePath.contains("old-recipes") || 
                 relativePath.contains("old-recipes/") ||
                 relativePath.startsWith("input/") ||
-                fileName.equals("config.json") ||
-                fileName.equals("mappingsV3.json") ||
-                fileName.equals("sample-app-mappings.json") ||
-                fileName.equals("test-mappings.json") ||
-                fileName.equals("11-17-mappings.json") ||
-                fileName.equals("11-17-v2-mappings.json") ||
-                fileName.equals("17-specific-mappings.json") ||
-                fileName.equals("17-specific-v2-mappings.json") ||
-                fileName.equals("method-target-to-static-test.json")) {
+                fileName.equals("config.json")) {
                 return;
             }
             
