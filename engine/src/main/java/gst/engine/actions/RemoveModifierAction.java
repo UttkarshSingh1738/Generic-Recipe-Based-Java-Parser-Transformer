@@ -17,6 +17,7 @@ public class RemoveModifierAction implements Action {
     if (node instanceof NodeWithModifiers<?> nwm) {
       ctx.saveOriginalNode(node, node.clone());
       nwm.getModifiers().removeIf(m -> m.getKeyword().asString().equals(modifier));
+      System.out.println("[ACTION] removeModifier: " + modifier);
     }
   }
 }

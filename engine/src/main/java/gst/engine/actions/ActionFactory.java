@@ -74,6 +74,27 @@ public class ActionFactory {
             }
         }
 
-        throw new IllegalArgumentException("Unknown action: " + name);
+        // Build list of available actions for better error message
+        List<String> builtInActions = List.of(
+            "changeType", "replaceWithMethodCall", "wrapArgument", "switchToReturnExpression",
+            "collapseLiteralConcat", "forToForEach", "insertBefore", "insertAfter",
+            "removeNode", "removeParentNode", "replaceWithTemplate", "addImport", "removeImport",
+            "addAnnotation", "addComment", "removeComment", "removeExceptionFromCatch",
+            "renameMethodCall", "removeModifier", "clearInitializer", "removeStatements",
+            "removeAnnotation", "updateAnnotationAttribute", "addModifier", "setAccessLevel",
+            "renameVariable", "renameClass", "wrapWithTryCatch", "migrateAnnotation",
+            "replaceWithScope", "updateImplements", "renameMethod", "removeParameter",
+            "removeArgument", "changeMethodReturnType", "instanceOfToPattern",
+            "replaceStringFormatWithFormatted", "changeMethodTargetToStatic", "replacePackage",
+            "addAnnotationToParentClass"
+        );
+        
+        List<String> customActions = CUSTOM_PROVIDERS.stream()
+            .map(ActionProvider::getActionName)
+            .collect(Collectors.toList());
+        
+        throw new IllegalArgumentException("Unknown action: '" + name + "'. " +
+            "Available built-in actions: " + String.join(", ", builtInActions) + ". " +
+            "Available custom actions: " + (customActions.isEmpty() ? "none" : String.join(", ", customActions)));
     }
 }

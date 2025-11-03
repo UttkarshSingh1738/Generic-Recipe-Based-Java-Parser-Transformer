@@ -17,8 +17,10 @@ public class ClearInitializerAction implements Action {
     ctx.saveOriginalNode(node, node.clone());
     if (node instanceof FieldDeclaration fd) {
       fd.getVariables().forEach(v -> v.removeInitializer());
+      System.out.println("[ACTION] clearInitializer on field");
     } else if (node instanceof VariableDeclarationExpr vde) {
       vde.getVariables().forEach(v -> v.removeInitializer());
+      System.out.println("[ACTION] clearInitializer on variable");
     }
   }
 }

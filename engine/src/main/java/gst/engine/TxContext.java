@@ -17,6 +17,19 @@ import gst.engine.validator.ValidationError;
 /**
  * Transaction context for tracking recipe transformations and managing rollbacks.
  * Provides granular tracking of changes per recipe and file for targeted rollback operations.
+ * 
+ * <h2>Architecture Note: Node Tracking for Rollback</h2>
+ * <p>The Pipeline automatically saves the matched node before applying each action via
+ * {@link #saveOriginalNodeForRecipe(String, Node, Node)}. Actions should NOT call
+ * {@link #saveOriginalNode(Node, Node)} as it is deprecated and non-functional.</p>
+ * 
+ * <p><strong>Known Limitation:</strong> Some actions (e.g., RenameVariableAction) modify
+ * additional nodes beyond the matched node (e.g., all references to a variable). Currently,
+ * these additional modifications are NOT tracked for rollback. This is a known architectural
+ * limitation that should be addressed in a future refactoring.</p>
+ * 
+ * <p><strong>Future Enhancement:</strong> Consider implementing a generalized node tracking
+ * mechanism that captures all AST modifications, not just the initially matched node.</p>
  */
 public class TxContext {
     // File and transformation tracking
@@ -96,9 +109,15 @@ public class TxContext {
         recipeOriginalNodes.computeIfAbsent(recipeName, k -> new HashMap<>()).put(modified, original.clone());
     }
 
+    /**
+     * @deprecated This method is no longer used. Node tracking is handled automatically
+     * by the Pipeline via {@link #saveOriginalNodeForRecipe(String, Node, Node)}.
+     * Actions should NOT call this method.
+     */
+    @Deprecated
     public void saveOriginalNode(Node modified, Node original) {
-        // Handled at Pipeline level for recipe-specific tracking
-        // LEGACY
+        // LEGACY: Handled at Pipeline level for recipe-specific tracking
+        // Actions do not need to call this - Pipeline handles it automatically
     }
 
     public void registerRecipeChange(String recipeName, Node node) {
