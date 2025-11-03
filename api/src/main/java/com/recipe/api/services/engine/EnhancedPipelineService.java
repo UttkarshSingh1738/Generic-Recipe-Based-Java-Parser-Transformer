@@ -61,22 +61,18 @@ public class EnhancedPipelineService {
             logger.info("Starting transformation of {} Java files", javaFiles.size());
             
             // Execute pipeline directly with Recipe objects (no re-serialization needed)
-            Pipeline.run(recipes, inputRoot, outputRoot, jarPaths, matchDebug);
+            gst.engine.TxContext txContext = Pipeline.run(recipes, inputRoot, outputRoot, jarPaths, matchDebug);
             
-            // Count transformed files
-            List<Path> transformedFiles = Files.walk(outputRoot)
-                    .filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java"))
-                    .collect(Collectors.toList());
-            
-            result.setFilesTransformed(transformedFiles.size());
+            // Get actual count of transformed files from TxContext
+            int actualTransformed = txContext.getTransformedFiles().size();
+            result.setFilesTransformed(actualTransformed);
             
             if (callback != null) {
-                callback.onComplete(javaFiles.size(), transformedFiles.size(), 0);
+                callback.onComplete(javaFiles.size(), actualTransformed, 0);
             }
             
             logger.info("Transformation completed: {} files processed, {} transformed", 
-                    javaFiles.size(), transformedFiles.size());
+                    javaFiles.size(), actualTransformed);
             
         } catch (Exception e) {
             logger.error("Transformation failed", e);

@@ -39,6 +39,9 @@ public class JobExecutionService {
     
     private static final Logger logger = LoggerFactory.getLogger(JobExecutionService.class);
     
+    // Job execution lock - ensures only one job runs at a time
+    private final java.util.concurrent.Semaphore executionLock = new java.util.concurrent.Semaphore(1);
+    
     private final JobRepository jobRepository;
     private final ProjectRepository projectRepository;
     private final RecipeRepository recipeRepository;
@@ -71,6 +74,23 @@ public class JobExecutionService {
         
         TransformationJob job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalArgumentException("Job not found: " + jobId));
+        
+        // Try to acquire execution lock (non-blocking)
+        boolean acquired = executionLock.tryAcquire();
+        if (!acquired) {
+            logger.info("Job {} is waiting - another job is currently running", jobId);
+            updateJobStatus(jobId, TransformationJob.JobStatus.PENDING, null);
+            
+            // Wait for lock (blocking)
+            try {
+                executionLock.acquire();
+                logger.info("Job {} acquired execution lock", jobId);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                updateJobStatus(jobId, TransformationJob.JobStatus.FAILED, "Job interrupted while waiting: " + e.getMessage());
+                return CompletableFuture.completedFuture(null);
+            }
+        }
         
         try {
             // Update job status to RUNNING (in separate transaction)
@@ -247,6 +267,10 @@ public class JobExecutionService {
            } catch (Exception e) {
                logger.error("Job {} execution failed", jobId, e);
                updateJobStatus(jobId, TransformationJob.JobStatus.FAILED, e.getMessage());
+           } finally {
+               // Release execution lock so next job can run
+               executionLock.release();
+               logger.info("Job {} released execution lock", jobId);
            }
            
            return CompletableFuture.completedFuture(null);

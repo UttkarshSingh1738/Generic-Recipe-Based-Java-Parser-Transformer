@@ -63,8 +63,8 @@ public class Pipeline {
         run(mappingFile, inputRoot, outputRoot, jarPaths, false);
     }
 
-    public static void run(List<Recipe> recipes, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
-        runWithRecipes(recipes, inputRoot, outputRoot, jarPaths, matchDebug);
+    public static TxContext run(List<Recipe> recipes, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
+        return runWithRecipes(recipes, inputRoot, outputRoot, jarPaths, matchDebug);
     }
 
     @SuppressWarnings("UseSpecificCatch")
@@ -74,7 +74,7 @@ public class Pipeline {
     }
 
     @SuppressWarnings("UseSpecificCatch")
-    private static void runWithRecipes(List<Recipe> recipes, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
+    private static TxContext runWithRecipes(List<Recipe> recipes, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
 
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
                 new ReflectionTypeSolver(),
@@ -324,5 +324,6 @@ public class Pipeline {
 
         System.out.println("\n\n\n\n\n");
 
+        return ctx;
     }
 }

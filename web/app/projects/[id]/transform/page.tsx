@@ -178,8 +178,8 @@ export default function TransformProjectPage() {
 
       {/* Selected Recipes Summary */}
       {selectedRecipes.size > 0 && (
-        <div className="mb-6 border rounded-lg p-4 bg-blue-50">
-          <h3 className="font-semibold mb-2">
+        <div className="mb-6 border border-blue-200 rounded-lg p-4 bg-blue-50">
+          <h3 className="font-semibold mb-3 text-gray-900">
             Selected Recipes ({selectedRecipes.size}):
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -188,15 +188,15 @@ export default function TransformProjectPage() {
               return (
                 <div
                   key={recipeName}
-                  className="flex items-center gap-2 bg-white px-3 py-1.5 rounded border"
+                  className="flex items-center gap-2 bg-white px-3 py-2 rounded-md border border-gray-300 shadow-sm"
                 >
-                  <span className="text-sm font-medium">{recipe?.name || recipeName}</span>
+                  <span className="text-sm font-medium text-gray-900">{recipe?.name || recipeName}</span>
                   <button
                     onClick={() => toggleRecipe(recipeName)}
-                    className="text-gray-500 hover:text-red-600"
+                    className="text-gray-500 hover:text-red-600 hover:bg-red-50 p-0.5 rounded transition-colors"
                     title="Remove"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               )

@@ -29,12 +29,6 @@ public class ActionSpecDeserializer extends JsonDeserializer<ActionSpec> {
         String actionKey = fields.next();
         JsonNode  paramsNode = obj.get(actionKey);
 
-        // DEBUG: Log what we're parsing
-        System.err.println("[DEBUG] ActionSpecDeserializer - Parsing action:");
-        System.err.println("[DEBUG]   Raw JSON: " + obj.toString());
-        System.err.println("[DEBUG]   Extracted actionKey: '" + actionKey + "'");
-        System.err.println("[DEBUG]   Params node: " + (paramsNode != null ? paramsNode.toString() : "null"));
-
         Map<String,Object> params = Map.of();
         if (paramsNode != null && paramsNode.isObject()) {
             params = ((ObjectMapper) oc).convertValue(paramsNode, new TypeReference<Map<String,Object>>() {});

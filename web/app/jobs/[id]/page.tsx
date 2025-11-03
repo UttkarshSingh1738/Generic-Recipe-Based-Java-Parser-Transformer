@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CheckCircle, XCircle, Clock, FileCode, Plus, Minus, FileText } from 'lucide-react'
 import { jobApi } from '@/lib/api'
 import DiffViewer from '@/components/DiffViewer'
+import LogViewer from '@/components/LogViewer'
 import Navbar from '@/components/Navbar'
 
 interface Job {
@@ -222,10 +223,10 @@ export default function JobDetailPage() {
               <button
                 key={recipe}
                 onClick={() => setSelectedRecipe(recipe)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
+                className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
                   selectedRecipe === recipe
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-white hover:bg-gray-50'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
                 }`}
               >
                 {recipe}
@@ -287,28 +288,7 @@ export default function JobDetailPage() {
               ) : loadingLog ? (
                 <div className="border rounded-lg p-8 text-center">Loading log...</div>
               ) : log ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-2 border-b flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">output.log</h3>
-                    <button
-                      onClick={() => {
-                        const blob = new Blob([log], { type: 'text/plain' })
-                        const url = URL.createObjectURL(blob)
-                        const a = document.createElement('a')
-                        a.href = url
-                        a.download = `${selectedRecipe}.log`
-                        a.click()
-                        URL.revokeObjectURL(url)
-                      }}
-                      className="text-xs text-gray-600 hover:text-gray-900"
-                    >
-                      Download
-                    </button>
-                  </div>
-                  <pre className="p-4 bg-gray-900 text-green-400 text-xs overflow-x-auto max-h-[600px] overflow-y-auto font-mono whitespace-pre-wrap break-words">
-                    {log}
-                  </pre>
-                </div>
+                <LogViewer log={log} recipeName={selectedRecipe} />
               ) : (
                 <div className="border rounded-lg p-8 text-center text-gray-600">
                   No log available for this recipe

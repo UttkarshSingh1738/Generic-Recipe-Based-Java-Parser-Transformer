@@ -75,17 +75,9 @@ public class RecipeDiscoveryService {
             List<Recipe> recipes = MappingLoader.load(recipeFile);
             
             if (!recipes.isEmpty()) {
-                Recipe firstRecipe = recipes.get(0);
-                
-                // Use recipe's description if available, otherwise generate from name
-                String description = firstRecipe.description != null && !firstRecipe.description.trim().isEmpty()
-                    ? firstRecipe.description
-                    : extractDescriptionFromName(firstRecipe.name != null ? firstRecipe.name : recipeName);
-                
-                // Display name: use recipe's internal name if it's descriptive, otherwise use filename
-                String displayName = firstRecipe.name != null && firstRecipe.name.length() > 0
-                    ? firstRecipe.name
-                    : recipeName;
+                // Build comprehensive display name and description from all recipes in file
+                String displayName = generateDisplayName(recipeName, recipes);
+                String description = generateDescription(recipes);
                 
                 RecipeInfo info = new RecipeInfo(
                     recipeName, // This is the key identifier (filename without .json)
@@ -100,6 +92,61 @@ public class RecipeDiscoveryService {
         } catch (Exception e) {
             logger.warn("Failed to load recipe file: " + recipeFile + " - " + e.getMessage(), e);
         }
+    }
+    
+    private String generateDisplayName(String fileName, List<Recipe> recipes) {
+        // Use first recipe's name if descriptive, otherwise clean up filename
+        if (!recipes.isEmpty() && recipes.get(0).name != null && !recipes.get(0).name.isEmpty()) {
+            Recipe firstRecipe = recipes.get(0);
+            // If only one recipe, use its name; otherwise indicate multiple recipes
+            if (recipes.size() == 1) {
+                return firstRecipe.name;
+            } else {
+                return fileName.replaceAll("-", " ")
+                              .replaceAll("_", " ")
+                              .replaceAll("([a-z])([A-Z])", "$1 $2")
+                              .substring(0, 1).toUpperCase() + 
+                       fileName.replaceAll("-", " ")
+                              .replaceAll("_", " ")
+                              .replaceAll("([a-z])([A-Z])", "$1 $2")
+                              .substring(1) + 
+                       " (" + recipes.size() + " recipes)";
+            }
+        }
+        
+        return extractDescriptionFromName(fileName);
+    }
+    
+    private String generateDescription(List<Recipe> recipes) {
+        if (recipes.isEmpty()) {
+            return "Transformation recipe";
+        }
+        
+        // If only one recipe with description, use it
+        if (recipes.size() == 1 && recipes.get(0).description != null && !recipes.get(0).description.trim().isEmpty()) {
+            return recipes.get(0).description;
+        }
+        
+        // Multiple recipes: build summary
+        StringBuilder desc = new StringBuilder();
+        if (recipes.size() > 1) {
+            desc.append("Collection of ").append(recipes.size()).append(" recipes: ");
+        }
+        
+        List<String> recipeNames = new ArrayList<>();
+        for (Recipe recipe : recipes) {
+            if (recipe.name != null && !recipe.name.isEmpty()) {
+                recipeNames.add(recipe.name);
+            }
+        }
+        
+        if (!recipeNames.isEmpty()) {
+            desc.append(String.join(", ", recipeNames));
+        } else {
+            desc.append("Multiple transformation recipes");
+        }
+        
+        return desc.toString();
     }
     
     private String extractDescriptionFromName(String name) {
