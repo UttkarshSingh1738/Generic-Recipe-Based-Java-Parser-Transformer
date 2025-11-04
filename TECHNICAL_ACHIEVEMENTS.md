@@ -1,12 +1,8 @@
-# Technical Achievements & Innovation Highlights
+# Technical Architecture and Implementation Details
 
-> **For technical reviewers and hiring managers**
+This document provides technical depth on the architecture, implementation decisions, and complexity of the transformation engine and platform.
 
-This document highlights the advanced technical work and architectural decisions that make this project unique.
-
----
-
-## 🎯 Core Innovations
+## Core Innovations
 
 ### 1. **Custom DSL for AST Transformations**
 
@@ -33,9 +29,7 @@ This document highlights the advanced technical work and architectural decisions
 
 **Impact**: Non-developers can write transformations. Recipes are portable, versionable, and shareable.
 
----
-
-### 2. **Type-Aware Symbol Resolution**
+### 2. Type-Aware Symbol Resolution
 
 **Complexity**: Matching AST nodes by simple name isn't enough for Java.
 
@@ -59,9 +53,7 @@ match: {
 
 **Lines of Code**: ~700 lines in `NodeMatcher.java` alone
 
----
-
-### 3. **Transaction Context with Granular Rollback**
+### 3. Transaction Context with Granular Rollback
 
 **Challenge**: If transformation fails midway, need to rollback without losing other changes.
 
@@ -87,9 +79,7 @@ class TxContext {
 
 **Use Case**: Recipe A succeeds, Recipe B fails → only B rolls back.
 
----
-
-### 4. **Hand-Crafted Action Library**
+### 4. Hand-Crafted Action Library
 
 **Scale**: 37 actions, each handling multiple node types and edge cases.
 
@@ -117,9 +107,7 @@ class TxContext {
 
 **Total**: ~3,000 lines of action implementation code.
 
----
-
-### 5. **Multi-Threaded Architecture**
+### 5. Multi-Threaded Architecture
 
 **Backend Job Execution**:
 - Async job processing with `@Async`
@@ -132,9 +120,7 @@ class TxContext {
 - Real-time updates (3-second polling)
 - Optimistic UI updates
 
----
-
-### 6. **Full-Stack Integration**
+### 6. Full-Stack Integration
 
 **End-to-End Flow**:
 ```
@@ -159,9 +145,7 @@ User downloads transformed code
 
 **Technologies**: Java 21, Spring Boot, JPA, PostgreSQL, Next.js, TypeScript, Tailwind
 
----
-
-## 🏗️ Architectural Decisions
+## Architectural Decisions
 
 ### 1. **Recipe Loading Architecture**
 
@@ -228,9 +212,7 @@ void cleanupOrphanedStorage() {
 }
 ```
 
----
-
-## 🧠 Problem-Solving Examples
+## Problem-Solving Examples
 
 ### Example 1: Variable Renaming
 
@@ -293,9 +275,7 @@ awaitUntil(Date.from(LocalDateTime.now()...));
 
 Requires symbol resolution to match argument type vs parameter type!
 
----
-
-## 📊 Complexity Metrics
+## Complexity Metrics
 
 ### Engine
 - **Cyclomatic Complexity**: Well-managed (avg ~5 per method)
@@ -308,9 +288,7 @@ Requires symbol resolution to match argument type vs parameter type!
 - **Logging**: Consistent `[ACTION]` format across 37 actions
 - **Documentation**: JavaDoc on complex methods
 
----
-
-## 🎓 Learning & Growth
+## Technologies and Patterns
 
 **Technologies Mastered**:
 - Advanced JavaParser usage (AST manipulation + symbol solver)
@@ -336,9 +314,7 @@ Requires symbol resolution to match argument type vs parameter type!
 - Job queue implementation
 - Transaction management
 
----
-
-## 🔬 Advanced Features
+## Advanced Features
 
 ### Validation Framework
 5 validators for transformation correctness:
@@ -360,9 +336,7 @@ Requires symbol resolution to match argument type vs parameter type!
 - Method resolution
 - Inheritance tracking
 
----
-
-## 💼 Business Value
+## Business Value
 
 **ROI for Organizations**:
 - **10-100x faster** than manual refactoring
@@ -377,9 +351,7 @@ Requires symbol resolution to match argument type vs parameter type!
 - Standardize patterns across microservices
 - Automated technical debt reduction
 
----
-
-## 🎯 Metrics That Matter
+## Project Metrics
 
 | Metric | Value | Significance |
 |--------|-------|--------------|
@@ -391,9 +363,7 @@ Requires symbol resolution to match argument type vs parameter type!
 | **Frontend Components** | 10+ | Professional UI/UX |
 | **API Endpoints** | 25+ | RESTful, async |
 
----
-
-## 🏅 Why This Project Stands Out
+## Key Differentiators
 
 1. **Original Work** - Custom DSL designed from scratch
 2. **Production Quality** - Not a tutorial project, built for real use
@@ -402,9 +372,7 @@ Requires symbol resolution to match argument type vs parameter type!
 5. **Innovation** - Recipe DSL, granular rollback, type-aware matching
 6. **Polish** - Professional UI, comprehensive docs, clean code
 
----
-
-## 🔗 Related Documentation
+## Related Documentation
 
 - **README.md** - Project overview and quick start
 - **ARCHITECTURE_OVERVIEW.md** - Deep technical architecture
