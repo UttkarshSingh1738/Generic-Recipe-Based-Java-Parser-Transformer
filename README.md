@@ -7,6 +7,13 @@ A production-ready AST transformation engine for automated Java code migration a
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
+## Screenshots
+
+![Landing Page](docs/images/architecture.png)
+![](docs/images/architecture(1).png)
+![](docs/images/architecture(2).png)
+![](docs/images/architecture(3).png)
+
 ## Overview
 
 This platform enables large-scale Java code transformations through a custom recipe-based DSL. Built on JavaParser with full symbol resolution, it provides type-aware matching and precise AST manipulation for framework migrations, version upgrades, and code modernization.
@@ -888,9 +895,6 @@ export MINIO_SECRET_KEY=your_secret_key
 export OPENAI_API_KEY=your_openai_key  # Optional, for AI features
 ```
 
-## License
-
-[Add your license here]
 
 ## Contributing
 
@@ -908,35 +912,4 @@ Built with:
 - [Next.js](https://nextjs.org/) - React framework
 - [Tailwind CSS](https://tailwindcss.com/) - Styling framework
 
----
 
-## Adding Images to README
-
-To add screenshots or diagrams:
-
-**Option 1: Store in repo**
-```markdown
-![Architecture Diagram](docs/images/architecture.png)
-```
-
-Then place image at `docs/images/architecture.png`
-
-**Option 2: Use external hosting (GitHub, Imgur)**
-```markdown
-![Dashboard Screenshot](https://user-images.githubusercontent.com/your-image-url.png)
-```
-
-**Option 3: Use relative paths**
-```markdown
-<!-- For images in root -->
-![Logo](./logo.png)
-
-<!-- For images in docs -->
-![Diagram](./docs/architecture-diagram.png)
-```
-
-**Best Practice**: Create `docs/images/` directory and store screenshots there. Keep images under 1MB for fast loading.
-
----
-
-**This platform demonstrates end-to-end software engineering across the full stack with emphasis on clean architecture, type safety, and production-ready implementation.**
