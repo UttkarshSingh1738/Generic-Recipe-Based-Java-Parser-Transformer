@@ -20,6 +20,8 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length < 1 || args.length > 2) {
             System.err.println("Usage: java -cp \"engine.jar;custom-actions.jar\" gst.Main <inputSourceRoot> [--match-debug]");
+            System.err.println("  <inputSourceRoot>  Path to input directory, relative to project root (directory containing config.json).");
+            System.err.println("  Example: resources/input/NetworkManagement");
             System.exit(1);
         }
 
@@ -27,7 +29,24 @@ public class Main {
 
         Path cwd = Paths.get("").toAbsolutePath();
 
-        Path logsDir = cwd.resolve("output");
+        // Project base = directory containing config.json (cwd or parent, so running from engine/ still works)
+        Path baseDir = cwd;
+        Path configInCwd = cwd.resolve("config.json");
+        if (!Files.isRegularFile(configInCwd) && cwd.getParent() != null) {
+            Path configInParent = cwd.getParent().resolve("config.json");
+            if (Files.isRegularFile(configInParent)) {
+                baseDir = cwd.getParent();
+            }
+        }
+        Path configJson = baseDir.resolve("config.json");
+        if (!Files.isRegularFile(configJson)) {
+            System.err.println(">>> Missing config.json. Looked in: " + cwd + " and " + (cwd.getParent() != null ? cwd.getParent() : "(no parent)"));
+            System.err.println(">>> Put config.json in the project root (or run from the project root).");
+            System.exit(3);
+        }
+        System.err.println("> Project base: " + baseDir);
+
+        Path logsDir = baseDir.resolve("output");
         Files.createDirectories(logsDir);
         Path logFile = logsDir.resolve("output.log");
         PrintStream ps = new PrintStream(
@@ -37,16 +56,11 @@ public class Main {
         );
         System.setOut(ps);
 
-        Path inputRoot = cwd.resolve(args[0]);
+        Path inputRoot = baseDir.resolve(args[0]).normalize();
         if (!Files.isDirectory(inputRoot)) {
             System.err.println(">>> Input path is not a directory: " + inputRoot);
+            System.err.println(">>> (Resolved from base " + baseDir + " + " + args[0] + ")");
             System.exit(2);
-        }
-
-        Path configJson = cwd.resolve("config.json");
-        if (!Files.isRegularFile(configJson)) {
-            System.err.println(">>> Missing config.json in " + cwd);
-            System.exit(3);
         }
         List<String> mappingNames;
         try {
@@ -66,7 +80,7 @@ public class Main {
 
         List<Path> extraJars = new ArrayList<>();
         for (String dir : List.of("JARs", "jars")) {
-            Path d = cwd.resolve(dir);
+            Path d = baseDir.resolve(dir);
             if (Files.isDirectory(d)) {
                 try (Stream<Path> s = Files.list(d)) {
                     s.filter(p -> p.toString().endsWith(".jar"))
@@ -81,7 +95,7 @@ public class Main {
         Path currentIn = inputRoot;
         for (int i = 0; i < mappingNames.size(); i++) {
             String mapName = mappingNames.get(i);
-            Path mappingFile = cwd.resolve("resources").resolve(mapName + ".json");
+            Path mappingFile = baseDir.resolve("resources").resolve(mapName + ".json");
             if (!Files.isRegularFile(mappingFile)) {
                 System.err.println(">>> Mapping not found: " + mappingFile);
                 System.exit(6);
