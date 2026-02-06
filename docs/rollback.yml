@@ -1,0 +1,34 @@
+# rollback.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Rollback behavior for the Java engine (TxContext).
+
+overview: >
+  The pipeline tracks changes per recipe so that if a recipe fails validation
+  (e.g. rollbackOnError), we can roll back only that recipe's changes.
+
+whatIsTracked:
+  - description: Original file content (CompilationUnit) per input path
+    note: saveOriginalFile() stores a clone before any transformations on that file.
+  - description: Per-recipe node changes
+    note: For each step match, we save the node's original clone and register the
+          modified node in recipeChanges. rollbackRecipe(name) replaces each
+          changed node with its saved original.
+  - description: Which recipes touched which files
+    note: fileToRecipes and getRecipesForFile() for reporting.
+
+whenRollbackIsComplete:
+  - description: Rollback is complete for a recipe when every node that was
+    modified by that recipe's actions was registered via saveOriginalNodeForRecipe
+    and registerRecipeChange.
+  - limitation: >
+    Only the primary matched node is guaranteed to be tracked per step. If an
+    action modifies other nodes (e.g. siblings, parent, or newly created nodes),
+    those may not be in recipeChanges / recipeOriginalNodes, so rollback can
+    be best-effort for that file. For full rollback guarantee, consider
+    file-level snapshot per recipe (not yet implemented).
+
+usage:
+  - recipe.rollbackOnError: Set to a validator name (e.g. TypeCompatibilityRule)
+    to trigger rollback of that recipe's changes when the validator fails.
+  - TxContext.rollbackRecipe(recipeName): Replaces each tracked modified node
+    with its saved original and clears that recipe's tracking.

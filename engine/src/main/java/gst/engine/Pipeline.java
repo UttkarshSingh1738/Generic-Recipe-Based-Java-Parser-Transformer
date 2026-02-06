@@ -66,6 +66,7 @@ public class Pipeline {
     @SuppressWarnings("UseSpecificCatch")
     public static void run(Path mappingFile, Path inputRoot, Path outputRoot, List<Path> jarPaths, boolean matchDebug) throws IOException {
         List<Recipe> recipes = MappingLoader.load(mappingFile);
+        RecipeValidator.validate(recipes);
 
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
                 new ReflectionTypeSolver(),

@@ -1,6 +1,8 @@
 # docs/nodeTypes.yml
 # ─────────────────────────────────────────────────────────────────────────────
 # A catalog of all supported nodeType values.
+#
+# When you add support for a new node type in recipes: add an entry here (nodeType, class, description, example).
 
 - nodeType: ObjectCreationExpr
   class: com.github.javaparser.ast.expr.ObjectCreationExpr

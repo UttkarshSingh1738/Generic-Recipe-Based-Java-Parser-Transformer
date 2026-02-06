@@ -1,6 +1,7 @@
 # matches.yml
 # ─────────────────────────────────────────────────────────────────────────────
 # Definitions of all “match” keys you can use in a recipe’s steps.match section.
+# When you add a new match key: add an entry here (key, description, appliesTo, example).
 
 matches:
   - key: nodeType

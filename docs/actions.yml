@@ -2,6 +2,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Definitions of all action keys you can use in a recipe’s steps.actions section.
 
+# Recipe format: each action must be a single-key object, e.g. { "addComment": { "comment": "..." } }.
+# If you see "Unknown action: 'key'", fix the JSON shape and see entries below for valid names.
+# When you add a new action: add an entry here (key, class, description, parameters, appliesTo, example).
+
 actions:
   - key: changeType
     class: ChangeTypeAction

@@ -1,9 +1,11 @@
 package gst.engine.actions;
 
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import gst.engine.actions.spi.ActionProvider;
@@ -15,6 +17,37 @@ public class ActionFactory {
                         .stream()
                         .map(ServiceLoader.Provider::get)
                         .collect(Collectors.toList());
+
+    private static final Set<String> KNOWN_ACTION_NAMES = buildKnownActionNames();
+
+    private static Set<String> buildKnownActionNames() {
+        Set<String> set = new HashSet<>(List.of(
+            "changeType", "replaceWithMethodCall", "wrapArgument", "switchToReturnExpression",
+            "collapseLiteralConcat", "forToForEach", "insertBefore", "insertAfter", "removeNode",
+            "removeParentNode", "replaceWithTemplate", "addImport", "removeImport", "addAnnotation",
+            "addComment", "removeComment", "removeExceptionFromCatch", "renameMethodCall",
+            "removeModifier", "clearInitializer", "removeStatements", "removeAnnotation",
+            "updateAnnotationAttribute", "addModifier", "setAccessLevel", "renameVariable",
+            "renameClass", "wrapWithTryCatch", "migrateAnnotation", "replaceWithScope",
+            "updateImplements", "renameMethod", "removeParameter", "removeArgument",
+            "changeMethodReturnType", "instanceOfToPattern", "replaceStringFormatWithFormatted",
+            "changeMethodTargetToStatic", "replacePackage", "addAnnotationToParentClass"
+        ));
+        for (ActionProvider p : CUSTOM_PROVIDERS) {
+            set.add(p.getActionName());
+        }
+        return Set.copyOf(set);
+    }
+
+    /** Returns the set of action names known to this factory (built-in + custom providers). */
+    public static Set<String> getKnownActionNames() {
+        return KNOWN_ACTION_NAMES;
+    }
+
+    /** Returns true if the given name is a known action. */
+    public static boolean isKnownAction(String name) {
+        return name != null && KNOWN_ACTION_NAMES.contains(name);
+    }
 
     public static Action create(String name, Map<String, Object> params) {
         Map<String, String> stringParams = new HashMap<>();
@@ -74,6 +107,7 @@ public class ActionFactory {
             }
         }
 
-        throw new IllegalArgumentException("Unknown action: " + name);
+        throw new IllegalArgumentException(
+            "Unknown action: '" + name + "'. Each action must be a single-key object where the key is the action name, e.g. {\"addComment\": {\"comment\": \"...\"}}. See docs/actions.yml for valid action names.");
     }
 }

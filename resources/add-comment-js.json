@@ -1,0 +1,13 @@
+{
+  "recipes": [{
+    "name": "AddCommentJs",
+    "description": "Match ClassDeclaration with namePattern and add a comment.",
+    "steps": [{
+      "match": {
+        "nodeType": "ClassDeclaration",
+        "namePattern": "Sample"
+      },
+      "actions": [{ "addComment": { "comment": "TODO: migrate to React" } }]
+    }]
+  }]
+}

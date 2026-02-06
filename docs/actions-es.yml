@@ -1,0 +1,95 @@
+# actions-es.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Definitions of all action keys for the JS/TS engine (Babel). Same recipe
+# format as Java: each action is a single-key object, e.g. {"addComment": {"comment": "..."}}.
+#
+# When you add a new action: add an entry here (key, description, parameters, appliesTo, example).
+
+actions:
+  - key: addComment
+    description: >
+      Add a line comment (// ...) to the matched node. Use placement "trailing" to
+      put the comment after the node (avoids breaking "export class" layout).
+    parameters:
+      - name: comment
+        type: String
+        description: The comment text (without "//"; added automatically).
+      - name: placement
+        type: String
+        description: '"leading" (default) = before node; "trailing" = after node; "firstMember" = on first class member (ClassDeclaration only, keeps export class on one line).'
+    appliesTo:
+      - ClassDeclaration
+      - FunctionDeclaration
+      - ClassMethod
+      - CallExpression
+      - ImportDeclaration
+      - (any node type)
+    example: |
+      Recipe:
+      {
+        "match": { "nodeType": "ClassDeclaration", "namePattern": "App" },
+        "actions": [{ "addComment": { "comment": "TODO: migrate to React" } }]
+      }
+      Result: // TODO: migrate to React
+      class App { }
+
+  - key: removeNode
+    description: >
+      Remove the matched node from the AST.
+    parameters: []
+    appliesTo:
+      - (any node type; use with care)
+    example: |
+      Recipe:
+      {
+        "match": { "nodeType": "Decorator" },
+        "actions": [{ "removeNode": {} }]
+      }
+
+  - key: removeImport
+    description: >
+      Remove a named import from an ImportDeclaration. If that was the only
+      specifier, the whole import statement is removed.
+    parameters:
+      - name: name
+        type: String
+        description: Local binding name to remove (e.g. "Component" for import { Component } from '...').
+    appliesTo:
+      - ImportDeclaration
+    example: |
+      {
+        "match": { "nodeType": "ImportDeclaration", "sourcePattern": "@angular/core", "importName": "Component" },
+        "actions": [{ "removeImport": { "name": "Component" } }]
+      }
+
+  - key: removeDecorator
+    description: >
+      Remove a decorator by name from the node (e.g. @Component from a class).
+      The node must have a decorators array (e.g. ClassDeclaration).
+    parameters:
+      - name: name
+        type: String
+        description: Decorator name to remove (e.g. "Component" for @Component()).
+    appliesTo:
+      - ClassDeclaration
+    example: |
+      {
+        "match": { "nodeType": "ClassDeclaration", "decoratorName": "Component" },
+        "actions": [{ "removeDecorator": { "name": "Component" } }]
+      }
+
+  - key: replaceWithTemplate
+    description: >
+      Replace the matched node with the AST from the given code string.
+      The template must parse to a single expression or statement.
+    parameters:
+      - name: template
+        type: String
+        description: Code string that parses to one node (e.g. "null", "return null").
+    appliesTo:
+      - (expression or statement nodes)
+    example: |
+      {
+        "match": { "nodeType": "ClassProperty", "methodName": "templateUrl" },
+        "actions": [{ "replaceWithTemplate": { "template": "template = null" } }]
+      }

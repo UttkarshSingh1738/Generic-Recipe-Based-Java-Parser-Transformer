@@ -1,0 +1,91 @@
+# nodeTypes-es.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Catalog of supported nodeType values for the JS/TS engine (Babel/ESTree).
+# Use these in recipe match.nodeType.
+#
+# When you add support for a new node type in recipes: add an entry here (nodeType, description, example).
+
+- nodeType: ClassDeclaration
+  description: >
+    A class declaration (ES2015+). Has .id (name), .body, .decorators (optional).
+  example: |
+    class Foo { }
+    @Component
+    class AppComponent { }
+
+- nodeType: ClassMethod
+  description: >
+    A method inside a class body (not a get/set). Has .key, .params, .body.
+  example: |
+    class C {
+      foo() { }
+      bar(x: number) { return x; }
+    }
+
+- nodeType: ClassProperty
+  description: >
+    A class field (property). Has .key, .value (optional), .decorators (optional).
+  example: |
+    class C {
+      name = 'x';
+      count: number;
+    }
+
+- nodeType: Decorator
+  description: >
+    A decorator expression (e.g. @Component()). Often on ClassDeclaration or class members.
+  example: |
+    @Component({ selector: 'app-root' })
+    class App { }
+
+- nodeType: CallExpression
+  description: >
+    A function or method call: callee(args).
+  example: |
+    foo();
+    obj.method(1, 2);
+
+- nodeType: ImportDeclaration
+  description: >
+    An import statement (ES module).
+  example: |
+    import { x } from 'module';
+    import * as ns from 'other';
+
+- nodeType: FunctionDeclaration
+  description: >
+    A top-level or block-scoped function declaration.
+  example: |
+    function foo() { }
+
+- nodeType: Identifier
+  description: >
+    A simple identifier (variable or type name reference).
+  example: |
+    const x = 1;  // x
+    foo();        // foo
+
+- nodeType: JSXElement
+  description: >
+    A JSX element (e.g. <div>...</div>).
+  example: |
+    return <div>Hello</div>;
+
+- nodeType: ObjectProperty
+  description: >
+    A property in an object literal (key: value or key()).
+  example: |
+    { a: 1, b: fn() }
+
+- nodeType: ExportDefaultDeclaration
+  description: >
+    export default ...;
+  example: |
+    export default App;
+
+- nodeType: ExportNamedDeclaration
+  description: >
+    export { ... } or export class/function/const.
+  example: |
+    export { foo };
+    export const x = 1;

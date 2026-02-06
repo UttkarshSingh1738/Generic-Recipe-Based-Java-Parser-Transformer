@@ -199,6 +199,10 @@ java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar;custom-actions/target/cus
     java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main <input_path> --match-debug
     ```
 
+### JS/TS engine
+
+The same recipe format applies to JavaScript/TypeScript via the `engine-js` module (Babel). Build and run from project root: `cd engine-js && npm install && npm run build`, then `node engine-js/dist/run.js [--config config-js.json] [--resources resources] <inputDir> <outputDir>`, or use `run-js.cmd` (Windows). Canonical reference for what the JS/TS engine supports: `docs/nodeTypes-es.yml`, `docs/matches-es.yml`, `docs/actions-es.yml`. For Angular-to-React, use config `config-js.json` with recipe name `angular-to-react` and input e.g. `resources/input/angular-sample`.
+
 ## Customization
 
 The engine is designed to be extensible.

@@ -1,0 +1,28 @@
+{
+  "recipes": [{
+    "name": "AngularToReact",
+    "description": "Angular to React migration: remove Angular import, mark component classes, remove @Component, add migration comments for template/style and lifecycle.",
+    "language": "ts",
+    "steps": [
+      {
+        "match": { "nodeType": "ImportDeclaration", "sourcePattern": "@angular/core", "importName": "Component" },
+        "actions": [{ "removeImport": { "name": "Component" } }]
+      },
+      {
+        "match": { "nodeType": "ClassDeclaration", "decoratorName": "Component", "namePattern": ".*" },
+        "actions": [
+          { "addComment": { "comment": "TODO: Angular-to-React - migrate this component to React", "placement": "firstMember" } },
+          { "removeDecorator": { "name": "Component" } }
+        ]
+      },
+      {
+        "match": { "nodeType": "ClassMethod", "methodName": "ngOnInit|ngOnDestroy|ngAfterViewInit" },
+        "actions": [{ "addComment": { "comment": "Angular lifecycle - replace with React useEffect or equivalent", "placement": "trailing" } }]
+      },
+      {
+        "match": { "nodeType": "ClassProperty", "methodName": "templateUrl|styleUrls|template" },
+        "actions": [{ "addComment": { "comment": "Angular template/style - replace with JSX and CSS imports when migrating" } }]
+      }
+    ]
+  }]
+}

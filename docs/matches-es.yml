@@ -1,0 +1,102 @@
+# matches-es.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Match keys supported by the JS/TS engine (Babel). Use in recipe steps.match.
+#
+# When you add a new match key: add an entry here (key, description, appliesTo, example).
+
+matches:
+  - key: nodeType
+    description: >
+      Only consider AST nodes whose type (Babel/ESTree) matches this value.
+      See docs/nodeTypes-es.yml for supported types.
+    appliesTo:
+      - ClassDeclaration
+      - ClassMethod
+      - ClassProperty
+      - Decorator
+      - CallExpression
+      - ImportDeclaration
+      - FunctionDeclaration
+      - Identifier
+      - JSXElement
+      - ObjectProperty
+      - ExportDefaultDeclaration
+      - ExportNamedDeclaration
+    example: |
+      {
+        "match": { "nodeType": "ClassDeclaration" },
+        "actions": [{ "addComment": { "comment": "TODO" } }]
+      }
+
+  - key: namePattern
+    description: >
+      Regex to match the node's name (class name, function name, method key, etc.).
+      For ClassDeclaration uses .id.name; for ClassMethod/ClassProperty uses .key.name.
+    appliesTo:
+      - ClassDeclaration
+      - ClassMethod
+      - ClassProperty
+      - FunctionDeclaration
+      - Identifier
+    example: |
+      {
+        "match": {
+          "nodeType": "ClassDeclaration",
+          "namePattern": ".*Component$"
+        },
+        "actions": [{ "addComment": { "comment": "Angular component" } }]
+      }
+
+  - key: decoratorName
+    description: >
+      Require the node (ClassDeclaration) to have a decorator with this name.
+      E.g. decoratorName "Component" matches @Component() on a class.
+    appliesTo:
+      - ClassDeclaration
+    example: |
+      {
+        "match": {
+          "nodeType": "ClassDeclaration",
+          "decoratorName": "Component"
+        },
+        "actions": [{ "removeDecorator": { "name": "Component" } }]
+      }
+
+  - key: methodName
+    description: >
+      Regex to match method or property name (for ClassMethod, ClassProperty).
+    appliesTo:
+      - ClassMethod
+      - ClassProperty
+    example: |
+      {
+        "match": {
+          "nodeType": "ClassMethod",
+          "methodName": "ngOnInit"
+        },
+        "actions": [{ "addComment": { "comment": "Replace with useEffect" } }]
+      }
+
+  - key: sourcePattern
+    description: >
+      Regex to match the import source string (e.g. "@angular/core").
+      For ImportDeclaration only.
+    appliesTo:
+      - ImportDeclaration
+    example: |
+      {
+        "match": { "nodeType": "ImportDeclaration", "sourcePattern": "@angular/core" },
+        "actions": [{ "removeImport": { "name": "Component" } }]
+      }
+
+  - key: importName
+    description: >
+      Regex or string to match an imported binding name (e.g. "Component").
+      For ImportDeclaration; checks each specifier's local (or imported) name.
+    appliesTo:
+      - ImportDeclaration
+    example: |
+      {
+        "match": { "nodeType": "ImportDeclaration", "importName": "Component" },
+        "actions": [{ "removeImport": { "name": "Component" } }]
+      }
