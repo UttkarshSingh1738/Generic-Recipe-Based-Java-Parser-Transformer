@@ -13,3 +13,4 @@ spring-boot-migrator-v1.14.0.jar
 node_modules/
 .next/
 npm-debug.log*
+resources/input/javaee8-jaxrs-sample-master.zip
