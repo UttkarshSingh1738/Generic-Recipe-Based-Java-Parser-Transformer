@@ -8,3 +8,8 @@ app.password
 .rewrite-cache/
 spring-boot-migrator.jar
 spring-boot-migrator-v1.14.0.jar
+
+# Node / Next.js (do not commit)
+node_modules/
+.next/
+npm-debug.log*
