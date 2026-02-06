@@ -1,0 +1,49 @@
+{
+  "recipes": [
+    {
+      "name": "AngularToReactStarter",
+      "description": "Starter recipe for Angular-to-React migration. Marks Java classes named *Component with a migration comment. Use on Java codebases that reference or mirror Angular components; extend with more steps as needed.",
+      "steps": [
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "namePattern": ".*Component"
+          },
+          "actions": [
+            {
+              "addComment": {
+                "comment": "TODO: Angular-to-React migration - migrate this component to React"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "ClassOrInterfaceDeclaration",
+            "matchExpr": "Angular"
+          },
+          "actions": [
+            {
+              "addComment": {
+                "comment": "TODO: Angular-to-React - migrate to React"
+              }
+            }
+          ]
+        },
+        {
+          "match": {
+            "nodeType": "MethodDeclaration",
+            "methodName": "getTemplateUrl|getStyleUrls"
+          },
+          "actions": [
+            {
+              "addComment": {
+                "comment": "Angular-style template/style - replace with React JSX when migrating"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
