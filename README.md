@@ -7,12 +7,16 @@ A production-ready AST transformation engine for automated Java code migration a
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
+<!--
+
 ## Screenshots
 
 ![Landing Page](docs/images/architecture.png)
 ![](docs/images/architecture(1).png)
 ![](docs/images/architecture(2).png)
 ![](docs/images/architecture(3).png)
+
+-->
 
 ## Overview
 
