@@ -37,48 +37,48 @@ export default function ProjectsPage() {
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Projects</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-xl font-semibold text-gray-900">Projects</h1>
         <Link
           href="/projects/new"
-          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25"
+          className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
-          New Project
+          New project
         </Link>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading projects...</div>
+        <div className="text-center py-12 text-gray-500">Loading...</div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-12 border border-gray-800 rounded-lg bg-gray-900/50">
-          <Folder className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold mb-2 text-white">No projects yet</h3>
-          <p className="text-gray-400 mb-4">Create your first project to get started</p>
+        <div className="text-center py-12 border border-gray-300 rounded bg-white">
+          <Folder className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+          <h3 className="font-medium text-gray-900 mb-1">No projects</h3>
+          <p className="text-gray-600 text-sm mb-4">Create a project and upload a ZIP to test the API.</p>
           <Link
             href="/projects/new"
-            className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25"
+            className="inline-block bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700"
           >
-            Create Project
+            New project
           </Link>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => (
             <Link
               key={project.id}
               href={`/projects/${project.id}`}
-              className="border border-gray-800 rounded-lg p-6 bg-gray-900/50 hover:bg-gray-900 hover:border-gray-700 transition-all"
+              className="border border-gray-300 rounded p-4 bg-white hover:bg-gray-50"
             >
-              <Folder className="w-8 h-8 text-blue-400 mb-3" />
-              <h3 className="text-xl font-semibold mb-2 text-white">{project.name}</h3>
-              <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+              <Folder className="w-6 h-6 text-gray-500 mb-2" />
+              <h3 className="font-medium text-gray-900 mb-1">{project.name}</h3>
+              <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                 {project.description || 'No description'}
               </p>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-xs text-gray-500">
                 <span>{project.fileCount || 0} files</span>
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-3 h-3" />
                   {new Date(project.createdAt).toLocaleDateString()}
                 </span>
               </div>

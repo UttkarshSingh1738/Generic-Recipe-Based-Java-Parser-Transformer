@@ -198,10 +198,15 @@ For standalone engine usage without the web interface:
 cd engine
 mvn clean package
 
-# Run transformation
-java -cp "target/engine-1.0-SNAPSHOT-shaded.jar" \
-  gst.Main <input-directory>
+# Run from engine directory (config and resources are resolved from project root)
+java -cp "target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main resources/input/NetworkManagement
+
+# Or run from project root
+cd ..
+java -cp "engine/target/engine-1.0-SNAPSHOT-shaded.jar" gst.Main resources/input/NetworkManagement
 ```
+
+**Paths:** The input path is **relative to the project root** (the directory containing `config.json`). Use e.g. `resources/input/NetworkManagement`. The engine finds `config.json` in the current directory or its parent, so you can run from either `engine/` or the project root.
 
 Configure recipes in `config.json` at the project root:
 ```json

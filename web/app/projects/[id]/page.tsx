@@ -61,7 +61,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Loading...</div>
+        <div className="container mx-auto px-4 py-8 text-center text-gray-500">Loading...</div>
       </div>
     )
   }
@@ -70,7 +70,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Project not found</div>
+        <div className="container mx-auto px-4 py-8 text-center text-gray-600">Project not found</div>
       </div>
     )
   }
@@ -79,79 +79,79 @@ export default function ProjectDetailPage() {
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <Link href="/projects" className="text-gray-400 hover:text-white mb-4 inline-block transition-colors">
-          ← Back to Projects
+      <div className="mb-6">
+        <Link href="/projects" className="text-gray-600 hover:text-gray-900 text-sm mb-2 inline-block">
+          ← Projects
         </Link>
-        <h1 className="text-3xl font-bold mb-2 text-white">{project.name}</h1>
-        <p className="text-gray-400">{project.description || 'No description'}</p>
+        <h1 className="text-xl font-semibold mb-1 text-gray-900">{project.name}</h1>
+        <p className="text-gray-600 text-sm">{project.description || 'No description'}</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="border border-gray-800 rounded-lg p-6 bg-gray-900/50">
-          <FileCode className="w-8 h-8 text-blue-400 mb-2" />
-          <div className="text-2xl font-bold text-white">{project.fileCount || 0}</div>
-          <div className="text-gray-400 text-sm">Files</div>
+      <div className="grid md:grid-cols-3 gap-4 mb-6">
+        <div className="border border-gray-300 rounded p-4 bg-white">
+          <FileCode className="w-6 h-6 text-gray-500 mb-1" />
+          <div className="text-lg font-semibold text-gray-900">{project.fileCount || 0}</div>
+          <div className="text-gray-500 text-xs">Files</div>
         </div>
-        <div className="border border-gray-800 rounded-lg p-6 bg-gray-900/50">
-          <History className="w-8 h-8 text-purple-400 mb-2" />
-          <div className="text-2xl font-bold text-white">{jobs.length}</div>
-          <div className="text-gray-400 text-sm">Transformation Jobs</div>
+        <div className="border border-gray-300 rounded p-4 bg-white">
+          <History className="w-6 h-6 text-gray-500 mb-1" />
+          <div className="text-lg font-semibold text-gray-900">{jobs.length}</div>
+          <div className="text-gray-500 text-xs">Jobs</div>
         </div>
         <Link
           href={`/projects/${projectId}/transform`}
-          className="border border-gray-800 rounded-lg p-6 bg-gray-900/50 hover:bg-gray-900 hover:border-blue-500 transition-all flex flex-col items-center justify-center"
+          className="border border-gray-300 rounded p-4 bg-white hover:bg-gray-50 flex flex-col items-center justify-center"
         >
-          <Play className="w-8 h-8 text-blue-400 mb-2" />
-          <div className="font-semibold text-white">Run Transformation</div>
+          <Play className="w-6 h-6 text-gray-500 mb-1" />
+          <span className="font-medium text-gray-900 text-sm">Run transformation</span>
         </Link>
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold mb-4 text-white">Recent Jobs</h2>
+        <h2 className="text-lg font-semibold mb-3 text-gray-900">Recent jobs</h2>
         {jobs.length === 0 ? (
-          <div className="border border-gray-800 rounded-lg p-8 text-center text-gray-400 bg-gray-900/50">
-            No transformation jobs yet. Create one to get started.
+          <div className="border border-gray-300 rounded p-6 text-center text-gray-500 bg-white text-sm">
+            No jobs yet. Run a transformation to start.
           </div>
         ) : (
-          <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
-            <table className="w-full">
-              <thead className="bg-gray-800 border-b border-gray-700">
+          <div className="border border-gray-300 rounded overflow-hidden bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Recipes</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Files</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Created</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Actions</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Status</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Recipes</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Files</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Created</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-gray-200">
                 {jobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-gray-800 transition-colors">
-                    <td className="px-6 py-4">
+                  <tr key={job.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
+                        className={`px-2 py-0.5 rounded text-xs ${
                           job.status === 'COMPLETED'
-                            ? 'bg-green-900/50 text-green-400 border border-green-800'
+                            ? 'bg-green-100 text-green-800'
                             : job.status === 'FAILED'
-                            ? 'bg-red-900/50 text-red-400 border border-red-800'
+                            ? 'bg-red-100 text-red-800'
                             : job.status === 'RUNNING'
-                            ? 'bg-blue-900/50 text-blue-400 border border-blue-800'
-                            : 'bg-gray-800 text-gray-400 border border-gray-700'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-700'
                         }`}
                       >
                         {job.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-400">{job.recipeNames}</td>
-                    <td className="px-6 py-4 text-sm text-gray-400">{job.filesTransformed || 0}</td>
-                    <td className="px-6 py-4 text-sm text-gray-400">
+                    <td className="px-4 py-2 text-gray-600">{job.recipeNames}</td>
+                    <td className="px-4 py-2 text-gray-600">{job.filesTransformed || 0}</td>
+                    <td className="px-4 py-2 text-gray-600">
                       {new Date(job.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <Link
                         href={`/jobs/${job.id}`}
-                        className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                        className="text-blue-600 hover:underline"
                       >
                         View
                       </Link>

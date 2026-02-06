@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, CheckCircle2, Eye, X } from 'lucide-react'
 import { projectApi, recipeApi, jobApi } from '@/lib/api'
+import Navbar from '@/components/Navbar'
 
 interface DiscoveredRecipe {
   fileName: string
@@ -105,21 +106,24 @@ export default function TransformProjectPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
         </div>
       </div>
     )
   }
 
   return (
+    <div className="min-h-screen">
+      <Navbar />
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <Link href={`/projects/${projectId}`} className="text-gray-600 hover:text-gray-900 mb-4 inline-block">
-          ← Back to Project
+      <div className="mb-6">
+        <Link href={`/projects/${projectId}`} className="text-gray-600 hover:text-gray-900 text-sm mb-2 inline-block">
+          ← Project
         </Link>
-        <h1 className="text-3xl font-bold mb-2">Run Transformation</h1>
+        <h1 className="text-xl font-semibold mb-1 text-gray-900">Run transformation</h1>
         <p className="text-gray-600">
           Select one or more recipes to apply to <strong>{project?.name}</strong>
         </p>
@@ -136,8 +140,8 @@ export default function TransformProjectPage() {
             {recipes.map((recipe) => (
               <label
                 key={recipe.fileName}
-                className={`border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors ${
-                  selectedRecipes.has(recipe.fileName) ? 'border-primary bg-primary/5' : ''
+                className={`border rounded p-4 cursor-pointer transition-colors ${
+                  selectedRecipes.has(recipe.fileName) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -166,7 +170,7 @@ export default function TransformProjectPage() {
                       <Eye className="w-4 h-4" />
                     </button>
                     {selectedRecipes.has(recipe.fileName) && (
-                      <CheckCircle2 className="w-5 h-5 text-primary" />
+                      <CheckCircle2 className="w-5 h-5 text-blue-600" />
                     )}
                   </div>
                 </div>
@@ -233,10 +237,10 @@ export default function TransformProjectPage() {
                       onClick={() => {
                         toggleRecipe(viewingRecipe)
                       }}
-                      className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                      className={`px-4 py-2 rounded text-sm font-medium flex items-center gap-2 ${
                         selectedRecipes.has(viewingRecipe)
                           ? 'bg-green-100 text-green-800'
-                          : 'bg-primary text-white hover:bg-primary/90'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
                       }`}
                     >
                       {selectedRecipes.has(viewingRecipe) ? (
@@ -256,7 +260,7 @@ export default function TransformProjectPage() {
                     <div className="bg-gray-50 px-4 py-2 border-b">
                       <span className="text-sm font-semibold">Full Recipe JSON</span>
                     </div>
-                    <pre className="p-4 bg-gray-900 text-green-400 text-xs overflow-x-auto max-h-[600px] overflow-y-auto font-mono whitespace-pre-wrap break-words">
+                    <pre className="p-4 bg-gray-100 text-gray-800 text-xs overflow-x-auto max-h-[600px] overflow-y-auto font-mono whitespace-pre-wrap break-words border-t border-gray-200">
                       {(() => {
                         try {
                           const parsed = typeof recipeContent === 'string' 
@@ -276,17 +280,17 @@ export default function TransformProjectPage() {
         </div>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         <Link
           href={`/projects/${projectId}`}
-          className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+          className="px-4 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50"
         >
           Cancel
         </Link>
         <button
           onClick={handleCreateJob}
           disabled={selectedRecipes.size === 0 || creating}
-          className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
         >
           {creating ? (
             <>
@@ -300,6 +304,7 @@ export default function TransformProjectPage() {
           )}
         </button>
       </div>
+    </div>
     </div>
   )
 }

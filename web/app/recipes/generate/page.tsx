@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sparkles, Loader2 } from 'lucide-react'
 import { recipeApi } from '@/lib/api'
+import Navbar from '@/components/Navbar'
 
 export default function GenerateRecipePage() {
   const router = useRouter()
@@ -48,10 +49,12 @@ export default function GenerateRecipePage() {
   }
 
   return (
+    <div className="min-h-screen">
+      <Navbar />
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
-        <Sparkles className="w-8 h-8 text-primary" />
-        Generate Recipe with AI
+      <h1 className="text-xl font-semibold mb-6 text-gray-900 flex items-center gap-2">
+        <Sparkles className="w-6 h-6 text-blue-600" />
+        Generate recipe (AI)
       </h1>
 
       <div className="space-y-6">
@@ -63,7 +66,7 @@ export default function GenerateRecipePage() {
             value={intent}
             onChange={(e) => setIntent(e.target.value)}
             rows={6}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Example: Convert all Date objects to LocalDateTime, replace new Date() with LocalDateTime.now(), and update method parameters..."
           />
           <p className="text-sm text-gray-600 mt-2">
@@ -80,7 +83,7 @@ export default function GenerateRecipePage() {
         <button
           onClick={handleGenerate}
           disabled={generating || !intent.trim()}
-          className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
         >
           {generating ? (
             <>
@@ -112,7 +115,7 @@ export default function GenerateRecipePage() {
             <div className="flex gap-4">
               <button
                 onClick={handleSave}
-                className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90"
+                className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700"
               >
                 Save Recipe
               </button>
@@ -126,6 +129,7 @@ export default function GenerateRecipePage() {
           </div>
         )}
       </div>
+    </div>
     </div>
   )
 }

@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'CodeForge - Enterprise Java Code Transformation',
-  description: 'Transform Java codebases with AI-powered recipes',
+  title: 'Transformer API - Dev Tool',
+  description: 'Test the recipe-based Java transformation API',
 }
 
 export default function RootLayout({
@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} dark bg-gray-950 text-gray-100`}>{children}</body>
+    <html lang="en">
+      <body className={`${inter.className} bg-gray-100 text-gray-900`}>{children}</body>
     </html>
   )
 }

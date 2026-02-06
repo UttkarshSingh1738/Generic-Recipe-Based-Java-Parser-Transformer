@@ -59,75 +59,75 @@ export default function JobsPage() {
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 text-white">Transformation Jobs</h1>
+        <h1 className="text-xl font-semibold mb-6 text-gray-900">Jobs</h1>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-400">Loading jobs...</div>
+          <div className="text-center py-12 text-gray-500">Loading...</div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-12 border border-gray-800 rounded-lg bg-gray-900/50">
-            <p className="text-gray-400">No transformation jobs yet</p>
+          <div className="text-center py-12 border border-gray-300 rounded bg-white">
+            <p className="text-gray-500 text-sm">No jobs yet</p>
           </div>
         ) : (
-          <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
-            <table className="w-full">
-              <thead className="bg-gray-800 border-b border-gray-700">
+          <div className="border border-gray-300 rounded overflow-hidden bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Project</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Recipes</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Files</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Created</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Actions</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Status</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Project</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Recipes</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Files</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Created</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-gray-200">
                 {jobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-gray-800 transition-colors">
-                  <td className="px-6 py-4">
+                  <tr key={job.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(job.status)}
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
+                        className={`px-2 py-0.5 rounded text-xs ${
                           job.status === 'COMPLETED'
-                            ? 'bg-green-900/50 text-green-400 border border-green-800'
+                            ? 'bg-green-100 text-green-800'
                             : job.status === 'FAILED'
-                            ? 'bg-red-900/50 text-red-400 border border-red-800'
+                            ? 'bg-red-100 text-red-800'
                             : job.status === 'RUNNING'
-                            ? 'bg-blue-900/50 text-blue-400 border border-blue-800'
-                            : 'bg-gray-800 text-gray-400 border border-gray-700'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-700'
                         }`}
                       >
                         {job.status}
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2">
                     <Link
                       href={`/projects/${job.projectId}`}
-                      className="text-blue-400 hover:text-blue-300 hover:underline"
+                      className="text-blue-600 hover:underline"
                     >
                       {job.projectName}
                     </Link>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-400">{job.recipeNames}</td>
-                  <td className="px-6 py-4 text-sm text-gray-400">
+                  <td className="px-4 py-2 text-gray-600">{job.recipeNames}</td>
+                  <td className="px-4 py-2 text-gray-600">
                     {job.filesTransformed || 0}
                     {job.filesFailed > 0 && (
-                      <span className="text-red-400 ml-2">({job.filesFailed} failed)</span>
+                      <span className="text-red-600 ml-1">({job.filesFailed} failed)</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-400">
+                  <td className="px-4 py-2 text-gray-600">
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3 h-3" />
                       {new Date(job.createdAt).toLocaleString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2">
                     <Link
                       href={`/jobs/${job.id}`}
-                      className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                      className="text-blue-600 hover:underline"
                     >
-                      View Details
+                      View
                     </Link>
                   </td>
                 </tr>

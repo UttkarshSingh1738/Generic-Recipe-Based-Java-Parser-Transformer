@@ -54,38 +54,36 @@ export default function NewProjectPage() {
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-8 text-white">Create New Project</h1>
+      <h1 className="text-xl font-semibold mb-6 text-gray-900">New project</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-300">Project Name</label>
+          <label className="block text-sm font-medium mb-1 text-gray-700">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="My Java Project"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-300">Description</label>
+          <label className="block text-sm font-medium mb-1 text-gray-700">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-            placeholder="Describe your project..."
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Optional..."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-300">
-            Upload Source Code (ZIP)
-          </label>
-          <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center bg-gray-900/50 hover:border-gray-600 transition-colors">
-            <Upload className="w-12 h-12 mx-auto text-gray-500 mb-4" />
+          <label className="block text-sm font-medium mb-1 text-gray-700">Source (ZIP)</label>
+          <div className="border border-dashed border-gray-400 rounded p-6 text-center bg-gray-50">
+            <Upload className="w-10 h-10 mx-auto text-gray-400 mb-2" />
             <input
               type="file"
               accept=".zip"
@@ -95,28 +93,28 @@ export default function NewProjectPage() {
             />
             <label
               htmlFor="file-upload"
-              className="cursor-pointer text-blue-400 hover:text-blue-300 hover:underline"
+              className="cursor-pointer text-blue-600 hover:underline text-sm"
             >
-              Click to upload ZIP file
+              Choose ZIP file
             </label>
             {file && (
-              <p className="mt-2 text-sm text-gray-400">{file.name}</p>
+              <p className="mt-2 text-sm text-gray-600">{file.name}</p>
             )}
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <button
             type="submit"
             disabled={uploading || !name}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
           >
-            {uploading ? 'Creating...' : 'Create Project'}
+            {uploading ? 'Creating...' : 'Create'}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-3 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 hover:border-gray-600 transition-all"
+            className="border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50"
           >
             Cancel
           </button>

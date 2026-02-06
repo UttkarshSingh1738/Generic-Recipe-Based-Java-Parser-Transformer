@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FileCode } from 'lucide-react'
 import { recipeApi } from '@/lib/api'
+import Navbar from '@/components/Navbar'
 
 export default function NewRecipePage() {
   const router = useRouter()
@@ -46,11 +47,13 @@ export default function NewRecipePage() {
   }
 
   return (
+    <div className="min-h-screen">
+      <Navbar />
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link href="/recipes" className="text-gray-600 hover:text-gray-900 mb-4 inline-block">
-        ← Back to Recipes
+      <Link href="/recipes" className="text-gray-600 hover:text-gray-900 text-sm mb-4 inline-block">
+        ← Recipes
       </Link>
-      <h1 className="text-3xl font-bold mb-8">Create New Recipe</h1>
+      <h1 className="text-xl font-semibold mb-6 text-gray-900">New recipe</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
@@ -117,7 +120,7 @@ export default function NewRecipePage() {
           <button
             type="submit"
             disabled={saving || !name || !recipeJson}
-            className="flex-1 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Recipe'}
           </button>
@@ -130,6 +133,7 @@ export default function NewRecipePage() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   )
 }

@@ -71,7 +71,7 @@ export default function RecipeDetailPage() {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Loading recipe...</div>
+        <div className="container mx-auto px-4 py-8 text-center text-gray-500">Loading...</div>
       </div>
     )
   }
@@ -80,7 +80,7 @@ export default function RecipeDetailPage() {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Recipe not found</div>
+        <div className="container mx-auto px-4 py-8 text-center text-gray-600">Recipe not found</div>
       </div>
     )
   }
@@ -96,7 +96,7 @@ export default function RecipeDetailPage() {
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <Link href="/recipes" className="text-gray-400 hover:text-white mb-4 inline-flex items-center gap-2 transition-colors">
+        <Link href="/recipes" className="text-gray-600 hover:text-gray-900 mb-4 inline-flex items-center gap-2 text-sm">
           <ArrowLeft className="w-4 h-4" />
           Back to Recipes
         </Link>
@@ -104,7 +104,7 @@ export default function RecipeDetailPage() {
         <div className="mb-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2 text-white">{recipe.name}</h1>
+              <h1 className="text-xl font-semibold mb-2 text-gray-900">{recipe.name}</h1>
               <p className="text-gray-400 mb-2">{recipe.description}</p>
               <p className="text-sm text-gray-500 font-mono">{recipe.fileName}.json</p>
             </div>
@@ -118,7 +118,7 @@ export default function RecipeDetailPage() {
               </button>
               <Link
                 href={`/projects?selectRecipe=${recipeName}`}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25"
+                className="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 flex items-center gap-2"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Use This Recipe
@@ -128,7 +128,7 @@ export default function RecipeDetailPage() {
         </div>
 
       {showRawJson ? (
-        <div className="border border-gray-700 rounded-lg overflow-hidden bg-gray-900">
+        <div className="border border-gray-300 rounded overflow-hidden bg-white">
           <div className="bg-gray-800 px-4 py-2 border-b border-gray-700 flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-200">Raw JSON</span>
             <button
@@ -139,7 +139,7 @@ export default function RecipeDetailPage() {
               Copy
             </button>
           </div>
-          <pre className="p-4 bg-gray-950 text-green-400 text-xs overflow-x-auto max-h-[800px] overflow-y-auto font-mono whitespace-pre-wrap break-words">
+          <pre className="p-4 bg-gray-100 text-gray-800 text-xs overflow-x-auto max-h-[800px] overflow-y-auto font-mono whitespace-pre-wrap break-words">
             {(() => {
               try {
                 if (recipeContent && recipeContent.trim()) {
@@ -158,9 +158,9 @@ export default function RecipeDetailPage() {
       ) : parsedContent && parsedContent.recipes && parsedContent.recipes.length > 0 ? (
         <div className="space-y-6">
           {parsedContent.recipes.map((r: any, recipeIdx: number) => (
-            <div key={recipeIdx} className="border border-gray-800 rounded-lg p-6 bg-gray-900/50">
+            <div key={recipeIdx} className="border border-gray-300 rounded p-4 bg-white">
               <div className="mb-4">
-                <h2 className="text-2xl font-semibold mb-2 text-white">{r.name || 'Unnamed Recipe'}</h2>
+                <h2 className="text-lg font-semibold mb-2 text-gray-900">{r.name || 'Unnamed Recipe'}</h2>
                 {r.description && (
                   <p className="text-gray-400 mb-4">{r.description}</p>
                 )}
@@ -179,19 +179,19 @@ export default function RecipeDetailPage() {
                       const expandKey = `${recipeIdx}-${stepIdx}`
                       const isExpanded = expanded.has(expandKey)
                       return (
-                        <div key={stepIdx} className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900">
+                        <div key={stepIdx} className="border border-gray-200 rounded overflow-hidden bg-gray-50">
                           <button
                             onClick={() => toggleExpand(recipeIdx, stepIdx)}
                             className="w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 flex items-center justify-between text-left transition-colors"
                           >
-                            <span className="font-semibold text-white">Step {stepIdx + 1}</span>
+                            <span className="font-semibold text-gray-900">Step {stepIdx + 1}</span>
                             <span className="text-xs text-gray-400">
                               {isExpanded ? '▼' : '▶'} {step.match?.nodeType || 'Match'}
                             </span>
                           </button>
 
                           {isExpanded && (
-                            <div className="p-4 space-y-4 border-t border-gray-800">
+                            <div className="p-4 space-y-4 border-t border-gray-200">
                               {/* Match Details */}
                               <div>
                                 <h4 className="font-semibold mb-2 text-sm text-gray-300">Match Criteria:</h4>
@@ -229,9 +229,9 @@ export default function RecipeDetailPage() {
               )}
 
               {r.imports && (
-                <div className="mt-4 pt-4 border-t border-gray-800">
+                <div className="mt-4 pt-4 border-t border-gray-200">
                   <h4 className="font-semibold mb-2 text-sm text-gray-300">Import Modifications:</h4>
-                  <div className="bg-gray-950 border border-gray-800 p-3 rounded">
+                  <div className="bg-gray-100 border border-gray-200 p-3 rounded">
                     <pre className="text-xs overflow-x-auto text-gray-300">
                       {JSON.stringify(r.imports, null, 2)}
                     </pre>
@@ -242,7 +242,7 @@ export default function RecipeDetailPage() {
           ))}
         </div>
       ) : (
-        <div className="border border-gray-800 rounded-lg p-8 text-center text-gray-400 bg-gray-900/50">
+        <div className="border border-gray-300 rounded p-6 text-center text-gray-500 bg-white">
           Could not parse recipe content
         </div>
       )}

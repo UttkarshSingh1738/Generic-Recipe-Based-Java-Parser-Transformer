@@ -7,11 +7,11 @@ export default function Navbar() {
   const pathname = usePathname()
 
   return (
-    <nav className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <nav className="border-b border-gray-300 bg-white sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            CodeForge
+          <h1 className="text-xl font-semibold text-gray-800">
+            Transformer API
           </h1>
         </Link>
         <div className="space-x-6">
@@ -19,8 +19,8 @@ export default function Navbar() {
             href="/projects"
             className={`transition-colors ${
               pathname?.startsWith('/projects')
-                ? 'text-white font-semibold'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-gray-900 font-semibold'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             Projects
@@ -29,8 +29,8 @@ export default function Navbar() {
             href="/recipes"
             className={`transition-colors ${
               pathname?.startsWith('/recipes')
-                ? 'text-white font-semibold'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-gray-900 font-semibold'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             Recipes
@@ -39,8 +39,8 @@ export default function Navbar() {
             href="/jobs"
             className={`transition-colors ${
               pathname?.startsWith('/jobs')
-                ? 'text-white font-semibold'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-gray-900 font-semibold'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             Jobs

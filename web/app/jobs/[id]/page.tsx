@@ -147,7 +147,7 @@ export default function JobDetailPage() {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Loading job details...</div>
+        <div className="container mx-auto px-4 py-8 text-center text-gray-500">Loading...</div>
       </div>
     )
   }
@@ -156,7 +156,7 @@ export default function JobDetailPage() {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center text-gray-400">Job not found</div>
+        <div className="container mx-auto px-4 py-8 text-center text-gray-600">Job not found</div>
       </div>
     )
   }
@@ -165,12 +165,12 @@ export default function JobDetailPage() {
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <Link href="/jobs" className="text-gray-600 hover:text-gray-900 mb-4 inline-block">
-          ← Back to Jobs
+      <div className="mb-6">
+        <Link href="/jobs" className="text-gray-600 hover:text-gray-900 text-sm mb-2 inline-block">
+          ← Jobs
         </Link>
-        <div className="flex items-center gap-4 mb-2">
-          <h1 className="text-3xl font-bold">Transformation Job #{job.id}</h1>
+        <div className="flex items-center gap-3 mb-1">
+          <h1 className="text-xl font-semibold text-gray-900">Job #{job.id}</h1>
           <div className="flex items-center gap-2">
             {getStatusIcon(job.status)}
             <span
@@ -240,9 +240,9 @@ export default function JobDetailPage() {
                 <div className="flex gap-4">
                   <button
                     onClick={() => setActiveTab('diff')}
-                    className={`px-4 py-2 border-b-2 transition-colors flex items-center gap-2 ${
+                    className={`px-4 py-2 border-b-2 transition-colors flex items-center gap-2 text-sm font-medium ${
                       activeTab === 'diff'
-                        ? 'border-primary text-primary font-semibold'
+                        ? 'border-blue-600 text-blue-600'
                         : 'border-transparent text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -251,9 +251,9 @@ export default function JobDetailPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab('log')}
-                    className={`px-4 py-2 border-b-2 transition-colors flex items-center gap-2 ${
+                    className={`px-4 py-2 border-b-2 transition-colors flex items-center gap-2 text-sm font-medium ${
                       activeTab === 'log'
-                        ? 'border-primary text-primary font-semibold'
+                        ? 'border-blue-600 text-blue-600'
                         : 'border-transparent text-gray-600 hover:text-gray-900'
                     }`}
                   >
